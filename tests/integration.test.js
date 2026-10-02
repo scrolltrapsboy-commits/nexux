@@ -15,12 +15,14 @@ function onceEvent(sock,event,predicate=()=>true,timeout=3000){
 }
 function call(sock,event,data){return new Promise((resolve,reject)=>sock.emit(event,data,r=>r?.ok?resolve(r):reject(new Error(r?.error||event+' failed'))))}
 
-test('two clients can connect, chat, friend-DM, relay call signaling and play chess',async()=>{
+test('two clients can connect, chat, friend-DM, relay call signaling and play chess',{timeout:30000},async()=>{
  const port=3199,base='http://127.0.0.1:'+port;
- const proc=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:String(port),DB_PATH:':memory:'},stdio:['ignore','pipe','pipe']});
+ let a,b;
+ const proc=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:String(port),DB_PATH:':memory:'},stdio:'ignore'});
  try{
   await waitForHealth(base+'/health');
-  const a=io(base,{transports:['websocket'],autoConnect:false}),b=io(base,{transports:['websocket'],autoConnect:false});
+  a=io(base,{transports:['websocket'],autoConnect:false});
+  b=io(base,{transports:['websocket'],autoConnect:false});
   a.connect();b.connect();
   await Promise.all([onceEvent(a,'connect'),onceEvent(b,'connect')]);
   const ha=await call(a,'hello',{name:'SmokeA'}),hb=await call(b,'hello',{name:'SmokeB'});
@@ -51,5 +53,10 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   const after=await bReady;
   assert.equal(after.state.turn,0);
   a.disconnect();b.disconnect();
- }finally{proc.kill('SIGTERM');await sleep(250)}
+ }finally{
+  try{a?.close()}catch{}
+  try{b?.close()}catch{}
+  if(!proc.killed){try{proc.kill('SIGTERM')}catch{}}
+  await Promise.race([new Promise(resolve=>proc.once('exit',resolve)),sleep(1000)]);
+ }
 });
