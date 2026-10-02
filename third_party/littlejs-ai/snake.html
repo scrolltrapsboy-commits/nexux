@@ -1,0 +1,638 @@
+<!DOCTYPE html><head>
+<title>LittleJS Snake</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head><body style="background:#000">
+<script src="../dist/littlejs.js?1.18.15"></script>
+<script src="../templates/soundGenerator.js"></script>
+<script src="../templates/menus.js"></script>
+<script>
+'use strict';
+
+// engine settings, do not remove
+debugWatermark = false;
+showEngineVersion = false;
+paused = false;
+
+// engine settings, customize if necessary
+gravity = vec2(0, 0);
+cameraScale = 34;
+canvasMaxSize = vec2(2048, 2048);
+
+///////////////////////////////////////////////////////////////////////////////
+// Snake (grid-based)
+
+const gridW = 24;
+const gridH = 18;
+const cellSize = 1;
+
+// Tunables
+const stepIntervalStart = .12;
+const stepIntervalMin   = .06;
+const stepSpeedup       = .003;
+const deathFreezeTime   = .55; // brief freeze before game-over menu surfaces
+
+let snake, dir, nextDir;
+let food, poison;
+let grow;
+let score, best;
+let alive;
+let isPlaying;     // true once player has started a run (controls pause shortcut)
+let stepTimer, stepInterval;
+
+// juice
+let particles;       // array of {pos, vel, life, lifeMax, size, color}
+let shakeTimer;      // remaining seconds of screen shake
+let shakeAmp;        // intensity of current shake
+let renderShake;     // applied each frame in render
+let foodPulseTimer;  // ticks up from 0; used to pulse food size
+let scorePopTimer;   // brief score-bump animation
+let growPulseTimer;  // brief snake-grow flash
+let deathFreezeTimer;// counts down after death before menu opens
+let snakeFlashTimer; // flash on death
+let foodSpawnTimer;  // small grow-in animation when food appears
+
+// sounds (created in gameInit so user-gesture audio is happy)
+let sEat, sPoison, sDie, sStep, sSelect, sActivate;
+
+///////////////////////////////////////////////////////////////////////////////
+// Helpers
+
+function clampDir(d)
+{
+    if (!snake || !snake.length) return d;
+    return (d.x === -dir.x && d.y === -dir.y) ? dir : d;
+}
+
+function cellToWorld(c)
+{
+    return vec2((c.x - gridW/2 + .5) * cellSize, (c.y - gridH/2 + .5) * cellSize);
+}
+
+function isCellInBounds(c)
+{
+    return c.x >= 0 && c.y >= 0 && c.x < gridW && c.y < gridH;
+}
+
+function cellEquals(a,b){ return a.x === b.x && a.y === b.y; }
+
+function cellOnSnake(c)
+{
+    for (const s of snake)
+        if (cellEquals(s, c)) return true;
+    return false;
+}
+
+function randEmptyCell()
+{
+    for (let i=0; i<200; ++i)
+    {
+        const c = vec2(randInt(gridW), randInt(gridH));
+        if (cellOnSnake(c)) continue;
+        if (food && cellEquals(c, food)) continue;
+        if (poison && cellEquals(c, poison)) continue;
+        return c;
+    }
+    for (let y=0; y<gridH; ++y)
+    for (let x=0; x<gridW; ++x)
+    {
+        const c = vec2(x,y);
+        if (!cellOnSnake(c) && (!food || !cellEquals(c, food)) && (!poison || !cellEquals(c, poison)))
+            return c;
+    }
+    return vec2(0,0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Game state
+
+function resetGame()
+{
+    const start = vec2(gridW/2|0, gridH/2|0);
+    snake = [start.copy(), start.add(vec2(-1,0)), start.add(vec2(-2,0)), start.add(vec2(-3,0))];
+    dir = vec2(1,0);
+    nextDir = dir;
+
+    grow = 0;
+    score = 0;
+    alive = true;
+
+    stepInterval = stepIntervalStart;
+    stepTimer = stepInterval;
+
+    food = randEmptyCell();
+    poison = 0;
+
+    particles = [];
+    shakeTimer = 0;
+    shakeAmp = 0;
+    renderShake = vec2(0,0);
+    foodPulseTimer = 0;
+    scorePopTimer = 0;
+    growPulseTimer = 0;
+    deathFreezeTimer = 0;
+    snakeFlashTimer = 0;
+    foodSpawnTimer = .25;
+}
+
+function startScreenShake(amp, time)
+{
+    shakeAmp = max(shakeAmp, amp);
+    shakeTimer = max(shakeTimer, time);
+}
+
+function spawnParticles(worldPos, color, count, speedMin, speedMax, life=.6)
+{
+    for (let i=0; i<count; ++i)
+    {
+        const a = rand(0, PI*2);
+        const speed = rand(speedMin, speedMax);
+        particles.push({
+            pos: worldPos.add(vec2(rand(-.15,.15), rand(-.15,.15))),
+            vel: vec2(Math.cos(a), Math.sin(a)).scale(speed),
+            life: life * rand(.7, 1.1),
+            lifeMax: life,
+            size: rand(.10, .22),
+            color: color.copy(),
+        });
+    }
+}
+
+function updateParticles(dt)
+{
+    for (let i=particles.length-1; i>=0; --i)
+    {
+        const p = particles[i];
+        p.life -= dt;
+        if (p.life <= 0) { particles.splice(i,1); continue; }
+        // gentle drag, no gravity (top-down)
+        p.vel = p.vel.scale(.92);
+        p.pos = p.pos.add(p.vel.scale(dt));
+    }
+}
+
+function renderParticles()
+{
+    for (const p of particles)
+    {
+        const t = clamp(p.life / p.lifeMax, 0, 1);
+        const c = p.color.copy();
+        c.a *= t;
+        drawRect(p.pos.add(renderShake), vec2(p.size * (.6 + .4*t)), c);
+    }
+}
+
+function updateScreenShake(dt)
+{
+    if (shakeTimer <= 0) { renderShake = vec2(0,0); return; }
+    shakeTimer -= dt;
+    const t = max(shakeTimer, 0) / .35;
+    const amp = shakeAmp * t * t;
+    renderShake = vec2(rand(-amp, amp), rand(-amp, amp));
+    if (shakeTimer <= 0) { shakeAmp = 0; renderShake = vec2(0,0); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Step / consume / die
+
+function die()
+{
+    if (!alive) return;
+    alive = false;
+    sDie && sDie.play();
+
+    // death feedback: particle burst at head, screen shake, brief freeze, flash
+    const headWorld = cellToWorld(snake[0]);
+    spawnParticles(headWorld, hsl(.33, .9, .6), 26, 4, 11, .8);
+    spawnParticles(headWorld, hsl(0,    .9, .6),  8, 2,  6, .55);
+    startScreenShake(.55, .35);
+    deathFreezeTimer = deathFreezeTime;
+    snakeFlashTimer = .4;
+
+    if (score > best)
+    {
+        best = score;
+        try { localStorage.setItem('snake_best', ''+best); } catch(e){}
+    }
+}
+
+function eatFood()
+{
+    score++;
+    grow++;
+    sEat && sEat.play();
+
+    // juice
+    const fp = cellToWorld(food);
+    spawnParticles(fp, hsl(.12, 1, .6), 14, 3, 8, .5);
+    spawnParticles(fp, hsl(.04, 1, .6),  4, 2, 5, .4);
+    startScreenShake(.10, .12);
+    scorePopTimer  = .35;
+    growPulseTimer = .25;
+    foodSpawnTimer = .25;
+
+    stepInterval = max(stepIntervalMin, stepIntervalStart - score * stepSpeedup);
+
+    food = randEmptyCell();
+
+    // chance to introduce poison after you get going
+    if (!poison && score >= 3 && randInt(100) < 35)
+        poison = randEmptyCell();
+}
+
+function hitPoison()
+{
+    sPoison && sPoison.play();
+
+    // shrink by 2 segments (but keep at least 2)
+    let shrink = 2;
+    while (shrink-- && snake.length > 2)
+        snake.pop();
+
+    score = max(0, score - 1);
+
+    const pp = cellToWorld(poison);
+    spawnParticles(pp, hsl(.78, 1, .7), 16, 3, 8, .55);
+    startScreenShake(.20, .18);
+    poison = randEmptyCell();
+}
+
+function tick()
+{
+    dir = clampDir(nextDir);
+
+    const head = snake[0];
+    const newHead = head.add(dir);
+
+    if (!isCellInBounds(newHead))
+        return die();
+
+    const willRemoveTail = (grow <= 0);
+    for (let i=0; i<snake.length; ++i)
+    {
+        const s = snake[i];
+        if (!cellEquals(s, newHead)) continue;
+        if (willRemoveTail && i === snake.length-1)
+            break;
+        return die();
+    }
+
+    snake.unshift(newHead);
+
+    if (cellEquals(newHead, food))
+        eatFood();
+    else if (poison && cellEquals(newHead, poison))
+        hitPoison();
+    else
+        sStep && sStep.play();
+
+    if (grow > 0) grow--;
+    else snake.pop();
+
+    if (!poison && score >= 5 && randInt(100) < 4)
+        poison = randEmptyCell();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Input
+
+function handleInput()
+{
+    // Use keyDirection for arrow/WASD movement; gamepad d-pad / left stick.
+    const kd = keyDirection();
+    const stick = gamepadStick(0);
+    const gx = (gamepadIsDown(14) ? -1 : 0) + (gamepadIsDown(15) ? 1 : 0);
+    const gy = (gamepadIsDown(13) ? -1 : 0) + (gamepadIsDown(12) ? 1 : 0);
+
+    let want = vec2(0,0);
+    if (kd.x || kd.y) want = vec2(Math.sign(kd.x), Math.sign(kd.y));
+    else if (gx || gy) want = vec2(gx, gy);
+    else if (Math.abs(stick.x) > .4 || Math.abs(stick.y) > .4)
+    {
+        want = Math.abs(stick.x) > Math.abs(stick.y)
+            ? vec2(Math.sign(stick.x), 0)
+            : vec2(0, Math.sign(stick.y));
+    }
+
+    if (want.x || want.y)
+    {
+        // restrict to one axis at a time so diagonal taps pick a sane direction
+        if (want.x && want.y) want = vec2(want.x, 0);
+        nextDir = clampDir(want);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Menus
+
+function startNewRun()
+{
+    resetGame();
+    isPlaying = true;
+    hideAllMenus();
+}
+
+function buildMenus()
+{
+    // Title screen
+    createTitleMenu({
+        title: 'SNAKE',
+        subtitle: 'Eat the green dots. Avoid the walls.',
+        onPlay: startNewRun,
+        canReveal: () => !isPlaying,
+        items: [
+            {type:'button', label:'OPTIONS', onClick: () => pushMenu('options')},
+            {type:'button', label:'ABOUT',   onClick: () => pushMenu('about')},
+        ],
+    });
+
+    // Options
+    createMenu({
+        id: 'options',
+        title: 'OPTIONS',
+        onHide: popMenu,
+        items: [
+            {type:'slider',   id:'volume', label:'VOLUME', value:.7, min:0, max:1,
+                persist:'snake.volume',
+                onChange: v => setSoundVolume(v)},
+            {type:'separator'},
+            {type:'button',   label:'FULLSCREEN', onClick: toggleFullscreen},
+            {type:'separator'},
+            {type:'button',   label:'BACK', onClick: () => hideMenu('options')},
+        ],
+    });
+
+    // About
+    createMenu({
+        id: 'about',
+        title: 'ABOUT',
+        onHide: popMenu,
+        items: [
+            {type:'label', text:'A LittleJS prototype.'},
+            {type:'text',  text:'Move with the Arrow keys or WASD. Eat the green ' +
+                'food to grow and score. Watch out for the purple poison — it shrinks ' +
+                'you and costs a point. Press Esc or Start to pause.'},
+            {type:'separator'},
+            {type:'button', label:'BACK', onClick: () => hideMenu('about')},
+        ],
+    });
+
+    // Pause
+    createMenu({
+        id: 'pause',
+        title: 'PAUSED',
+        initialItemId: 'resume',
+        items: [
+            {type:'button', id:'resume',  label:'RESUME',        onClick: () => hideMenu('pause')},
+            {type:'button', id:'options', label:'OPTIONS',       onClick: () => pushMenu('options')},
+            {type:'button', id:'quit',    label:'QUIT TO TITLE', onClick: () =>
+            {
+                showConfirmDialog({
+                    message: 'Quit to title?',
+                    onYes: () =>
+                    {
+                        clearSubmenuStack();
+                        hideAllMenus();
+                        isPlaying = false;
+                        showMenu('title');
+                    },
+                });
+            }},
+        ],
+    });
+
+    // Game Over (built fresh each death so the score lines reflect this run)
+    // We expose a helper that (re)builds and shows it.
+}
+
+function showGameOverMenu()
+{
+    const newBest = score >= best && score > 0;
+    // Destroy any prior instance so labels are current
+    const prev = getMenu('gameover');
+    if (prev) prev.destroy();
+
+    createMenu({
+        id: 'gameover',
+        title: 'GAME OVER',
+        dismissable: false,
+        initialItemId: 'again',
+        items: [
+            {type:'label', text: `Score: ${score}`},
+            {type:'label', text: newBest ? `New Best!` : `Best: ${best}`},
+            {type:'separator'},
+            {type:'button', id:'again', label:'PLAY AGAIN', onClick: startNewRun},
+            {type:'button', label:'TITLE', onClick: () =>
+            {
+                clearSubmenuStack();
+                hideAllMenus();
+                isPlaying = false;
+                showMenu('title');
+            }},
+        ],
+    });
+    showMenu('gameover');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+async function gameInit()
+{
+    canvasClearColor = BLACK;
+    setCanvasFixedSize(vec2(1280, 720));
+    cameraScale = 34;
+    cameraPos = vec2(0,0);
+
+    best = parseInt(localStorage.getItem('snake_best') || '0') || 0;
+
+    // sounds (constructed after engine init so audio context can resume on gesture)
+    sEat    = new SoundGenerator({volume:.7, frequency:520, release:.06, shapeCurve:1.2, pitchJump:120, pitchJumpTime:.02});
+    sPoison = new SoundGenerator({volume:.7, frequency:180, release:.12, noise:.15, slide:-.2});
+    sDie    = new SoundGenerator({volume:1,  frequency:90,  release:.35, noise:.25, shapeCurve:.6, slide:-.4, delay:.03});
+    sStep   = new SoundGenerator({volume:.10, frequency:380, release:.015, shapeCurve:1.4});
+
+    // menu UI sounds (zzfx-style Sound objects so master volume / muting just work)
+    sSelect   = new Sound([.4,,910,,,.02,2,.07,-5,-33,,,,,,,,.25]);
+    sActivate = new Sound([.5,,30,.01,,.02,1,3.4,94,,,,,,,,,.67]);
+    setMenuSounds({
+        select:   () => sSelect.play(),
+        activate: () => sActivate.play(),
+    });
+
+    // Pause whenever any menu (incl. dialogs) is visible — never toggle paused
+    // from gameUpdate (gameUpdate doesn't run while paused).
+    setMenuVisibilityCallback(v => paused = v);
+
+    // initial state — title up, no run in progress
+    isPlaying = false;
+    resetGame();
+
+    buildMenus();
+    showMenu('title');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function gameUpdate()
+{
+    // Pause shortcut — only while a run is in progress (otherwise title owns Esc)
+    if (bindPauseKey({when: () => isPlaying && alive})) return;
+
+    handleInput();
+
+    // animation timers
+    foodPulseTimer += timeDelta;
+    if (foodSpawnTimer > 0) foodSpawnTimer -= timeDelta;
+    if (scorePopTimer  > 0) scorePopTimer  -= timeDelta;
+    if (growPulseTimer > 0) growPulseTimer -= timeDelta;
+    if (snakeFlashTimer> 0) snakeFlashTimer-= timeDelta;
+
+    updateParticles(timeDelta);
+    updateScreenShake(timeDelta);
+
+    if (!alive)
+    {
+        // brief freeze, then surface the game-over menu (which pauses the game)
+        if (deathFreezeTimer > 0)
+        {
+            deathFreezeTimer -= timeDelta;
+            if (deathFreezeTimer <= 0)
+                showGameOverMenu();
+        }
+        return;
+    }
+
+    stepTimer -= timeDelta;
+    while (stepTimer <= 0)
+    {
+        stepTimer += stepInterval;
+        tick();
+        if (!alive) break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function gameUpdatePost()
+{
+    cameraPos = vec2(0,0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function gameRender()
+{
+    // background
+    drawRectGradient(cameraPos, getCameraSize(), hsl(0,0,.06), hsl(0,0,.12));
+
+    // playfield (with shake offset)
+    const off = renderShake;
+    const fieldSize = vec2(gridW*cellSize, gridH*cellSize);
+    drawRect(cameraPos.add(off), fieldSize.add(vec2(.6)), hsl(.33,.4,.18));
+    drawRect(cameraPos.add(off), fieldSize.add(vec2(.4)), hsl(0,0,.2));
+    drawRect(cameraPos.add(off), fieldSize, hsl(0,0,.08));
+
+    // subtle grid lines
+    {
+        const halfW = gridW/2;
+        const halfH = gridH/2;
+        const col = hsl(0,0,.2,.30);
+        for (let x=-halfW; x<=halfW; ++x)
+            drawLine(vec2(x,-halfH).add(off), vec2(x,halfH).add(off), .03, col);
+        for (let y=-halfH; y<=halfH; ++y)
+            drawLine(vec2(-halfW,y).add(off), vec2(halfW,y).add(off), .03, col);
+    }
+
+    // food (pulsing) with grow-in animation
+    {
+        const p = cellToWorld(food).add(off);
+        const pulse = .75 + Math.sin(foodPulseTimer * 6) * .06;
+        const grow = foodSpawnTimer > 0 ? clamp(1 - foodSpawnTimer/.25, 0, 1) : 1;
+        const size = pulse * (.4 + .6*grow);
+        // soft glow
+        drawCircle(p, size + .35, hsl(.12, 1, .55, .15));
+        drawCircle(p, size + .18, hsl(.12, 1, .60, .25));
+        drawCircle(p, size,       hsl(.12, 1, .58));
+        drawCircle(p, size * .55, hsl(.16, 1, .80));
+    }
+
+    // poison
+    if (poison)
+    {
+        const p = cellToWorld(poison).add(off);
+        const pulse = .72 + Math.sin(foodPulseTimer * 4 + 1.7) * .05;
+        drawCircle(p, pulse + .25, hsl(.78, 1, .55, .20));
+        drawCircle(p, pulse,       hsl(.78, 1, .60));
+        drawCircle(p, pulse * .55, hsl(.82, 1, .85));
+    }
+
+    // snake — grow pulse swells the head briefly; death flashes red
+    const flash = snakeFlashTimer > 0 ? Math.sin(snakeFlashTimer * 40) > 0 : false;
+    const headSwell = growPulseTimer > 0 ? .12 * (growPulseTimer / .25) : 0;
+    for (let i=snake.length; i--;)
+    {
+        const c = snake[i];
+        const p = cellToWorld(c).add(off);
+        const t = i / max(1, snake.length-1);
+
+        let col;
+        if (!alive && flash)
+            col = hsl(0, 1, lerp(.45, .65, 1-t));
+        else if (i === 0)
+            col = hsl(.33, 1, .7);
+        else
+            col = hsl(.33, .8, lerp(.25, .55, 1-t));
+
+        const sz = i === 0 ? .92 + headSwell : .92;
+        drawRect(p, vec2(sz), col);
+
+        // two googly eyes on the leading face of the head — both eyes on the
+        // forward side, offset perpendicular to direction of travel so the snake
+        // gets a cartoony "head-on" cute look rather than a real-snake side view.
+        if (i === 0 && alive)
+        {
+            const forward = vec2(dir.x, dir.y);
+            const side    = vec2(-dir.y, dir.x);    // perpendicular to forward
+            const eyeFwd  = .15;                    // toward leading edge of head
+            const eyeSep  = .20;                    // separation between eyes
+            const eyeD    = .30;                    // eye diameter (white sclera)
+            const pupilD  = .15;                    // pupil diameter
+            const pupilLean = forward.scale(.05);   // pupils peek slightly forward
+
+            const eyeA = p.add(forward.scale(eyeFwd)).add(side.scale( eyeSep));
+            const eyeB = p.add(forward.scale(eyeFwd)).add(side.scale(-eyeSep));
+
+            drawCircle(eyeA, eyeD, hsl(0,0,1));
+            drawCircle(eyeB, eyeD, hsl(0,0,1));
+            drawCircle(eyeA.add(pupilLean), pupilD, hsl(0,0,.05));
+            drawCircle(eyeB.add(pupilLean), pupilD, hsl(0,0,.05));
+        }
+    }
+
+    renderParticles();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function gameRenderPost()
+{
+    if (!isPlaying) return; // title screen owns the canvas; menu draws its own
+
+    const cx = mainCanvasSize.x/2;
+
+    // Score (pops on eat)
+    const popScale = scorePopTimer > 0 ? 1 + .35 * (scorePopTimer / .35) : 1;
+    const scoreSize = 44 * popScale;
+    drawTextScreen(`${score}`, vec2(cx, 60), scoreSize, hsl(.33,.9,.85), 5, hsl(0,0,0));
+    drawTextScreen(`BEST  ${best}`, vec2(cx, 100), 20, hsl(0,0,1,.75), 3, hsl(0,0,0,.8));
+
+    // touch / first-time hint (only while score is low)
+    if (alive && score < 2)
+    {
+        const help = isTouchDevice
+            ? 'Swipe / d-pad to steer'
+            : 'Arrow keys or WASD to move    Esc to pause';
+        const a = .6 + .4 * Math.sin(time * 2.5);
+        drawTextScreen(help, vec2(cx, mainCanvasSize.y - 32), 18, hsl(0,0,1,a), 3, hsl(0,0,0,a));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost);
+
+</script></body></html>
