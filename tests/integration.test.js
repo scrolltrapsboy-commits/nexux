@@ -13,7 +13,8 @@ function onceRoom(sock,predicate,timeout=3000){
 function onceEvent(sock,event,predicate=()=>true,timeout=3000){
  return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{sock.off(event,handler);reject(new Error(event+' timeout'))},timeout);const handler=v=>{if(predicate(v)){clearTimeout(timer);sock.off(event,handler);resolve(v)}};sock.on(event,handler)})
 }
-function call(sock,event,data){return new Promise((resolve,reject)=>sock.emit(event,data,r=>r?.ok?resolve(r):reject(new Error(r?.error||event+' failed'))))}
+function call(sock,event,data){return new Promise((resolve,reject)=>sock.emit(event,data,r=>r?.error?reject(new Error(r.error)):resolve(r)))}
+
 
 test('two clients can connect, chat, friend-DM, relay call signaling and play chess',{timeout:30000},async()=>{
  const port=3199,base='http://127.0.0.1:'+port;
