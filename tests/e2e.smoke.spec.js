@@ -40,7 +40,10 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(codeMatch).not.toBeNull();
   const code = codeMatch[0];
 
-  await enterAsGuest(p2, 'http://127.0.0.1:3000/?room='+code);
+  await enterAsGuest(p2);
+  await p2.locator('#roomCodeBtn').click();
+  await p2.locator('#joinCode').fill(code);
+  await p2.locator('#joinBtn').click();
   await expect(p2.locator('#gameModal')).toBeVisible();
 
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
