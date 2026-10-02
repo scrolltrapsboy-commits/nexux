@@ -137,7 +137,7 @@ function poolShot(s,i,m){
   s.shotNo++;s.animation=frames.slice(-90);return {animation:true}
 }
 function finishPool(s,i,win,reason){s.phase='gameover';s.winner=i;s.winReason=reason;s.animation=[];return win?{winner:i,reason:'8-ball'}:{winner:other(i),reason:'illegal 8-ball'} }
-GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:poolInit,move:poolShot}
+GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:sourcePoolInit,move:sourcePoolMove}
 
 function golfInit(){return{turn:0,strokes:[0,0],balls:[{x:.12,y:.86,vx:0,vy:0},{x:.12,y:.86,vx:0,vy:0}],done:[false,false],hole:{x:.86,y:.14,r:.045},walls:[{x1:.28,y1:.18,x2:.28,y2:.62},{x1:.28,y1:.62,x2:.68,y2:.62},{x1:.68,y1:.38,x2:.68,y2:.82},{x1:.40,y1:.38,x2:.68,y2:.38}],animation:[]}}
 const GOLF={R:.025,DT:1/120,MAX:1600}
@@ -267,7 +267,7 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* Source-engine integrations. The complete upstream snapshots live under   */
 /* third_party/source-games and their licenses are retained alongside them.  */
 /* -------------------------------------------------------------------------- */
-const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove}=require('./sourceGames');
+const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove}=require('./sourceGames');
 GAMES.yahtzee=LAN_GAMES.yahtzee;
 GAMES.monopoly=LAN_GAMES.monopoly;
 GAMES.risk=LAN_GAMES.risk;
