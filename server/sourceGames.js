@@ -252,4 +252,154 @@ function sourceBackgammonMove(s,i,m){
   return bgState(game,s);
 }
 
+/* Exact MIT Classic-Pool-Game runtime adapter.
+   The source files under third_party/source-games/pool are executed unchanged
+   inside an isolated VM. NEXUS only supplies browser-global stubs and
+   serializes the source runtime for Socket.IO. */
+let poolSourceContext;
+function loadExactPoolRuntime(){
+  if(poolSourceContext)return poolSourceContext;
+  const ctx=vm.createContext({
+    console,
+    Math,
+    Date,
+    JSON,
+    setTimeout(fn){ctx.__poolTimers.push(fn);return 0},
+    clearTimeout(){},
+    __poolTimers:[],
+    Color:{red:'red',yellow:'yellow',black:'black',white:'white'},
+    sprites:{background:{},redBall:{},yellowBall:{},blackBall:{},ball:{},stick:{}},
+    sounds:{
+      strike:{cloneNode(){return {volume:0,play(){return Promise.resolve()}}}},
+      hole:{cloneNode(){return {volume:0,play(){return Promise.resolve()}}}},
+      ballsCollide:{cloneNode(){return {volume:0,play(){return Promise.resolve()}}}}
+    },
+    Canvas2D:{drawImage(){},drawText(){}},
+    Keyboard:{down(){return false},reset(){}},
+    Keys:{W:'w',S:'s'},
+    Mouse:{left:{down:false},position:{x:413,y:413},reset(){}},
+    Game:{size:{x:1500,y:825},sound:false,gameWorld:null,policy:null},
+    AI:{finishedSession:false,startSession(){}}
+  });
+  const files=['Global.js','Vector2.js','Score.js','Player.js','Ball.js','Stick.js','GamePolicy.js','GameWorld.js'];
+  for(const file of files)vm.runInContext(readThirdParty('pool',file),ctx,{filename:'pool/'+file});
+  return poolSourceContext=ctx;
+}
+function poolRunTimers(ctx){while(ctx.__poolTimers.length){const fn=ctx.__poolTimers.shift();try{fn()}catch{}}}
+function poolSourceState(game,target={}){
+  const policy=game.policy,world=game.world;
+  const srcBalls=world.balls||[];
+  const mapBall=(b,id)=>({
+    id,type:b===world.whiteBall?'cue':'object',
+    group:b.color==='red'?'solid':b.color==='yellow'?'stripe':b.color==='black'?'eight':'cue',
+    number:id,
+    x:(b.position?.x||0)/1500,y:(b.position?.y||0)/825,
+    vx:(b.velocity?.x||0)/1500,vy:(b.velocity?.y||0)/825,
+    pocketed:!!b.inHole,visible:b.visible!==false
+  });
+  let solidNo=1,stripeNo=9;
+  const objects=srcBalls.filter(b=>b!==world.whiteBall).map(b=>{
+    let n=8;if(b.color==='red')n=solidNo++;else if(b.color==='yellow')n=stripeNo++;
+    return mapBall(b,n);
+  });
+  const cue=mapBall(world.whiteBall,0);
+  cue.x=Number(cue.x)||0;cue.y=Number(cue.y)||0;
+  target.source='classic-pool-game';
+  target.turn=policy.turn;
+  target.phase=policy.won?'gameover':(policy.turnPlayed?'simulating':'playing');
+  target.ballInHand=!!policy.foul;
+  target.foul=!!policy.foul;
+  target.firstCollision=!!policy.firstCollision;
+  target.groups=policy.players.map(p=>p.color==='red'?'solid':p.color==='yellow'?'stripe':null);
+  target.players=policy.players.map(p=>({color:p.color||null,score:p.matchScore.value,totalScore:p.totalScore.value}));
+  target.balls=[cue,...objects];
+  target.animation=target.animation||[];
+  target.winner=policy.won?(policy.foul?other(policy.turn):policy.turn):null;
+  target.sourceDimensions={width:1500,height:825};
+  if(!Object.prototype.hasOwnProperty.call(target,'__poolRuntime')){
+    Object.defineProperty(target,'__poolRuntime',{value:{ctx:game.ctx,policy,world,game},writable:true,configurable:true});
+  }else target.__poolRuntime={ctx:game.ctx,policy,world,game};
+  return target;
+}
+function poolSourceNewGame(){
+  const ctx=loadExactPoolRuntime();
+  ctx.Game.size={x:1500,y:825};ctx.Game.sound=false;ctx.AI.finishedSession=false;ctx.AI_ON=false;
+  ctx.Mouse.position={x:413,y:413};ctx.Mouse.left.down=false;ctx.__poolTimers.length=0;
+  const policy=new ctx.GamePolicy();
+  const world=new ctx.GameWorld();
+  ctx.Game.policy=policy;ctx.Game.gameWorld=world;
+  world.stick.position=world.whiteBall.position.copy();
+  const game={ctx,policy,world};
+  return game;
+}
+function sourcePoolInit(){
+  const game=poolSourceNewGame();
+  const s=poolSourceState(game,{});
+  s.animation=[];
+  return s;
+}
+function poolSourceFrame(runtime){
+  const {world}=runtime;
+  let solidNo=1,stripeNo=9;
+  const out=[];
+  const objectBalls=(world.balls||[]).filter(b=>b!==world.whiteBall);
+  out.push({id:0,x:(world.whiteBall.position?.x||0)/1500,y:(world.whiteBall.position?.y||0)/825,pocketed:!!world.whiteBall.inHole,group:'cue',number:0});
+  for(const b of objectBalls){
+    let n=8;if(b.color==='red')n=solidNo++;else if(b.color==='yellow')n=stripeNo++;
+    out.push({id:out.length,x:(b.position?.x||0)/1500,y:(b.position?.y||0)/825,pocketed:!!b.inHole,group:b.color==='red'?'solid':b.color==='yellow'?'stripe':'eight',number:n});
+  }
+  return out;
+}
+function sourcePoolMove(s,i,m){
+  const runtime=s.__poolRuntime;
+  if(!runtime)return'Pool source runtime unavailable';
+  const {ctx,policy,world}=runtime;
+  if(policy.won)return'Game over';
+  if(policy.turn!==i)return'Not your turn';
+  const ball=world.whiteBall;
+  if(s.ballInHand){
+    const cueX=clamp(Number(m?.cueX??(ball.position.x/1500)),.06,.94)*1500;
+    const cueY=(i===0?413:413);
+    const candidate=new ctx.Vector2(cueX,cueY);
+    let overlap=false;
+    for(const b of world.balls){if(b===ball||b.inHole)continue;if(candidate.distanceFrom(b.position)<38){overlap=true;break}}
+    if(overlap)return'Place the cue ball in an open position';
+    ball.position=candidate;ball.inHole=false;ball.visible=true;policy.foul=false;s.ballInHand=false;world.stick.position=ball.position.copy();
+    if(m?.placeOnly){poolRunTimers(ctx);poolSourceState({ctx,policy,world},s);return}
+  }
+  const dx=Number(m?.dx),dy=Number(m?.dy),mag=Math.hypot(dx,dy),power=Number(m?.power);
+  if(!Number.isFinite(dx)||!Number.isFinite(dy)||mag<.01)return'Choose an aim direction';
+  if(!Number.isFinite(power)||power<=.02)return'Shot power is too low';
+  const sourcePower=clamp(.048+.272*clamp(power,0,1),.048,.32);
+  const angle=Math.atan2(dy,dx);
+  world.stick.position=ball.position.copy();
+  world.stick.shooting=false;world.stick.visible=true;
+  world.stick.shoot(sourcePower,angle);
+  const frames=[poolSourceFrame(runtime)];
+  let steps=0;
+  while(world.ballsMoving()&&steps++<7000){
+    world.update(ctx.DELTA);
+    if(steps%6===0)frames.push(poolSourceFrame(runtime));
+  }
+  poolRunTimers(ctx);
+  frames.push(poolSourceFrame(runtime));
+  policy.updateTurnOutcome();
+  poolRunTimers(ctx);
+  if(policy.foul&&!policy.won){
+    ball.inHole=false;ball.visible=true;ball.moving=false;ball.velocity=ctx.Vector2.zero;
+    const baselineY=policy.turn===0?413:413;
+    ball.position=new ctx.Vector2(clamp(ball.position.x,120,1380),baselineY);
+    world.stick.position=ball.position.copy();
+  }
+  s.animation=frames.slice(-180);
+  const out=poolSourceState({ctx,policy,world},s);
+  out.animation=s.animation;
+  if(policy.won){
+    return policy.foul
+      ? {winner:other(policy.turn),reason:'source 8-ball foul'}
+      : {winner:policy.turn,reason:'source 8-ball'};
+  }
+  return{animation:true};
+}
+
 module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
