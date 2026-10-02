@@ -47,25 +47,22 @@ function clamp01(n){return clamp(Number(n)||0,0,1)}
 const POOL={W:1,H:.5,R:.0185,POCKET:.036,RAIL:.045,DT:1/120,MAX_STEPS:2400}
 const POCKETS=[[0,0],[.5,0],[1,0],[0,POOL.H],[.5,POOL.H],[1,POOL.H]]
 function rackBalls(){
-  const balls=[]
-  const types=['cue',...Array.from({length:7},()=> 'solid'), 'eight',...Array.from({length:7},()=> 'stripe')]
-  const apexX=.73, cy=.25, gap=POOL.R*2.04
-  balls.push({id:0,number:0,type:'cue',group:'cue',x:.24,y:cy,vx:0,vy:0,pocketed:false})
-  let id=1
-  for(let row=0;row<5;row++){
-    const x=apexX+row*gap*Math.cos(Math.PI/6)
-    const y0=cy-row*gap/2
-    for(let k=0;k<=row;k++){
-      const number=id
-      balls.push({id:number,number,type:types[number],group:number===8?'eight':number<=7?'solid':'stripe',x,y:y0+k*gap,vx:0,vy:0,pocketed:false})
-      id++
+  const balls=[];
+  const apexX=.73,cy=.25,gap=POOL.R*2.04;
+  const rack=[[1],[2,3],[4,8,5],[6,9,10,11],[12,13,14,15,7]];
+  balls.push({id:0,number:0,type:'cue',group:'cue',x:.24,y:cy,vx:0,vy:0,pocketed:false});
+  let id=1;
+  for(let row=0;row<rack.length;row++){
+    const x=apexX+row*gap*Math.cos(Math.PI/6);
+    const y0=cy-row*gap/2;
+    for(let k=0;k<rack[row].length;k++){
+      const number=rack[row][k];
+      const group=number===8?'eight':number<=7?'solid':'stripe';
+      balls.push({id:number,number,type:group,group,x,y:y0+k*gap,vx:0,vy:0,pocketed:false});
+      id++;
     }
   }
-  // Standard-ish 8-ball rack: 8 in the center, one solid/stripe at each back corner.
-  const byId=id=>balls.find(b=>b.id===id)
-  const b8=byId(8), center=balls.find(b=>Math.abs(b.x-(apexX+2*gap*Math.cos(Math.PI/6)))<.001 && Math.abs(b.y-cy)<.001)
-  if(b8&&center){const ox=center.x,oy=center.y;b8.x=ox;b8.y=oy;center.x=ox+gap*.02;center.y=oy+gap*.02}
-  return balls
+  return balls;
 }
 function poolInit(){return{balls:rackBalls(),turn:0,groups:[null,null],ballInHand:true,phase:'break',foul:false,firstContact:null,lastPocketed:[],shotNo:0,animation:[]}}
 function poolPocketedCount(s,group){return s.balls.filter(b=>b.pocketed&&b.group===group).length}
@@ -185,7 +182,8 @@ function sourceChessInit(){
   return {fen:g.fen(),history:[],turn:0,pgn:'',status:'playing'};
 }
 function sourceChessMove(s,i,m){
-  const g=new Chess(s.fen);
+  const g=new Chess();
+  try{for(const san of s.history||[])g.move(san);}catch{return'Invalid chess history'}
   const expected=g.turn()==='w'?0:1;
   if(i!==expected)return'Not your turn';
   if(typeof m?.from!=='string'||typeof m?.to!=='string')return'Invalid square';
