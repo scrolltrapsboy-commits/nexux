@@ -81,6 +81,34 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   const mobile=await p1.locator('#gameModal .game-modal').boundingBox();
   expect(mobile.width).toBeCloseTo(390,0);
   expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await p1.setViewportSize({width:1280,height:900});
+  await p1.locator('#callEnd').click();
+  await p1.locator('#leaveGame').click();
+  await p2.locator('#leaveGame').click();
+  await expect(p1.locator('#gameModal')).toBeHidden();
+  await expect(p2.locator('#gameModal')).toBeHidden();
+
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong'];
+  for(const game of allGames){
+    await p1.locator('.sidebar [data-view="games"]').click();
+    await p1.locator(`.play-btn[data-game="${game}"]`).click();
+    await expect(p1.locator('#gameModal')).toBeVisible();
+    await expect(p1.locator('#gameBoard')).not.toBeEmpty();
+    await p2.locator('.sidebar [data-view="games"]').click();
+    await p2.locator(`.play-btn[data-game="${game}"]`).click();
+    await expect(p1.locator('#gameTitle')).not.toHaveText('Game');
+    await expect(p2.locator('#gameModal')).toBeVisible();
+    await expect(p2.locator('#gameBoard')).not.toBeEmpty();
+    await expect(p1.locator('body.game-active .social')).toBeVisible();
+    await expect(p2.locator('body.game-active .social')).toBeVisible();
+    expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    expect(await p2.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    await p1.locator('#leaveGame').click();
+    await p2.locator('#leaveGame').click();
+    await expect(p1.locator('#gameModal')).toBeHidden();
+    await expect(p2.locator('#gameModal')).toBeHidden();
+  }
+
 
   expect(errors1).toEqual([]);
   expect(errors2).toEqual([]);
