@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
-async function enterAsGuest(page) {
-  await page.goto('http://127.0.0.1:3000', { waitUntil: 'domcontentloaded' });
+async function enterAsGuest(page, url='http://127.0.0.1:3000') {
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
   await expect(page.locator('#app')).toBeVisible();
 }
@@ -37,15 +37,20 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(codeMatch).not.toBeNull();
   const code = codeMatch[0];
 
-  await enterAsGuest(p2);
-  await p2.locator('#roomCodeBtn').click();
-  await p2.locator('#joinCode').fill(code);
-  await p2.locator('#joinBtn').click();
+  await enterAsGuest(p2, 'http://127.0.0.1:3000/?room='+code);
 
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
   await expect(p2.locator('#gameTitle')).toHaveText('Chess');
   await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
   await expect(p2.locator('.board-chess .chess-cell')).toHaveCount(64);
+  await expect(p1.locator('#shareGame')).toBeVisible();
+  await expect(p1.locator('body.game-active .social')).toBeVisible();
+  const vp=await p1.evaluate(()=>({w:innerWidth,h:innerHeight}));
+  const gameBox=await p1.locator('#gameModal .game-modal').boundingBox();
+  const socialBox=await p1.locator('body.game-active .social').boundingBox();
+  expect(gameBox.width).toBeGreaterThan(vp.w*0.55);
+  expect(gameBox.height).toBeGreaterThan(vp.h*0.9);
+  expect(socialBox.width).toBeGreaterThan(250);
 
   await p1.locator('[data-chess="52"]').click();
   await expect(p1.locator('[data-chess="36"].legal')).toBeVisible();
@@ -62,14 +67,20 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await p1.locator('#globalChatForm button').click();
   await expect(p1.locator('#globalChatList')).toContainText('E2E global message');
 
-  await p1.locator('#callAudio').click();
+  await p1.locator('#callVideo').click();
   await expect(p1.locator('#callEmpty')).toBeHidden();
+  await expect.poll(async()=>p1.evaluate(()=>!!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
+  await expect.poll(async()=>p2.evaluate(()=>!!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length),{timeout:10000}).toBe(true);
+  await expect.poll(async()=>p2.evaluate(()=>!!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length),{timeout:10000}).toBe(true);
+  await p1.locator('#callMute').click();
+  await p1.locator('#callCamera').click();
+  await p1.locator('#callCamera').click();
 
-  await p1.locator('#gameMobileSocial').evaluate(el => {
-    el.style.display = 'block';
-  });
-  await expect(p1.locator('#mobileCallVideo')).toBeVisible();
-  await expect(p1.locator('#mobileSocialForm')).toBeVisible();
+  await p1.setViewportSize({width:390,height:844});
+  await expect(p1.locator('body.game-active .social')).toBeVisible();
+  const mobile=await p1.locator('#gameModal .game-modal').boundingBox();
+  expect(mobile.width).toBeCloseTo(390,0);
+  expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 
   expect(errors1).toEqual([]);
   expect(errors2).toEqual([]);
