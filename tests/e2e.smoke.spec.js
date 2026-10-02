@@ -28,7 +28,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(23);
+  await expect(p1.locator('#view-games .play-btn')).toHaveCount(26);
 
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
@@ -95,7 +95,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','dotsboxes','gomoku','backgammon','yahtzee'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong' ,'dotsboxes','gomoku','backgammon','yahtzee','monopoly','risk','life'];
   for(const game of allGames){
     await p1.locator('.sidebar [data-view="games"]').click();
     await p1.locator(`.play-btn[data-game="${game}"]`).click();
@@ -121,6 +121,22 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
       await expect(p2.locator('.backgammon-wrap')).toBeVisible();
       await expect(p1.locator('.bg-dice span')).toHaveCount(2);
       await expect.poll(async()=>p1.locator('.bg-step').count()).toBeGreaterThan(0);
+    }
+    if(game==='monopoly'){
+      await expect(p1.locator('.source-economy')).toBeVisible();
+      await expect(p2.locator('.source-economy')).toBeVisible();
+      await expect(p1.locator('[data-src-action="rollDice"]')).toBeVisible();
+      await p1.locator('[data-src-action="rollDice"]').click();
+    }
+    if(game==='risk'){
+      await expect(p1.locator('.source-risk')).toBeVisible();
+      await expect(p2.locator('.source-risk')).toBeVisible();
+      await expect(p1.locator('.source-actionbar')).toBeVisible();
+    }
+    if(game==='life'){
+      await expect(p1.locator('.source-life')).toBeVisible();
+      await expect(p2.locator('.source-life')).toBeVisible();
+      await expect(p1.locator('[data-src-action="chooseBranch"]').first()).toBeVisible();
     }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
