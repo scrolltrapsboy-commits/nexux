@@ -35,6 +35,17 @@ test('pool rejects an invalid zero-power shot',()=>{
 });
 
 
+test('source-backed chess engine preserves repetition history',()=>{
+  const s=GAMES.chess.init();
+  for(const [from,to] of [['g1','f3'],['g8','f6'],['f3','g1'],['f6','g8'],['g1','f3'],['g8','f6'],['f3','g1']]){
+    const out=GAMES.chess.move(s,s.turn,{from,to});
+    assert.notEqual(out,'Illegal chess move');
+  }
+  const out=GAMES.chess.move(s,1,{from:'f6',to:'g8'});
+  assert.equal(out.draw,true);
+  assert.equal(out.reason,'threefold repetition');
+});
+
 test('source-backed chess engine enforces legal moves and checkmate',()=>{
   let s=GAMES.chess.init();
   GAMES.chess.move(s,0,{from:'f2',to:'f3'});
