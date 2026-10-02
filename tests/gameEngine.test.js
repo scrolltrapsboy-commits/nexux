@@ -12,15 +12,18 @@ test('source-backed chess starts with 20 legal moves and accepts e2-e4',()=>{con
 test('source-backed checkers enforces mandatory captures',()=>{
   const s=GAMES.checkers.init();
   let found=false;
-  for(let ply=0;ply<100&&s.status==='playing';ply++){
-    if(s.legalMoves.some(m=>Array.isArray(m.captures)&&m.captures.length)){
+  for(let ply=0;ply<120&&s.status==='playing';ply++){
+    const captures=s.legalMoves.filter(m=>Array.isArray(m.captures)&&m.captures.length>0);
+    if(captures.length){
       found=true;
-      assert.ok(s.legalMoves.every(m=>Array.isArray(m.captures)&&m.captures.length>0));
+      assert.equal(s.legalMoves.filter(m=>!m.captures?.length).length,0);
       break;
     }
     const mv=s.legalMoves[0];
     assert.ok(mv);
-    GAMES.checkers.move(s,s.turn,{from:mv.from,to:mv.to});
+    const out=GAMES.checkers.move(s,s.turn,{from:mv.from,to:mv.to});
+    assert.notEqual(out,'Invalid checkers move');
+    assert.notEqual(out,'Illegal checkers move');
   }
   assert.equal(found,true);
 });
