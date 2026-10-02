@@ -19,7 +19,9 @@ jobs:
       - run: node --check server.js
       - run: node --check server/gameEngine.js
       - run: node --check public/app.js
-      - run: npm test
+      - run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/nexus-npm-test.log
       - run: |
           node server.js > /tmp/nexus.log 2>&1 &
           echo $! > /tmp/nexus.pid
@@ -34,6 +36,12 @@ jobs:
           exit 1
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test tests/e2e.smoke.spec.js --workers=1
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-ci-logs
+          path: /tmp/nexus-*.log
+          if-no-files-found: ignore
       - if: always()
         run: |
           if [ -f /tmp/nexus.log ]; then cat /tmp/nexus.log; fi
