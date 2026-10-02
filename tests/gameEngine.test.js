@@ -3,10 +3,10 @@ const assert=require('node:assert/strict');
 const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,22);
+  assert.equal(Object.keys(GAMES).length,23);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
-test('tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init();GAMES.tictactoe.move(s,0,{cell:0});GAMES.tictactoe.move(s,1,{cell:3});GAMES.tictactoe.move(s,0,{cell:1});GAMES.tictactoe.move(s,1,{cell:4});const out=GAMES.tictactoe.move(s,0,{cell:2});assert.deepEqual(out.winner,0)});
+test('source-backed tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init([{id:'a',name:'A'},{id:'b',name:'B'}]);GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:0}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:0}});GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:1}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:1}});const out=GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:2}});assert.equal(out.winner,0)});
 test('source-backed connect four detects four with upstream board rules',()=>{const s=GAMES.connect4.init();for(const c of [0,1,0,1,0,1,0]){const i=s.turn;const out=GAMES.connect4.move(s,i,{col:c});if(out)assert.equal(out.winner,0)}assert.equal(s.board[5][0],'black');assert.equal(s.board[4][0],'black');assert.equal(s.board[3][0],'black');assert.equal(s.board[2][0],'black');});
 test('source-backed chess starts with 20 legal moves and accepts e2-e4',()=>{const s=GAMES.chess.init();const moves=s.fen&&s.history;assert.equal(new (require('chess.js').Chess)(s.fen).moves().length,20);const out=GAMES.chess.move(s,0,{from:'e2',to:'e4'});assert.equal(out.move,'e4');assert.equal(s.turn,1);});
 test('source-backed checkers enforces mandatory captures',()=>{
@@ -27,7 +27,7 @@ test('source-backed checkers enforces mandatory captures',()=>{
   }
   assert.equal(found,true);
 });
-test('battleship accepts a shot and alternates',()=>{const s=GAMES.battleship.init();const out=GAMES.battleship.move(s,0,{x:0,y:0});assert.equal(out,undefined);assert.equal(s.turn,1)});
+test('source-backed battleship begins with simultaneous setup',()=>{const s=GAMES.battleship.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(s.turnState.phase,'setup');assert.equal(s.turnState.currentPlayerIndex,null);assert.equal(s.players.length,2);assert.equal(s.config.settings.ships.length,5);});
 
 test('physical games have real stateful boards',()=>{
   const pool=GAMES.pool.init();
