@@ -59,3 +59,7 @@ After extracting the project, run `npm install` before starting the server so th
 
 ## Release verification
 Release hardening includes authoritative chess/checkers rules, realtime arcade state, separate room/global/friend chat channels, persisted profiles, and WebRTC media controls. GitHub Actions is the release gate; a production deployment should also provide a TURN service through `ICE_SERVERS_JSON` for networks where STUN alone cannot establish a peer connection.
+
+## In-game experience
+
+The game view opens as a full-window play surface. On desktop, live voice/video and Room/Global/Friend chat stay in a dedicated right-side social rail; on phones, the same controls collapse into a compact bottom social panel so the game remains usable without overlap. Game rooms expose a shareable `?room=CODE` invite link and can auto-join from that link.
