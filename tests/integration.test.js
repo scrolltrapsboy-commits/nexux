@@ -46,7 +46,7 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   a.emit('webrtc',{to:hb.me.id,type:'offer',data:{type:'offer',sdp:'smoke'}});
   await rtcSeen;
   await call(a,'move',{from:'e2',to:'e4',promotion:'q'});
-  const bReady=onceRoom(b,r=>r.state?.fen?.includes(' b '));
+  const bReady=onceRoom(b,r=>r.status==='playing'&&r.state?.fen?.includes(' b '));
   await call(b,'move',{from:'e7',to:'e5',promotion:'q'});
   const after=await bReady;
   assert.equal(after.state.turn,0);
