@@ -7,7 +7,7 @@ test('all game engines expose two-player lifecycle',()=>{
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init();GAMES.tictactoe.move(s,0,{cell:0});GAMES.tictactoe.move(s,1,{cell:3});GAMES.tictactoe.move(s,0,{cell:1});GAMES.tictactoe.move(s,1,{cell:4});const out=GAMES.tictactoe.move(s,0,{cell:2});assert.deepEqual(out.winner,0)});
-test('connect four detects four',()=>{const s=GAMES.connect4.init();for(const c of [0,1,0,1,0,1,0]){const i=s.turn;const out=GAMES.connect4.move(s,i,{col:c});if(out)assert.equal(out.winner,0)}assert.equal(s.board[2][0],0)});
+test('source-backed connect four detects four with upstream board rules',()=>{const s=GAMES.connect4.init();for(const c of [0,1,0,1,0,1,0]){const i=s.turn;const out=GAMES.connect4.move(s,i,{col:c});if(out)assert.equal(out.winner,0)}assert.equal(s.board[5][0],'black');assert.equal(s.board[4][0],'black');assert.equal(s.board[3][0],'black');assert.equal(s.board[2][0],'black');});
 test('source-backed chess starts with 20 legal moves and accepts e2-e4',()=>{const s=GAMES.chess.init();const moves=s.fen&&s.history;assert.equal(new (require('chess.js').Chess)(s.fen).moves().length,20);const out=GAMES.chess.move(s,0,{from:'e2',to:'e4'});assert.equal(out.move,'e4');assert.equal(s.turn,1);});
 test('source-backed checkers enforces mandatory captures',()=>{
   const s=GAMES.checkers.init();
@@ -135,3 +135,5 @@ test('source-backed Backgammon initializes a full board and rolls playable dice'
   assert.ok(Array.isArray(s.dice.values)&&s.dice.values.length===2);
   assert.ok(Array.isArray(s.dice.movesLeft));
 });
+
+test('source-backed connect four rejects a full column',()=>{const s=GAMES.connect4.init();const seq=[0,0,0,0,0,0];for(const col of seq){const i=s.turn;GAMES.connect4.move(s,i,{col});}assert.equal(GAMES.connect4.move(s,s.turn,{col:0}),'Column full');});
