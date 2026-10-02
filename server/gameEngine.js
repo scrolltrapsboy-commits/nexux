@@ -7,6 +7,7 @@
 const { Chess } = require('chess.js');
 const { EnglishDraughts } = require('rapid-draughts/english');
 const { Vector } = require('matter-js');
+const { LAN_GAMES } = require('./lanSourceGames');
 
 const GAMES = {};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -16,12 +17,12 @@ const other=i=>i===0?1:0;
 function winLines(board,n=3,w=3,h=3){
  const dirs=[[1,0],[0,1],[1,1],[1,-1]]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)for(const[dX,dY]of dirs){let line=[];for(let k=0;k<n;k++){const xx=x+dX*k,yy=y+dY*k;if(xx<0||xx>=w||yy<0||yy>=h){line=[];break}line.push(yy*w+xx)}if(line.length&&line.every(i=>board[i]!==null&&board[i]!==undefined&&board[i]===board[line[0]]))return line} return null;
 }
-GAMES.tictactoe={name:'Tic Tac Toe',category:'Board',players:2,init:()=>({board:Array(9).fill(null),turn:0}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.cell;if(!Number.isInteger(c)||c<0||c>8||s.board[c]!=null)return'Invalid cell';s.board[c]=i;const line=winLines(s.board);if(line)return{winner:i,line};if(s.board.every(v=>v!==null))return{draw:true};s.turn=other(i)}};
+GAMES.tictactoe=LAN_GAMES.tictactoe;
 GAMES.rps={name:'Rock Paper Scissors',category:'Party',players:2,init:()=>({choices:[null,null],score:[0,0],round:1,turn:0}),move:(s,i,m)=>{if(s.choices[i])return'Choice already submitted';if(!['rock','paper','scissors'].includes(m.choice))return'Invalid choice';s.choices[i]=m.choice;if(!s.choices[0]||!s.choices[1])return;const[a,b]=s.choices;let w=null;if(a!==b)w=['rock','paper','scissors'].indexOf(a)===(['rock','paper','scissors'].indexOf(b)+1)%3?0:1;if(w!==null)s.score[w]++;s.lastRound={choices:[a,b],winner:w};if(s.score.some(x=>x>=3))return w===null?{draw:true}:{winner:w};s.round++;s.choices=[null,null];s.turn=other(i)}};
 
 // Chess: complete legal move generation for normal chess, castling, en-passant, promotion and check/checkmate/stalemate.
 function shipBoard(){const b=Array.from({length:10},()=>Array(10).fill(0));const fleet=[5,4,3,3,2];for(const len of fleet){let placed=false;for(let tries=0;tries<500&&!placed;tries++){const hor=Math.random()<.5,x=Math.floor(Math.random()*(hor?11-len:10)),y=Math.floor(Math.random()*(hor?10:11-len));let ok=true;for(let k=0;k<len;k++)if(b[y+(hor?0:k)][x+(hor?k:0)])ok=false;if(ok){for(let k=0;k<len;k++)b[y+(hor?0:k)][x+(hor?k:0)]=len;placed=true}}}return b}
-GAMES.battleship={name:'Battleship',category:'Strategy',players:2,init:()=>({boards:[shipBoard(),shipBoard()],shots:[[],[]],turn:0,hits:[0,0]}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const x=+m.x,y=+m.y;if(x<0||x>9||y<0||y>9)return'Invalid target';if(s.shots[i].some(p=>p[0]===x&&p[1]===y))return'Already fired';s.shots[i].push([x,y]);const target=s.boards[other(i)][y][x];if(target>0){s.boards[other(i)][y][x]=-target;s.hits[i]++}const remaining=s.boards[other(i)].flat().some(v=>v>0);if(!remaining)return{winner:i};s.turn=other(i)}};
+GAMES.battleship=LAN_GAMES.battleship;
 GAMES.memory={name:'Memory Match',category:'Party',players:2,init:()=>{const vals=shuffle([...Array(8).keys(),...Array(8).keys()]);return{cards:vals.map(v=>({v,up:false,done:false})),turn:0,pick:[],score:[0,0],pendingMismatch:null}},move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';if(s.pendingMismatch)return'Cards are resolving';const c=+m.card;if(c<0||c>=s.cards.length||s.cards[c].up||s.cards[c].done||s.pick.length>=2)return'Invalid card';s.cards[c].up=true;s.pick.push(c);if(s.pick.length<2)return{reveal:true};const[a,b]=s.pick;if(s.cards[a].v===s.cards[b].v){s.cards[a].done=s.cards[b].done=true;s.score[i]++;s.pick=[];if(s.cards.every(c=>c.done))return s.score[0]===s.score[1]?{draw:true}:{winner:s.score[0]>s.score[1]?0:1};return{match:true}}s.pendingMismatch={a,b,player:i};return{mismatch:true,delayMs:900}}};
 function generateMines(n, mineCount, safe){
  const excluded=new Set([safe]);const sx=safe%n,sy=Math.floor(safe/n);
@@ -267,6 +268,7 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* third_party/source-games and their licenses are retained alongside them.  */
 /* -------------------------------------------------------------------------- */
 const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove}=require('./sourceGames');
+GAMES.yahtzee=LAN_GAMES.yahtzee;
 GAMES.connect4={name:'Connect Four',category:'Board',players:2,init:sourceConnectFourInit,move:sourceConnectFourMove};
 GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromInit,move:sourceCarromMove};
 GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsBoxesInit,move:sourceDotsBoxesMove};

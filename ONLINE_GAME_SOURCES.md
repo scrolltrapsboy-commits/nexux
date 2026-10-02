@@ -28,3 +28,12 @@ NEXUS PLAY does not download or execute remote JavaScript at runtime. The MIT Li
 New games are not accepted as button-only placeholders. A new game must point to an identified upstream source, retain the source license/notice, and have server integration tests before release. UI skinning is kept outside the upstream rule/physics source so the game behavior is not altered by the Liquid Glass presentation layer.
 
 | Backgammon rules/model | https://github.com/quasoft/backgammonjs | MIT; exact model + RuleBgCasual source retained under `third_party/source-games/backgammon/` |
+
+
+## Added source engine: LAN Games (MIT)
+
+- Repository: https://github.com/kbennett2000/lan-games
+- License: MIT License
+- Vendored under: third_party/source-games/lan-games
+- Executed by: server/lanSourceGames.js
+- Current NEXUS integrations: Tic Tac Toe, Battleship, Yahtzee

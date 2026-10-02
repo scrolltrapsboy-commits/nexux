@@ -1,4 +1,4 @@
-# NEXUS PLAY 3.0 — Real Multiplayer Game Platform
+# NEXUS PLAY 3.0.3 — Real Multiplayer Game Platform
 
 NEXUS PLAY is a Node.js + Express + Socket.IO multiplayer game platform with a black/white Liquid Glass interface, persistent SQLite profiles, room/global chat and in-game WebRTC voice/video.
 
@@ -70,3 +70,7 @@ The game view opens as a full-window play surface. On desktop, live voice/video 
 ## Source-engine rebuild
 
 This release adds exact vendored upstream source snapshots for Dots & Boxes (MIT DotBox), Gomoku (MIT), and Carrom physics/rule reference (MIT Carrom-Game-). Their licenses are retained in `third_party/source-games/`. Chess and English Checkers continue to use source-backed libraries. The NEXUS multiplayer layer remains responsible for rooms, synchronized state, chat and calls.
+
+## Source-engine policy
+
+NEXUS PLAY now vendors and executes unchanged MIT-licensed game logic from `kbennett2000/lan-games` for Tic Tac Toe, Battleship, and Yahtzee. The NEXUS layer only adapts room identities, Socket.IO transport, privacy filtering, and the existing monochrome UI. Additional source integrations are only accepted when the upstream rules code and license can be verified; gameplay logic is not replaced by a simplified look-alike implementation.

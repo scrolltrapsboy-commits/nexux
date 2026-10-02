@@ -137,3 +137,11 @@ test('source-backed Backgammon initializes a full board and rolls playable dice'
 });
 
 test('source-backed connect four rejects a full column',()=>{const s=GAMES.connect4.init();const seq=[0,0,0,0,0,0];for(const col of seq){const i=s.turn;GAMES.connect4.move(s,i,{col});}assert.equal(GAMES.connect4.move(s,s.turn,{col:0}),'Column full');});
+
+test('source-backed NEXUS LAN Games engines expose real state and turn rules',()=>{
+  const t=GAMES.tictactoe.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
+  assert.equal(t.board.length,3);assert.equal(t.board[0].length,3);assert.equal(t.turnState.currentPlayerIndex,0);
+  const tm=GAMES.tictactoe.move(t,0,{action:'markCell',payload:{row:0,col:0}});assert.equal(tm,undefined);assert.equal(t.board[0][0],'a');
+  const b=GAMES.battleship.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(b.turnState.phase,'setup');assert.equal(b.players.length,2);assert.equal(b.config.settings.ships.length,5);
+  const y=GAMES.yahtzee.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(y.turnState.dice.length,0);const yr=GAMES.yahtzee.move(y,0,{action:'rollDice',payload:{held:[false,false,false,false,false]}});assert.equal(yr,undefined);assert.equal(y.turnState.dice.length,5);
+});
