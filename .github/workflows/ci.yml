@@ -1,5 +1,4 @@
 name: NEXUS PLAY CI
-# v3.0.1 verification
 on:
   push:
     branches: [main, nexus-v3-rebuild]
@@ -13,6 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - run: npm install --no-audit --no-fund
       - run: node --check server.js
       - run: node --check server/gameEngine.js
@@ -20,7 +20,19 @@ jobs:
       - run: npm test
       - run: |
           node server.js > /tmp/nexus.log 2>&1 &
-          PID=$!
-          sleep 2
-          curl --fail http://127.0.0.1:3000/health
-          kill $PID
+          echo $! > /tmp/nexus.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/health >/tmp/nexus-health.json; then
+              cat /tmp/nexus-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/nexus.log
+          exit 1
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e.smoke.spec.js --workers=1
+      - if: always()
+        run: |
+          if [ -f /tmp/nexus.log ]; then cat /tmp/nexus.log; fi
+          if [ -f /tmp/nexus.pid ]; then kill $(cat /tmp/nexus.pid) 2>/dev/null || true; fi
