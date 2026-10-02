@@ -247,7 +247,7 @@ function sourceCheckersMove(s,i,m){
   s.coords=checkerCoordsFromGame(g);
   s.legalMoves=checkerMovesList(g);
   s.history.push({origin:from,destination:to,captures:[...(move.captures||[])]});
-  s.turn=g.player==='light'?0:1;
+  s.turn=g.player==='dark'?0:1;
   s.status=String(g.status);
   if(g.status==='light_won')return{winner:0,reason:'no legal moves or pieces'};
   if(g.status==='dark_won')return{winner:1,reason:'no legal moves or pieces'};
