@@ -18,6 +18,11 @@ NEXUS PLAY is a Node.js + Express + Socket.IO multiplayer game platform with a b
 - **Carrom — 19-piece board, striker/coin collisions, pockets, scoring and queen**
 - **Mini Golf — stroke counting, continuous ball motion, wall reflection and hole detection**
 - **Neon Circuit Racing — simultaneous keyboard/touch driving with server-side race simulation**
+- **Othello** — source-adapted 8×8 Reversi rules
+- **Pong** — real-time two-player paddle/ball simulation
+- **2048 Duel** — authentic merge-and-double mechanics
+- **Tetris Duel** — seven tetrominoes, rotation, gravity, line clears
+- **Snake Arena** — real-time two-player snake arena
 
 ## Run
 
@@ -47,6 +52,6 @@ See `THIRD_PARTY_SOURCES.md` for the open-source projects inspected during the r
 
 ## 2.2 source-backed game engines
 
-NEXUS PLAY 2.2 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.x (BSD-2-Clause), English Checkers is backed by `rapid-draughts` 1.0.6 (MIT), and physical vector calculations use `matter-js` (MIT). The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
+NEXUS PLAY 3.0 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.x (BSD-2-Clause), English Checkers is backed by `rapid-draughts` 1.0.6 (MIT), and physical vector calculations use `matter-js` (MIT). The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
 
 After extracting the project, run `npm install` before starting the server so the source-backed engines are installed.
