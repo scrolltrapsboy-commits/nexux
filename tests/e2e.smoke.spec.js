@@ -52,6 +52,11 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await p1.locator('[data-chess="36"]').click();
   await expect(p2.locator('.move-item').last()).toContainText('e4');
 
+  const roomChatInput = p1.locator('#roomChatInput');
+  await roomChatInput.fill('E2E room message');
+  await p1.locator('#roomChatForm button').click();
+  await expect(p1.locator('#roomChat')).toContainText('E2E room message');
+
   await p1.locator('#socialGlobalTab').click();
   await p1.locator('#globalChatInput').fill('E2E global message');
   await p1.locator('#globalChatForm button').click();
