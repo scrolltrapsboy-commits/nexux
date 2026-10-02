@@ -267,7 +267,7 @@ function loadExactCarromController(){
     requestAnimationFrame(){return 0},
     cancelAnimationFrame(){},
     document:{getElementById(){return null}},
-    window:{devicePixelRatio:1},
+    window:{devicePixelRatio:1,addEventListener(){},removeEventListener(){}},
     performance:{now:()=>0}
   });
   const physics=readThirdParty('carrom','carrom-physics.js');
