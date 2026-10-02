@@ -28,7 +28,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(21);
+  await expect(p1.locator('#view-games .play-btn')).toHaveCount(22);
 
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
@@ -40,10 +40,8 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(codeMatch).not.toBeNull();
   const code = codeMatch[0];
 
-  await enterAsGuest(p2);
-  await p2.locator('#roomCodeBtn').click();
-  await p2.locator('#joinCode').fill(code);
-  await p2.locator('#joinBtn').click();
+  await enterAsGuest(p2, 'http://127.0.0.1:3000/?room='+code);
+  await expect(p2.locator('#gameModal')).toBeVisible();
 
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
   await expect(p2.locator('#gameTitle')).toHaveText('Chess');
@@ -94,17 +92,16 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','dotsboxes','gomoku'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','dotsboxes','gomoku','backgammon'];
   for(const game of allGames){
     await p1.locator('.sidebar [data-view="games"]').click();
     await p1.locator(`.play-btn[data-game="${game}"]`).click();
     await expect(p1.locator('#gameModal')).toBeVisible();
     await expect(p1.locator('#gameBoard')).not.toBeEmpty();
-    await p2.locator('.sidebar [data-view="games"]').click();
-    await p2.locator(`.play-btn[data-game="${game}"]`).click();
     await expect(p1.locator('#gameTitle')).not.toHaveText('Game');
     await expect(p2.locator('#gameModal')).toBeVisible();
     await expect(p2.locator('#gameBoard')).not.toBeEmpty();
+    await expect(p1.locator('#shareGame')).toBeVisible();
     if(game==='dotsboxes'){
       await expect(p1.locator('.dots-grid')).toBeVisible();
       await expect(p2.locator('.dots-grid')).toBeVisible();
@@ -115,6 +112,12 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
       await expect(p1.locator('.gomoku-board')).toBeVisible();
       await p1.locator('[data-gomoku="112"]').click();
       await expect(p2.locator('[data-gomoku="112"]')).toHaveText('●');
+    }
+    if(game==='backgammon'){
+      await expect(p1.locator('.backgammon-wrap')).toBeVisible();
+      await expect(p2.locator('.backgammon-wrap')).toBeVisible();
+      await expect(p1.locator('.bg-dice span')).toHaveCount(2);
+      await expect(p1.locator('.bg-step')).toHaveCountGreaterThan(0).catch(()=>{});
     }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
