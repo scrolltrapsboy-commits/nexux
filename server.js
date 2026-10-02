@@ -12,6 +12,9 @@ const DB_PATH=process.env.DB_PATH||path.join(__dirname,'nexus-play.sqlite');
 const app=express();
 const server=http.createServer(app);
 const io=new Server(server,{maxHttpBufferSize:1e6,cors:{origin:process.env.CLIENT_URL||true,credentials:true}});
+const DEFAULT_ICE_SERVERS=[{urls:['stun:stun.l.google.com:19302']}];
+function rtcServers(){try{const x=JSON.parse(process.env.ICE_SERVERS_JSON||'');return Array.isArray(x)&&x.length?x:DEFAULT_ICE_SERVERS}catch{return DEFAULT_ICE_SERVERS}}
+
 app.use(express.json({limit:'100kb'}));
 app.use(express.static(path.join(__dirname,'public')));
 
@@ -49,10 +52,36 @@ function roomView(r,viewer){return{code:r.code,game:r.game,private:r.private,sta
 function broadcastRoom(r){for(const id of r.players)io.to('u:'+id).emit('room',roomView(r,id));io.to(r.code).emit('roomPresence',{players:r.players.map(publicUser)})}
 function stopRace(r){const t=raceTimers.get(r.code);if(t){clearInterval(t);raceTimers.delete(r.code)}}
 function finish(r,out){if(r.status==='finished')return;stopRace(r);r.status='finished';r.result=out;for(const id of r.players){const u=q.userById.get(id);if(!u)continue;const won=out.winnerId===id;const loss=!!out.winnerId&&!won;db.prepare('UPDATE users SET played=played+1,wins=wins+?,losses=losses+?,draws=draws+? WHERE id=?').run(won?1:0,loss?1:0,out.draw?1:0,id);notify(id,'game',out.draw?'Match drawn':won?'You won the match':'You lost the match')}}
-function advanceRace(r){if(r.status!=='playing'||r.game!=='racing')return;const s=r.state,dt=1/30,track={cx:.5,cy:.5,rx:.34,ry:.34};for(let i=0;i<2;i++){const c=s.players[i],inp=s.inputs[i];c.speed=Math.max(0,Math.min(5.4,c.speed+((inp.up?3.2:0)-(inp.brake?4.5:0))*dt));if(inp.left)c.angle-=2.5*dt;if(inp.right)c.angle+=2.5*dt;c.x+=Math.cos(c.angle)*c.speed*dt;c.y+=Math.sin(c.angle)*c.speed*dt;const nx=(c.x-track.cx)/track.rx,ny=(c.y-track.cy)/track.ry,d=nx*nx+ny*ny;if(d>1){c.x=track.cx+(c.x-track.cx)/Math.sqrt(d)*track.rx;c.y=track.cy+(c.y-track.cy)/Math.sqrt(d)*track.ry;c.speed*=.82}let a=Math.atan2(c.y-track.cy,c.x-track.cx);if(a<0)a+=Math.PI*2;const prog=a/(Math.PI*2);if(c.progress>.85&&prog<.15)c.lap++;c.progress=prog}const w=s.players.findIndex(c=>c.lap>=3);if(w>=0){s.winner=w;finish(r,{winnerId:r.players[w],reason:'finish'})}else broadcastRoom(r)}
-function startRoom(r){r.state=GAMES[r.game].init();r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);if(r.game==='racing'){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRace(r),33))}}
+function advanceRealtime(r){
+ if(r.status!=='playing')return;
+ if(r.game==='pong'){
+  const st=r.state,dt=1/30;
+  for(let i=0;i<2;i++){const inp=st.inputs[i]||0;st.paddles[i]=Math.max(.12,Math.min(.88,st.paddles[i]+inp*1.05*dt));}
+  st.ball.x+=st.ball.vx*dt;st.ball.y+=st.ball.vy*dt;
+  if(st.ball.y<.03||st.ball.y>.97){st.ball.y=Math.max(.03,Math.min(.97,st.ball.y));st.ball.vy*=-1;}
+  const near=[.055,.945];
+  for(let i=0;i<2;i++)if(Math.abs(st.ball.x-near[i])<.035&&Math.abs(st.ball.y-st.paddles[i])<.14&&((i===0&&st.ball.vx<0)||(i===1&&st.ball.vx>0))){st.ball.vx=-st.ball.vx*1.03;st.ball.vy+=(st.ball.y-st.paddles[i])*1.8;st.ball.x=i===0?.09:.91;}
+  if(st.ball.x<-.02){st.scores[1]++;st.ball={x:.5,y:.5,vx:.42,vy:.18*(Math.random()>.5?1:-1)}}
+  else if(st.ball.x>1.02){st.scores[0]++;st.ball={x:.5,y:.5,vx:-.42,vy:.18*(Math.random()>.5?1:-1)}}
+  const w=st.scores.findIndex(v=>v>=7);if(w>=0){finish(r,{winnerId:r.players[w],reason:'7 points'});broadcastRoom(r);return}
+  broadcastRoom(r);return;
+ }
+ if(r.game==='racing'){
+  const st=r.state,dt=1/30,track={cx:.5,cy:.5,rx:.34,ry:.34};
+  for(let i=0;i<2;i++){const c=st.players[i],inp=st.inputs[i];c.speed=Math.max(0,Math.min(5.4,c.speed+((inp.up?3.2:0)-(inp.brake?4.5:0))*dt));if(inp.left)c.angle-=2.5*dt;if(inp.right)c.angle+=2.5*dt;c.x+=Math.cos(c.angle)*c.speed*dt;c.y+=Math.sin(c.angle)*c.speed*dt;const nx=(c.x-track.cx)/track.rx,ny=(c.y-track.cy)/track.ry,d=nx*nx+ny*ny;if(d>1){c.x=track.cx+(c.x-track.cx)/Math.sqrt(d)*track.rx;c.y=track.cy+(c.y-track.cy)/Math.sqrt(d)*track.ry;c.speed*=.82}let a=Math.atan2(c.y-track.cy,c.x-track.cx);if(a<0)a+=Math.PI*2;const prog=a/(Math.PI*2);if(c.progress>.85&&prog<.15)c.lap++;c.progress=prog}
+  const w=st.players.findIndex(c=>c.lap>=3);if(w>=0){finish(r,{winnerId:r.players[w],reason:'finish'});broadcastRoom(r);return}broadcastRoom(r);return;
+ }
+ if(r.game==='snake'){
+  const out=GAMES.snake.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
+ }
+ if(r.game==='tetris'){
+  const out=GAMES.tetris.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
+ }
+}
+function startRoom(r){r.state=GAMES[r.game].init();r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}}}
 function leaveRoom(id,reason='leave'){const r=roomOf(id);if(!r)return;if(r.status==='playing'&&r.players.length===2){const o=r.players.find(x=>x!==id);if(o)finish(r,{winnerId:r.players.indexOf(o),reason})}else stopRace(r);r.players=r.players.filter(x=>x!==id);if(!r.players.length){stopRace(r);rooms.delete(r.code);return}if(r.host===id)r.host=r.players[0];broadcastRoom(r)}
 
+app.get('/api/config',(req,res)=>res.json({iceServers:rtcServers()}));
 app.get('/health',(req,res)=>res.json({ok:true,service:'NEXUS PLAY',games:Object.keys(GAMES).length,rooms:rooms.size,online:[...sockets.values()].reduce((a,b)=>a+b,0)}));
 app.post('/api/register',(req,res)=>{const name=clean(req.body?.name).slice(0,20),password=String(req.body?.password||'');if(!/^[\p{L}\p{N}_ -]{3,20}$/u.test(name)||password.length<6)return res.status(400).json({error:'Name must be 3-20 characters and password at least 6 characters'});if(q.userByName.get(name))return res.status(409).json({error:'Username already exists'});const id=uid();q.insertUser.run(id,name,hashPassword(password),Date.now());const token=crypto.randomBytes(32).toString('hex');q.insertToken.run(token,id,Date.now());res.json({token,user:publicUser(id)})});
 app.post('/api/login',(req,res)=>{const name=clean(req.body?.name),password=String(req.body?.password||''),u=q.userByName.get(name);if(!u||!verifyPassword(password,u.password_hash))return res.status(401).json({error:'Invalid username or password'});const token=crypto.randomBytes(32).toString('hex');q.insertToken.run(token,u.id,Date.now());res.json({token,user:publicUser(u.id)})});
@@ -79,8 +108,8 @@ io.on('connection',socket=>{
  socket.on('join',(d,cb)=>{const r=rooms.get(String(d?.code||'').toUpperCase());if(!r)return reply(cb,{error:'Room not found'});if(r.status!=='lobby'||r.players.length>=GAMES[r.game].players)return reply(cb,{error:'Room is full or already started'});leaveRoom(me());r.players.push(me());socket.join(r.code);broadcastRoom(r);if(r.players.length===GAMES[r.game].players)startRoom(r);reply(cb,{ok:true,code:r.code})});
  socket.on('quick',(d,cb)=>{const game=String(d?.game||'');if(!GAMES[game])return reply(cb,{error:'Unknown game'});leaveRoom(me());let r=[...rooms.values()].find(x=>x.game===game&&!x.private&&x.status==='lobby'&&x.players.length<GAMES[game].players);if(!r){r={code:roomCode(),game,private:false,host:me(),players:[],status:'lobby',state:null,result:null,rematch:new Set(),chat:[],created:Date.now()};rooms.set(r.code,r)}r.players.push(me());socket.join(r.code);if(r.players.length===GAMES[game].players)startRoom(r);else broadcastRoom(r);reply(cb,{ok:true,code:r.code})});
  socket.on('start',(d,cb)=>{const r=roomOf(me());if(!r||r.host!==me()||r.players.length<GAMES[r.game].players)return reply(cb,{error:'Need all players'});startRoom(r);reply(cb,{ok:true})});
- socket.on('move',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());if(r.game==='racing')return reply(cb,{ok:true});const out=GAMES[r.game].move(r.state,i,m||{});if(typeof out==='string')return reply(cb,{error:out});if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);if(r.game==='memory'&&out?.mismatch){const delay=Math.max(400,Math.min(1600,Number(out.delayMs)||900));setTimeout(()=>{if(r.status!=='playing'||!r.state.pendingMismatch)return;const p=r.state.pendingMismatch;r.state.cards[p.a].up=false;r.state.cards[p.b].up=false;r.state.pick=[];r.state.pendingMismatch=null;r.state.turn=other(p.player);broadcastRoom(r)},delay)}reply(cb,{ok:true,state:roomView(r,me()).state,result:r.result})});
- socket.on('drive',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing'||r.game!=='racing')return reply(cb,{error:'No active race'});const i=r.players.indexOf(me());r.state.inputs[i]={up:!!m?.up,left:!!m?.left,right:!!m?.right,brake:!!m?.brake};reply(cb,{ok:true})});
+ socket.on('move',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());if(['racing','pong','snake','tetris'].includes(r.game))return reply(cb,{ok:true});const out=GAMES[r.game].move(r.state,i,m||{});if(typeof out==='string')return reply(cb,{error:out});if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);if(r.game==='memory'&&out?.mismatch){const delay=Math.max(400,Math.min(1600,Number(out.delayMs)||900));setTimeout(()=>{if(r.status!=='playing'||!r.state.pendingMismatch)return;const p=r.state.pendingMismatch;r.state.cards[p.a].up=false;r.state.cards[p.b].up=false;r.state.pick=[];r.state.pendingMismatch=null;r.state.turn=other(p.player);broadcastRoom(r)},delay)}reply(cb,{ok:true,state:roomView(r,me()).state,result:r.result})});
+ socket.on('drive',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing'||!['racing','pong','snake','tetris'].includes(r.game))return reply(cb,{error:'No active realtime game'});const i=r.players.indexOf(me());if(r.game==='racing')r.state.inputs[i]={up:!!m?.up,left:!!m?.left,right:!!m?.right,brake:!!m?.brake};else if(r.game==='pong')r.state.inputs[i]=Math.max(-1,Math.min(1,Number(m?.axis)||0));else if(r.game==='snake'){const out=GAMES.snake.move(r.state,i,{dir:m?.dir});if(typeof out==='string')return reply(cb,{error:out})}else if(r.game==='tetris'){const out=GAMES.tetris.move(r.state,i,{action:m?.action});if(typeof out==='string')return reply(cb,{error:out});broadcastRoom(r)}reply(cb,{ok:true})});
  socket.on('roomChat',(d)=>{const r=roomOf(me()),text=clean(d?.text).slice(0,400);if(!r||!text)return;r.chat.push({id:uid(),from:me(),name:q.userById.get(me()).name,text,time:Date.now()});r.chat=r.chat.slice(-60);broadcastRoom(r)});
  socket.on('rematch',()=>{const r=roomOf(me());if(!r||r.status!=='finished')return;r.rematch.add(me());if(r.rematch.size===r.players.length)startRoom(r);else broadcastRoom(r)});
  socket.on('leave',()=>leaveRoom(me()));
