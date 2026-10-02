@@ -147,19 +147,22 @@ const BACKGAMMON_MODEL_DIR=path.join(__dirname,'..','third_party','source-games'
 const BackgammonModel=require(path.join(BACKGAMMON_MODEL_DIR,'model.js'));
 const BackgammonRule=require(path.join(BACKGAMMON_MODEL_DIR,'rules','RuleBgCasual.js'));
 
-function bgState(game){
+function bgState(game,target){
   const st=game.state;
-  return{
-    points:st.points.map(point=>point.map(p=>({id:p.id,type:p.type}))),
-    bar:st.bar.map(arr=>arr.map(p=>p.id)),
-    outside:st.outside.map(arr=>arr.map(p=>p.id)),
-    pieces:st.pieces.map(arr=>arr.map(p=>({id:p.id,type:p.type}))),
-    turn:game.turnPlayer?.currentPieceType===BackgammonModel.PieceType.BLACK?1:0,
-    dice:game.turnDice?{values:[...game.turnDice.values],moves:[...game.turnDice.moves],movesLeft:[...game.turnDice.movesLeft],movesPlayed:[...game.turnDice.movesPlayed]}:null,
-    started:!!game.hasStarted,
-    over:!!game.isOver,
-    moveSequence:game.moveSequence
-  };
+  const out=target||{};
+  out.points=st.points.map(point=>point.map(p=>({id:p.id,type:p.type})));
+  out.bar=st.bar.map(arr=>arr.map(p=>p.id));
+  out.outside=st.outside.map(arr=>arr.map(p=>p.id));
+  out.pieces=st.pieces.map(arr=>arr.map(p=>({id:p.id,type:p.type})));
+  out.turn=game.turnPlayer?.currentPieceType===BackgammonModel.PieceType.BLACK?1:0;
+  out.dice=game.turnDice?{values:[...game.turnDice.values],moves:[...game.turnDice.moves],movesLeft:[...game.turnDice.movesLeft],movesPlayed:[...game.turnDice.movesPlayed]}:null;
+  out.started=!!game.hasStarted;
+  out.over=!!game.isOver;
+  out.moveSequence=game.moveSequence;
+  if(!Object.prototype.hasOwnProperty.call(out,'__game')){
+    Object.defineProperty(out,'__game',{value:game,writable:true,enumerable:false,configurable:true});
+  }else out.__game=game;
+  return out;
 }
 function bgNewGame(){
   const game=BackgammonModel.Game.createNew(BackgammonRule);
@@ -176,18 +179,10 @@ function bgNewGame(){
     BackgammonRule.nextTurn(match);
     game.turnDice=BackgammonRule.rollDice(game);
   }
-  Object.defineProperty(game.state,'__game',{value:game,writable:true,enumerable:false,configurable:true});
-  Object.defineProperty(game.state,'__players',{value:[host,guest],writable:true,enumerable:false,configurable:true});
   return game;
 }
-function bgGame(s){
-  const game=s?.__game;
-  if(game)return game;
-  return null;
-}
-function sourceBackgammonInit(){
-  return bgState(bgNewGame());
-}
+function bgGame(s){return s?.__game||null}
+function sourceBackgammonInit(){return bgState(bgNewGame(),{})}
 function sourceBackgammonMove(s,i,m){
   const game=bgGame(s);
   if(!game)return'Backgammon state unavailable';
@@ -197,7 +192,11 @@ function sourceBackgammonMove(s,i,m){
   if(m?.action==='roll'){
     if(game.turnDice)return'Dice already rolled';
     game.turnDice=BackgammonRule.rollDice(game);
-    return bgState(game);
+    while(!game.turnDice.movesLeft.length&&!game.isOver){
+      BackgammonRule.nextTurn(game.__match);
+      game.turnDice=BackgammonRule.rollDice(game);
+    }
+    return bgState(game,s);
   }
   if(!game.turnDice)return'Roll the dice first';
   const pieceId=Number(m?.pieceId),steps=Number(m?.steps);
@@ -210,9 +209,8 @@ function sourceBackgammonMove(s,i,m){
   BackgammonRule.applyMoveActions(game.state,actions);
   try{BackgammonRule.markAsPlayed(game,steps)}catch{return'Invalid dice usage'}
   game.moveSequence++;
-  game.state.__game=game;
   const won=BackgammonRule.hasWon(game.state,player);
-  if(won){game.isOver=true;game.hasStarted=false;return{winner:i,reason:'all checkers borne off'}}
+  if(won){game.isOver=true;game.hasStarted=false;bgState(game,s);return{winner:i,reason:'all checkers borne off'}}
   if(!BackgammonModel.Game.hasMoreMoves(game)){
     BackgammonRule.nextTurn(game.__match);
     game.turnDice=BackgammonRule.rollDice(game);
@@ -221,7 +219,7 @@ function sourceBackgammonMove(s,i,m){
       game.turnDice=BackgammonRule.rollDice(game);
     }
   }
-  return bgState(game);
+  return bgState(game,s);
 }
 
 module.exports={sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
