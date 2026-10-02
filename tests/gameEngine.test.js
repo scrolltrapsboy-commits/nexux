@@ -126,3 +126,12 @@ test('source-backed Carrom initializes authentic source board and supports a sho
   assert.equal(out?.animation,true);
   assert.equal(Array.isArray(s.animation),true);
 });
+
+test('source-backed Backgammon initializes a full board and rolls playable dice',()=>{
+  const s=GAMES.backgammon.init();
+  assert.equal(s.points.length,24);
+  assert.equal(s.pieces[0].length,15);
+  assert.equal(s.pieces[1].length,15);
+  assert.ok(Array.isArray(s.dice.values)&&s.dice.values.length===2);
+  assert.ok(Array.isArray(s.dice.movesLeft));
+});
