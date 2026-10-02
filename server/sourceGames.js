@@ -180,6 +180,12 @@ function bgState(game,target){
   out.pieces=st.pieces.map(arr=>arr.map(p=>({id:p.id,type:p.type})));
   out.turn=game.turnPlayer?.currentPieceType===BackgammonModel.PieceType.BLACK?1:0;
   out.dice=game.turnDice?{values:[...game.turnDice.values],moves:[...game.turnDice.moves],movesLeft:[...game.turnDice.movesLeft],movesPlayed:[...game.turnDice.movesPlayed]}:null;
+  const weights=game.turnDice?BackgammonRule.calculateMoveWeights(st,game.turnDice.movesLeft,game.turnPlayer.currentPieceType,null,true):{playableMoves:[]};
+  out.legalMoves=[];
+  for(const [pieceId,data] of Object.entries(weights||{})){
+    if(pieceId==='max'||!data?.moves)continue;
+    for(const steps of data.moves)out.legalMoves.push({pieceId:Number(pieceId),steps:Number(steps)});
+  }
   out.started=!!game.hasStarted;
   out.over=!!game.isOver;
   out.moveSequence=game.moveSequence;
