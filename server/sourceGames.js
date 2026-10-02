@@ -140,4 +140,78 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function clamp01(n){return clamp(Number(n)||0,0,1)}
 function other(i){return i===0?1:0}
 
-module.exports={sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove};
+/* Backgammon: use the upstream MIT RuleBgCasual + model directly. The
+   multiplayer adapter only serializes state and feeds validated moves into
+   the unchanged upstream rule methods. */
+const BACKGAMMON_MODEL_DIR=path.join(__dirname,'..','third_party','source-games','backgammon');
+const BackgammonModel=require(path.join(BACKGAMMON_MODEL_DIR,'model.js'));
+const BackgammonRule=require(path.join(BACKGAMMON_MODEL_DIR,'rules','RuleBgCasual.js'));
+
+function bgState(game){
+  const st=game.state;
+  return{
+    points:st.points.map(point=>point.map(p=>({id:p.id,type:p.type}))),
+    bar:st.bar.map(arr=>arr.map(p=>p.id)),
+    outside:st.outside.map(arr=>arr.map(p=>p.id)),
+    pieces:st.pieces.map(arr=>arr.map(p=>({id:p.id,type:p.type}))),
+    turn:game.turnPlayer?.currentPieceType===BackgammonModel.PieceType.BLACK?1:0,
+    dice:game.turnDice?{values:[...game.turnDice.values],moves:[...game.turnDice.moves],movesLeft:[...game.turnDice.movesLeft],movesPlayed:[...game.turnDice.movesPlayed]}:null,
+    started:!!game.hasStarted,
+    over:!!game.isOver,
+    moveSequence:game.moveSequence
+  };
+}
+function bgNewGame(){
+  const game=BackgammonModel.Game.createNew(BackgammonRule);
+  const host=BackgammonModel.Player.createNew();
+  const guest=BackgammonModel.Player.createNew();
+  host.currentPieceType=BackgammonModel.PieceType.WHITE;
+  guest.currentPieceType=BackgammonModel.PieceType.BLACK;
+  game.turnPlayer=host;game.hasStarted=true;game.isOver=false;game.turnNumber=0;
+  game.turnDice=BackgammonRule.rollDice(game);
+  Object.defineProperty(game.state,'__game',{value:game,writable:true,enumerable:false,configurable:true});
+  Object.defineProperty(game.state,'__players',{value:[host,guest],writable:true,enumerable:false,configurable:true});
+  return game;
+}
+function bgGame(s){
+  const game=s?.__game;
+  if(game)return game;
+  return null;
+}
+function sourceBackgammonInit(){
+  return bgState(bgNewGame());
+}
+function sourceBackgammonMove(s,i,m){
+  const game=bgGame(s);
+  if(!game)return'Backgammon state unavailable';
+  const player=game.turnPlayer;
+  if((player.currentPieceType===BackgammonModel.PieceType.WHITE?0:1)!==i)return'Not your turn';
+  if(game.isOver)return'Game over';
+  if(m?.action==='roll'){
+    if(game.turnDice)return'Dice already rolled';
+    game.turnDice=BackgammonRule.rollDice(game);
+    return bgState(game);
+  }
+  if(!game.turnDice)return'Roll the dice first';
+  const pieceId=Number(m?.pieceId),steps=Number(m?.steps);
+  if(!Number.isInteger(pieceId)||!Number.isInteger(steps))return'Invalid backgammon move';
+  const piece=game.state.pieces[i].find(p=>p.id===pieceId);
+  if(!piece)return'Piece not available';
+  if(!BackgammonRule.validateMove(game,player,piece,steps))return'Illegal backgammon move';
+  const actions=BackgammonRule.getMoveActions(game.state,piece,steps);
+  if(!actions?.length)return'Illegal backgammon move';
+  BackgammonRule.applyMoveActions(game.state,actions);
+  try{BackgammonRule.markAsPlayed(game,steps)}catch{return'Invalid dice usage'}
+  game.moveSequence++;
+  game.state.__game=game;
+  const won=BackgammonRule.hasWon(game.state,player);
+  if(won){game.isOver=true;game.hasStarted=false;return{winner:i,reason:'all checkers borne off'}}
+  if(!BackgammonModel.Game.hasMoreMoves(game)){
+    BackgammonRule.nextTurn({currentGame:game,host:game.__host,guest:game.__guest});
+    game.turnPlayer=game.turnPlayer;
+    game.turnDice=BackgammonRule.rollDice(game);
+  }
+  return bgState(game);
+}
+
+module.exports={sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
