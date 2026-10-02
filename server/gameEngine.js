@@ -224,7 +224,9 @@ function checkerCoordsFromGame(g){
   return coords;
 }
 function checkerGameFromState(s){
-  return EnglishDraughts.setup(s.engineData||undefined,{moves:s.history||[],boards:[]});
+  // engineData already contains the authoritative current board/player/stats.
+  // Replaying history on top of it would apply every move twice and corrupt turn state.
+  return EnglishDraughts.setup(s.engineData||undefined);
 }
 function checkerMovesList(g){return g.moves.map(m=>({from:m.origin,to:m.destination,captures:[...(m.captures||[])]}))}
 function sourceCheckersInit(){
