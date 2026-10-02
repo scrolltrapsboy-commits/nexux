@@ -14,14 +14,14 @@
     "node": ">=22.5"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "chess.js": "^1.4.0",
-    "rapid-draughts": "^1.0.6",
-    "matter-js": "^0.20.0"
+    "express": "4.21.2",
+    "socket.io": "4.8.1",
+    "chess.js": "1.4.0",
+    "rapid-draughts": "1.0.6",
+    "matter-js": "0.20.0"
   },
   "devDependencies": {
-    "socket.io-client": "^4.8.1",
-    "@playwright/test": "^1.56.1"
+    "socket.io-client": "4.8.1",
+    "@playwright/test": "1.56.1"
   }
 }
