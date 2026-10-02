@@ -55,10 +55,13 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   const rtcSeen=onceEvent(b,'webrtc',m=>m.from===ha.me.id&&m.type==='offer');
   a.emit('webrtc',{to:hb.me.id,type:'offer',data:{type:'offer',sdp:'smoke'}});
   await rtcSeen;
+  const whiteMove=waitRoom(b,r=>r.status==='playing'&&typeof r.state?.fen==='string'&&r.state.fen.split(' ')[1]==='b');
   await call(a,'move',{from:'e2',to:'e4',promotion:'q'});
-  const bReady=waitRoom(b,r=>r.status==='playing'&&typeof r.state?.fen==='string'&&r.state.fen.split(' ')[1]==='w');
+  const afterWhite=await whiteMove;
+  assert.equal(afterWhite.state.turn,1);
+  const blackMove=waitRoom(b,r=>r.status==='playing'&&typeof r.state?.fen==='string'&&r.state.fen.split(' ')[1]==='w');
   await call(b,'move',{from:'e7',to:'e5',promotion:'q'});
-  const after=await bReady;
+  const after=await blackMove;
   assert.equal(after.state.turn,0);
   a.disconnect();b.disconnect();
  }finally{
