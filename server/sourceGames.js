@@ -8,6 +8,30 @@ function readThirdParty(...parts){
   return fs.readFileSync(path.join(__dirname,'..','third_party','source-games',...parts),'utf8');
 }
 
+
+/* Connect Four: exact upstream board/drop and win/draw helpers from MIT source. */
+let connectFourContext;
+function loadConnectFour(){
+  if(connectFourContext)return connectFourContext;
+  connectFourContext=vm.createContext({});
+  vm.runInContext(readThirdParty('connect-four','vars.js')+'\n'+readThirdParty('connect-four','functions.js'),connectFourContext,{filename:'connect-four-source.js'});
+  return connectFourContext;
+}
+function connectFourState(ctx){return{board:ctx.Game.board.map(row=>row.slice()),turn:ctx.Game.currentPlayer==='black'?0:1}}
+function sourceConnectFourInit(){const ctx=loadConnectFour();vm.runInContext('Game.board=[[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]];Game.currentPlayer=Game.config.startingPlayer;',ctx);return connectFourState(ctx)}
+function sourceConnectFourMove(s,i,m){
+  if(i!==s.turn)return'Not your turn';
+  const ctx=loadConnectFour();ctx.Game.board=s.board.map(row=>row.slice());ctx.Game.currentPlayer=i===0?'black':'red';
+  const x=Number(m?.col);if(!Number.isInteger(x)||x<0||x>6)return'Invalid column';
+  if(ctx.Game.check.isPositionTaken(x,0))return'Column full';
+  const y=ctx.Game.do.dropToBottom(x,0);if(ctx.Game.check.isPositionTaken(x,y))return'Column full';
+  ctx.Game.do.addDiscToBoard(x,y);
+  s.board=ctx.Game.board.map(row=>row.slice());
+  if(ctx.Game.check.isVerticalWin()||ctx.Game.check.isHorizontalWin()||ctx.Game.check.isDiagonalWin())return{winner:i,reason:'four in a row'};
+  if(ctx.Game.check.isGameADraw())return{draw:true,reason:'board full'};
+  ctx.Game.currentPlayer=ctx.Game.currentPlayer==='black'?'red':'black';s.turn=ctx.Game.currentPlayer==='black'?0:1;
+}
+
 /* Dots & Boxes: execute vendored MIT DotBox engine source. */
 let dotBoxContext;
 function loadDotBox(){
@@ -222,4 +246,4 @@ function sourceBackgammonMove(s,i,m){
   return bgState(game,s);
 }
 
-module.exports={sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
+module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
