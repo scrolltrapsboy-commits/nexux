@@ -1,4 +1,5 @@
 name: NEXUS PLAY CI
+# v3.0.1 verification
 on:
   push:
     branches: [main, nexus-v3-rebuild]
