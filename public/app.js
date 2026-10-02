@@ -73,17 +73,21 @@ function renderChess(el,s){
 function toSquare(i){return 'abcdefgh'[i%8]+(8-Math.floor(i/8))}
 function squareIndex(sq){return (8-Number(sq[1]))*8+'abcdefgh'.indexOf(sq[0])}
 function renderCheckers(el,s){
- const me=state.room.players.findIndex(p=>p.id===state.me.id),turn=s.turn===me;
- const cells=s.board.flatMap((row,y)=>row.map((p,x)=>'<button class="checker-cell '+((x+y)%2?'dark':'light')+'" data-checkxy="'+x+','+y+'">'+(p!=null?'<span class="piece '+((p%2)?'black':'white')+' '+(p>=2?'king':'')+'"></span>':'')+'</button>')).join('');
- el.innerHTML='<div><div class="board-checkers">'+cells+'</div><p class="game-note">Mandatory captures and multi-jumps are enforced by the source checkers engine. '+(turn?'Your move.':'Opponent move.')+'</p></div>';
+ const me=state.room.players.findIndex(p=>p.id===state.me.id),turn=s.turn===me,legal=Array.isArray(s.legalMoves)?s.legalMoves:[];
+ const coords=s.coords||[];
  let selected=null;
+ const cells=s.board.flatMap((row,y)=>row.map((p,x)=>{const pos=coords.findIndex(c=>c&&c.x===x&&c.y===y);const fromLegal=legal.some(m=>m.from===pos);return '<button class="checker-cell '+((x+y)%2?'dark':'light')+' '+(fromLegal&&turn?'legal':'')+'" data-checkxy="'+x+','+y+'" data-pos="'+pos+'">'+(p!=null?'<span class="piece '+((p%2)?'black':'white')+' '+(p>=2?'king':'')+'"></span>':'')+'</button>'})).join('');
+ el.innerHTML='<div><div class="board-checkers">'+cells+'</div><p class="game-note">Mandatory captures, multi-jumps and kings are enforced by the source checkers engine. '+(turn?'Your move.':'Opponent move.')+'</p></div>';
+ const rerenderSelection=()=>$$('[data-checkxy]').forEach(btn=>{const pos=+btn.dataset.pos;const can=selected&&legal.some(m=>m.from===selected.pos&&m.to===pos);btn.classList.toggle('sel',!!(selected&&selected.x+','+selected.y===btn.dataset.checkxy));btn.classList.toggle('legal',!!can)});
  $$('[data-checkxy]').forEach(btn=>btn.onclick=()=>{
    if(!turn)return;
-   const [x,y]=btn.dataset.checkxy.split(',').map(Number);
-   const pos=s.coords?.findIndex(c=>c&&c.x===x&&c.y===y);
-   if(pos==null||pos<0)return;
-   if(!selected){selected={x,y,pos};btn.classList.add('sel');return}
-   const to=pos;sendMove({from:selected.pos,to});selected=null;
+   const pos=+btn.dataset.pos;if(pos<0)return;
+   if(!selected){
+     if(!legal.some(m=>m.from===pos))return;
+     selected={x:+btn.dataset.checkxy.split(',')[0],y:+btn.dataset.checkxy.split(',')[1],pos};rerenderSelection();return;
+   }
+   if(!legal.some(m=>m.from===selected.pos&&m.to===pos)){selected=null;rerenderSelection();return}
+   sendMove({from:selected.pos,to:pos});selected=null;
  });
 }
 function renderBattle(el,s){const me=state.room.players.findIndex(p=>p.id===state.me.id),myShots=s.shots[me]||[];el.innerHTML=`<div><p style="color:#777;text-align:center">Your fleet is hidden from opponent. Fire on their grid.</p><div class="grid10">${Array.from({length:100},(_,i)=>{const x=i%10,y=Math.floor(i/10),shot=myShots.find(p=>p[0]===x&&p[1]===y);return`<button class="${shot?.[2]==='hit'?'hit':''}" data-shot="${x},${y}">${shot?shot[2]==='hit'?'×':'·':''}</button>`}).join('')}</div></div>`;$$('[data-shot]').forEach(b=>b.onclick=()=>{const[x,y]=b.dataset.shot.split(',').map(Number);sendMove({x,y})})}
