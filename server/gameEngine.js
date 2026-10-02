@@ -250,9 +250,10 @@ function checkerCoordsFromGame(g){
 function checkerGameFromState(s){
   return EnglishDraughts.setup(s.engineData||undefined,{moves:s.history||[],boards:[]});
 }
+function checkerMovesList(g){return g.moves.map(m=>({from:m.origin,to:m.destination,captures:[...(m.captures||[])]}))}
 function sourceCheckersInit(){
   const g=EnglishDraughts.setup();
-  return {board:checkerBoardFromGame(g),coords:checkerCoordsFromGame(g),engineData:checkerStateData(g),history:[],turn:0,status:'playing'};
+  return {board:checkerBoardFromGame(g),coords:checkerCoordsFromGame(g),legalMoves:checkerMovesList(g),engineData:checkerStateData(g),history:[],turn:0,status:'playing'};
 }
 function sourceCheckersMove(s,i,m){
   const g=checkerGameFromState(s);
@@ -266,6 +267,7 @@ function sourceCheckersMove(s,i,m){
   s.engineData=checkerStateData(g);
   s.board=checkerBoardFromGame(g);
   s.coords=checkerCoordsFromGame(g);
+  s.legalMoves=checkerMovesList(g);
   s.history.push({origin:from,destination:to,captures:[...(move.captures||[])]});
   s.turn=g.player==='light'?0:1;
   s.status=String(g.status);
