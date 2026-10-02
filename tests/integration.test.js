@@ -32,7 +32,7 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   const globalSeen=onceEvent(b,'chat',m=>m.to==='global'&&m.text==='hello global');
   await call(a,'chatSend',{to:'global',text:'hello global'});
   await globalSeen;
-  const roomChatSeen=onceRoom(b,r=>Array.isArray(r.chat)&&r.chat.some(m=>m.from===ha.me.id&&m.text==='hello room'));a.emit('roomChat',{text:'hello room'});await roomChatSeen;
+  const roomChatSeen=onceEvent(b,'roomChat',m=>m.from===ha.me.id&&m.text==='hello room');await call(a,'roomChat',{text:'hello room'});await roomChatSeen;
   const friendReq=onceEvent(b,'notification',n=>n.type==='friend');
   const req=await call(a,'friendRequest',{to:hb.me.id});
   await friendReq;
