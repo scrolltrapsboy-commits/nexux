@@ -117,7 +117,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
       await expect(p1.locator('.backgammon-wrap')).toBeVisible();
       await expect(p2.locator('.backgammon-wrap')).toBeVisible();
       await expect(p1.locator('.bg-dice span')).toHaveCount(2);
-      await expect(p1.locator('.bg-step')).toHaveCountGreaterThan(0).catch(()=>{});
+      await expect.poll(async()=>p1.locator('.bg-step').count()).toBeGreaterThan(0);
     }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
