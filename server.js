@@ -6,6 +6,7 @@ const crypto=require('crypto');
 const {DatabaseSync}=require('node:sqlite');
 const {Server}=require('socket.io');
 const {GAMES}=require('./server/gameEngine');
+const { Chess } = require('chess.js');
 
 const PORT=Number(process.env.PORT||3000);
 const DB_PATH=process.env.DB_PATH||path.join(__dirname,'nexus-play.sqlite');
@@ -47,6 +48,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}
 function sanitizeState(r,viewer){const s=clone(r.state);if(!s)return null;if(r.game==='battleship'){const me=r.players.indexOf(viewer);const opp=other(me);s.boards[opp]=null;for(const shot of s.shots[me]){const [x,y]=shot;const v=r.state.boards[opp][y][x];s.shots[me][s.shots[me].findIndex(p=>p[0]===x&&p[1]===y)]=[x,y,v<0?'hit':'miss']}}
  if(r.game==='minesweeper'){const me=r.players.indexOf(viewer);s.board=s.board.map((v,idx)=>s.revealed[me].includes(idx)?v:null);s.revealed=s.revealed.map((arr,idx)=>idx===me?arr:[])}
  if(r.game==='memory'){s.cards=s.cards.map(c=>c.done||c.up?c:{v:null,up:false,done:false});delete s.pendingMismatch}
+ if(r.game==='chess'){try{s.legalMoves=new Chess(s.fen).moves({verbose:true}).map(m=>({from:m.from,to:m.to,flags:m.flags}))}catch{s.legalMoves=[]}}
  return s}
 function roomView(r,viewer){return{code:r.code,game:r.game,private:r.private,status:r.status,host:r.host,players:r.players.map((id,slot)=>({...publicUser(id),slot,connected:(sockets.get(id)||0)>0})),state:sanitizeState(r,viewer),result:r.result,rematch:[...r.rematch],chat:r.chat.slice(-50),created:r.created}}
 function broadcastRoom(r){for(const id of r.players)io.to('u:'+id).emit('room',roomView(r,id));io.to(r.code).emit('roomPresence',{players:r.players.map(publicUser)})}
