@@ -45,10 +45,31 @@ function friendSet(id){return new Set(db.prepare('SELECT b FROM friends WHERE a=
 function areFriends(a,b){return !!db.prepare('SELECT 1 FROM friends WHERE a=? AND b=?').get(a,b)}
 function roomOf(id){for(const r of rooms.values())if(r.players.includes(id))return r;return null}
 function clone(x){return JSON.parse(JSON.stringify(x))}
-function sanitizeState(r,viewer){const s=clone(r.state);if(!s)return null;if(r.game==='battleship'){const me=r.players.indexOf(viewer);const opp=other(me);s.boards[opp]=null;for(const shot of s.shots[me]){const [x,y]=shot;const v=r.state.boards[opp][y][x];s.shots[me][s.shots[me].findIndex(p=>p[0]===x&&p[1]===y)]=[x,y,v<0?'hit':'miss']}}
- if(r.game==='minesweeper'){const me=r.players.indexOf(viewer);s.board=s.board.map((v,idx)=>s.revealed[me].includes(idx)?v:null);s.revealed=s.revealed.map((arr,idx)=>idx===me?arr:[])}
- if(r.game==='memory'){s.cards=s.cards.map(c=>c.done||c.up?c:{v:null,up:false,done:false});delete s.pendingMismatch}
- if(r.game==='chess'){try{s.legalMoves=new Chess(s.fen).moves({verbose:true}).map(m=>({from:m.from,to:m.to,flags:m.flags}))}catch{s.legalMoves=[]}}
+function sanitizeState(r,viewer){
+ const eng=GAMES[r.game];
+ if(eng?.getStateForPlayer){
+  try{return clone(eng.getStateForPlayer(clone(r.state),viewer))}
+  catch{}
+ }
+ const s=clone(r.state);if(!s)return null;
+ if(r.game==='battleship'&&s.boards&&s.shots){
+  const me=r.players.indexOf(viewer),opp=other(me);
+  if(Array.isArray(s.boards))s.boards[opp]=null;
+  if(Array.isArray(s.shots?.[me])&&r.state.boards?.[opp]){
+   for(const shot of s.shots[me]){
+    const [x,y]=shot;const v=r.state.boards[opp][y][x];
+    const at=s.shots[me].findIndex(p=>p[0]===x&&p[1]===y);
+    if(at>=0)s.shots[me][at]=[x,y,v<0?'hit':'miss'];
+   }
+  }
+ }
+ if(r.game==='minesweeper'){
+  const me=r.players.indexOf(viewer);
+  if(Array.isArray(s.board)&&Array.isArray(s.revealed?.[me]))s.board=s.board.map((v,idx)=>s.revealed[me].includes(idx)?v:null);
+  if(Array.isArray(s.revealed))s.revealed=s.revealed.map((arr,idx)=>idx===me?arr:[]);
+ }
+ if(r.game==='memory'&&Array.isArray(s.cards)){s.cards=s.cards.map(c=>c.done||c.up?c:{v:null,up:false,done:false});delete s.pendingMismatch}
+ if(r.game==='chess'&&s.fen){try{s.legalMoves=new Chess(s.fen).moves({verbose:true}).map(m=>({from:m.from,to:m.to,flags:m.flags}))}catch{s.legalMoves=[]}}
  return s}
 function roomView(r,viewer){let actions=[];const eng=GAMES[r.game];if(eng?.getActionDescriptors&&r.state){try{actions=eng.getActionDescriptors(r.state,viewer)||[]}catch{actions=[]}}else if(eng?.getValidActions&&r.state){try{actions=(eng.getValidActions(r.state,viewer)||[]).map(a=>({action:String(a).split(':')[0],label:String(a),enabled:true}))}catch{actions=[]}}return{code:r.code,game:r.game,private:r.private,status:r.status,host:r.host,players:r.players.map((id,slot)=>({...publicUser(id),slot,connected:(sockets.get(id)||0)>0})),state:sanitizeState(r,viewer),actions,result:r.result,rematch:[...r.rematch],chat:r.chat.slice(-50),created:r.created}}
 function broadcastRoom(r){for(const id of r.players)io.to('u:'+id).emit('room',roomView(r,id));io.to(r.code).emit('roomPresence',{players:r.players.map(publicUser)})}
@@ -80,7 +101,12 @@ function advanceRealtime(r){
   const out=GAMES.tetris.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
  }
 }
-function startRoom(r){r.state=GAMES[r.game].init();r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}}
+function startRoom(r){
+ const roomPlayers=r.players.map(id=>({id,name:q.userById.get(id)?.name||'Guest'}));
+ r.state=GAMES[r.game].init(roomPlayers);
+ r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);
+ if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}
+}
 function leaveRoom(id,reason='leave'){const r=roomOf(id);if(!r)return;if(r.status==='playing'&&r.players.length===2){const o=r.players.find(x=>x!==id);if(o)finish(r,{winnerId:o,reason})}else stopRace(r);r.players=r.players.filter(x=>x!==id);if(!r.players.length){stopRace(r);rooms.delete(r.code);return}if(r.host===id)r.host=r.players[0];broadcastRoom(r)}
 
 app.get('/api/config',(req,res)=>res.json({iceServers:rtcServers()}));
