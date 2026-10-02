@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
+
 async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
@@ -38,7 +40,10 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(codeMatch).not.toBeNull();
   const code = codeMatch[0];
 
-  await enterAsGuest(p2, 'http://127.0.0.1:3000/?room='+code);
+  await enterAsGuest(p2);
+  await p2.locator('#roomCodeBtn').click();
+  await p2.locator('#joinCode').fill(code);
+  await p2.locator('#joinBtn').click();
 
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
   await expect(p2.locator('#gameTitle')).toHaveText('Chess');
