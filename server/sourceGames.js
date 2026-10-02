@@ -168,7 +168,14 @@ function bgNewGame(){
   host.currentPieceType=BackgammonModel.PieceType.WHITE;
   guest.currentPieceType=BackgammonModel.PieceType.BLACK;
   game.turnPlayer=host;game.hasStarted=true;game.isOver=false;game.turnNumber=0;
+  game.__host=host;game.__guest=guest;
+  const match={host,guest,currentGame:game};
+  game.__match=match;
   game.turnDice=BackgammonRule.rollDice(game);
+  while(!game.turnDice.movesLeft.length){
+    BackgammonRule.nextTurn(match);
+    game.turnDice=BackgammonRule.rollDice(game);
+  }
   Object.defineProperty(game.state,'__game',{value:game,writable:true,enumerable:false,configurable:true});
   Object.defineProperty(game.state,'__players',{value:[host,guest],writable:true,enumerable:false,configurable:true});
   return game;
@@ -207,9 +214,12 @@ function sourceBackgammonMove(s,i,m){
   const won=BackgammonRule.hasWon(game.state,player);
   if(won){game.isOver=true;game.hasStarted=false;return{winner:i,reason:'all checkers borne off'}}
   if(!BackgammonModel.Game.hasMoreMoves(game)){
-    BackgammonRule.nextTurn({currentGame:game,host:game.__host,guest:game.__guest});
-    game.turnPlayer=game.turnPlayer;
+    BackgammonRule.nextTurn(game.__match);
     game.turnDice=BackgammonRule.rollDice(game);
+    while(!game.turnDice.movesLeft.length&&!game.isOver){
+      BackgammonRule.nextTurn(game.__match);
+      game.turnDice=BackgammonRule.rollDice(game);
+    }
   }
   return bgState(game);
 }
