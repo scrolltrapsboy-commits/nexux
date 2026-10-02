@@ -78,7 +78,7 @@ function advanceRealtime(r){
   const out=GAMES.tetris.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
  }
 }
-function startRoom(r){r.state=GAMES[r.game].init();r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}}}
+function startRoom(r){r.state=GAMES[r.game].init();r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}}
 function leaveRoom(id,reason='leave'){const r=roomOf(id);if(!r)return;if(r.status==='playing'&&r.players.length===2){const o=r.players.find(x=>x!==id);if(o)finish(r,{winnerId:r.players.indexOf(o),reason})}else stopRace(r);r.players=r.players.filter(x=>x!==id);if(!r.players.length){stopRace(r);rooms.delete(r.code);return}if(r.host===id)r.host=r.players[0];broadcastRoom(r)}
 
 app.get('/api/config',(req,res)=>res.json({iceServers:rtcServers()}));
