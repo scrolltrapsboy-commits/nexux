@@ -242,12 +242,17 @@ function checkerStateData(g){
   const d=g.engine.data;
   return {player:d.player,board:{light:d.board.light,dark:d.board.dark,king:d.board.king},stats:{...d.stats}};
 }
+function checkerCoordsFromGame(g){
+  const coords=Array.from({length:32},()=>null);
+  for(let i=0;i<g.board.length;i++){const c=g.board[i];if(c?.dark&&c.position!=null)coords[c.position]={x:i%8,y:Math.floor(i/8)}}
+  return coords;
+}
 function checkerGameFromState(s){
   return EnglishDraughts.setup(s.engineData||undefined,{moves:s.history||[],boards:[]});
 }
 function sourceCheckersInit(){
   const g=EnglishDraughts.setup();
-  return {board:checkerBoardFromGame(g),engineData:checkerStateData(g),history:[],turn:0,status:'playing'};
+  return {board:checkerBoardFromGame(g),coords:checkerCoordsFromGame(g),engineData:checkerStateData(g),history:[],turn:0,status:'playing'};
 }
 function sourceCheckersMove(s,i,m){
   const g=checkerGameFromState(s);
@@ -260,6 +265,7 @@ function sourceCheckersMove(s,i,m){
   g.move(move);
   s.engineData=checkerStateData(g);
   s.board=checkerBoardFromGame(g);
+  s.coords=checkerCoordsFromGame(g);
   s.history.push({origin:from,destination:to,captures:[...(move.captures||[])]});
   s.turn=g.player==='light'?0:1;
   s.status=String(g.status);
