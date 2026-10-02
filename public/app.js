@@ -67,7 +67,7 @@ function renderChess(el,s){
  const me=state.room.players.findIndex(p=>p.id===state.me.id),turn=s.turn===me;
  const moves=Array.isArray(s.legalMoves)?s.legalMoves:[];
  el.innerHTML='<div class="chess-layout"><div><div class="board-chess">'+arr.map((p,i)=>'<button class="chess-cell '+((Math.floor(i/8)+i%8)%2?'dark':'light')+' '+(state.selectedChess===i?'sel':'')+' '+(state.chessLegal.includes(i)?(p?'capture':'legal'):'')+'" data-chess="'+i+'" aria-label="'+toSquare(i)+'">'+(p?map[p]:'')+'</button>').join('')+'</div><div class="game-shell-tools"><button class="ghost" id="offerDraw">Offer draw</button><button class="ghost" id="resignChess">Resign</button></div></div><div class="chess-side"><div class="glass-mini"><b>Turn</b><div>'+ (turn?'Your move':'Opponent move') +'</div><div style="color:#777;margin-top:4px">'+escapeHtml(s.fen)+'</div></div><div class="glass-mini"><b>Move history</b><div class="move-list">'+(s.history||[]).map((m,i)=>'<div class="move-item">'+(i%2===0?(Math.floor(i/2)+1)+'. ':'')+escapeHtml(m)+'</div>').join('')+'</div></div></div></div>';
- $$('[data-chess]').forEach(btn=>btn.onclick=()=>{
+ $('[data-chess]').forEach(btn=>btn.onclick=async()=>{
    const i=+btn.dataset.chess;
    if(!turn)return;
    if(state.selectedChess==null){

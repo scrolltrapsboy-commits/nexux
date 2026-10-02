@@ -20,7 +20,7 @@ function loadDotBox(){
 function makeDotBoxEngine(history){
   const ctx=loadDotBox();
   const code='(function(){var g=dotBox.gameEngine({dotCountLength:10,dotCountWidth:10,playerCount:2,startPlayer:0});var h='+
-    JSON.stringify(history||[])+';for(var i=0;i<h.length;i++){g.connectLine(h[i]);}return {current:g.getCurrentPlayer(),scores:g.getCurrentScores(),gameOver:g.isGameOver(),p0:g.getPlayerBoxes(0),p1:g.getPlayerBoxes(1)};})()';
+    JSON.stringify(history||[])+';for(var i=0;i<h.length;i++){g.connectLine({d1:{x:h[i].x1,y:h[i].y1},d2:{x:h[i].x2,y:h[i].y2}});}return {current:g.getCurrentPlayer(),scores:g.getCurrentScores(),gameOver:g.isGameOver(),p0:g.getPlayerBoxes(0),p1:g.getPlayerBoxes(1)};})()';
   return vm.runInContext(code,ctx);
 }
 function sourceDotsBoxesInit(){
