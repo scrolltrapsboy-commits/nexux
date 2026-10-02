@@ -273,4 +273,4 @@ GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsB
 GAMES.gomoku={name:'Gomoku',category:'Strategy',players:2,init:sourceGomokuInit,move:sourceGomokuMove};
 GAMES.backgammon={name:'Backgammon',category:'Strategy',players:2,init:sourceBackgammonInit,move:sourceBackgammonMove};
 
-module.exports={GAMES,poolInit,poolShot,carromInit,carromMove,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
+module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
