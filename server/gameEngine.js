@@ -1,0 +1,273 @@
+'use strict';
+
+// Open-source rule/physics engines used by NEXUS PLAY.
+// chess.js: BSD-2-Clause — https://github.com/jhlywa/chess.js
+// rapid-draughts: MIT — https://github.com/loks0n/rapid-draughts
+// matter-js: MIT — https://github.com/liabru/matter-js
+const { Chess } = require('chess.js');
+const { EnglishDraughts } = require('rapid-draughts/english');
+const { Vector } = require('matter-js');
+
+const GAMES = {};
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const other=i=>i===0?1:0;
+
+function winLines(board,n=3,w=3,h=3){
+ const dirs=[[1,0],[0,1],[1,1],[1,-1]]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)for(const[dX,dY]of dirs){let line=[];for(let k=0;k<n;k++){const xx=x+dX*k,yy=y+dY*k;if(xx<0||xx>=w||yy<0||yy>=h){line=[];break}line.push(yy*w+xx)}if(line.length&&line.every(i=>board[i]!==null&&board[i]!==undefined&&board[i]===board[line[0]]))return line} return null;
+}
+GAMES.tictactoe={name:'Tic Tac Toe',category:'Board',players:2,init:()=>({board:Array(9).fill(null),turn:0}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.cell;if(!Number.isInteger(c)||c<0||c>8||s.board[c]!=null)return'Invalid cell';s.board[c]=i;const line=winLines(s.board);if(line)return{winner:i,line};if(s.board.every(v=>v!==null))return{draw:true};s.turn=other(i)}};
+GAMES.connect4={name:'Connect Four',category:'Board',players:2,init:()=>({board:Array.from({length:6},()=>Array(7).fill(null)),turn:0}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.col;if(c<0||c>6)return'Invalid column';let r=5;while(r>=0&&s.board[r][c]!==null)r--;if(r<0)return'Column full';s.board[r][c]=i;s.last=[r,c];const dirs=[[1,0],[0,1],[1,1],[1,-1]];for(const[dX,dY]of dirs){let n=1;for(const sign of[-1,1]){let x=c+dX*sign,y=r+dY*sign;while(x>=0&&x<7&&y>=0&&y<6&&s.board[y][x]===i){n++;x+=dX*sign;y+=dY*sign}}if(n>=4)return{winner:i}}if(s.board[0].every(v=>v!==null))return{draw:true};s.turn=other(i)}};
+GAMES.rps={name:'Rock Paper Scissors',category:'Party',players:2,init:()=>({choices:[null,null],score:[0,0],round:1,turn:0}),move:(s,i,m)=>{if(s.choices[i])return'Choice already submitted';if(!['rock','paper','scissors'].includes(m.choice))return'Invalid choice';s.choices[i]=m.choice;if(!s.choices[0]||!s.choices[1])return;const[a,b]=s.choices;let w=null;if(a!==b)w=['rock','paper','scissors'].indexOf(a)===(['rock','paper','scissors'].indexOf(b)+1)%3?0:1;if(w!==null)s.score[w]++;s.lastRound={choices:[a,b],winner:w};if(s.score.some(x=>x>=3))return w===null?{draw:true}:{winner:w};s.round++;s.choices=[null,null];s.turn=other(i)}};
+
+// Chess: complete legal move generation for normal chess, castling, en-passant, promotion and check/checkmate/stalemate.
+const START_FEN='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+function chessFromFen(fen){const p=fen.split(' '),rows=p[0].split('/'),b=[];for(const row of rows){for(const ch of row){if(/\d/.test(ch))for(let i=0;i<+ch;i++)b.push(null);else b.push(ch)}}return{b,turn:p[1]||'w',castling:p[2]||'-',ep:p[3]||'-',half:+p[4]||0,full:+p[5]||1}}
+function chessFen(s){let rows=[];for(let r=0;r<8;r++){let row='',empty=0;for(let c=0;c<8;c++){const p=s.b[r*8+c];if(!p)empty++;else{if(empty){row+=empty;empty=0}row+=p}}if(empty)row+=empty;rows.push(row)}return rows.join('/')+' '+s.turn+' '+(s.castling||'-')+' '+(s.ep||'-')+' '+s.half+' '+s.full}
+const cfile=i=>String.fromCharCode(97+i), cidx=x=>x.charCodeAt(0)-97, sq=(r,c)=>cfile(c)+(8-r);
+function cloneChess(s){return{b:s.b.slice(),turn:s.turn,castling:s.castling,ep:s.ep,half:s.half,full:s.full}}
+function color(p){return p&&p===p.toUpperCase()?'w':'b'}
+const oppColor=side=>side==='w'?'b':'w';
+function kingIndex(s,side){return s.b.indexOf(side==='w'?'K':'k')}
+function attacked(s,target,by){const tr=Math.floor(target/8),tc=target%8;for(let i=0;i<64;i++){const p=s.b[i];if(!p||color(p)!==by)continue;const r=Math.floor(i/8),c=i%8,dr=tr-r,dc=tc-c,t=p.toLowerCase();if(t==='p'){const dir=by==='w'?-1:1;if(dr===dir&&Math.abs(dc)===1)return true}else if(t==='n'){if((Math.abs(dr)===1&&Math.abs(dc)===2)||(Math.abs(dr)===2&&Math.abs(dc)===1))return true}else if(t==='k'){if(Math.max(Math.abs(dr),Math.abs(dc))===1)return true}else{const diag=Math.abs(dr)===Math.abs(dc),straight=dr===0||dc===0;if((t==='b'&&!diag)||(t==='r'&&!straight)||(t==='q'&&!(diag||straight)))continue;const sr=Math.sign(dr),sc=Math.sign(dc);let rr=r+sr,cc=c+sc,ok=true;while(rr!==tr||cc!==tc){if(s.b[rr*8+cc]){ok=false;break}rr+=sr;cc+=sc}if(ok)return true}}return false}
+function inCheck(s,side){const k=kingIndex(s,side);return k<0||attacked(s,k,oppColor(side))}
+function pseudoMoves(s){const out=[];const side=s.turn,enemy=oppColor(side);for(let i=0;i<64;i++){const p=s.b[i];if(!p||color(p)!==side)continue;const r=Math.floor(i/8),c=i%8,t=p.toLowerCase();const add=(to,extra={})=>{const q=s.b[to];if(q&&color(q)===side)return;out.push({from:i,to,...extra,capture:q||null})};if(t==='p'){const dir=side==='w'?-1:1,start=side==='w'?6:1,prom=side==='w'?0:7;let nr=r+dir;if(nr>=0&&nr<8&&!s.b[nr*8+c]){if(nr===prom)for(const pr of['q','r','b','n'])add(nr*8+c,{promotion:pr});else add(nr*8+c);if(r===start&&!s.b[(r+2*dir)*8+c])add((r+2*dir)*8+c)}for(const dc of[-1,1]){const nc=c+dc;if(nc<0||nc>7)continue;const to=nr*8+nc,q=s.b[to];if(q&&color(q)===enemy){if(nr===prom)for(const pr of['q','r','b','n'])add(to,{promotion:pr});else add(to)}if(s.ep!=='-'&&s.ep===sq(nr,nc))add(to,{ep:true})}}else if(t==='n'){for(const[dr,dc]of[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]]){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<8&&cc>=0&&cc<8)add(rr*8+cc)}}else if(t==='k'){for(const dr of[-1,0,1])for(const dc of[-1,0,1])if(dr||dc){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<8&&cc>=0&&cc<8)add(rr*8+cc)}if(side==='w'&&r===7&&c===4&&!inCheck(s,'w')){if(s.castling.includes('K')&&!s.b[61]&&!s.b[62]&&!attacked(s,61,'b')&&!attacked(s,62,'b'))add(62,{castle:'K'});if(s.castling.includes('Q')&&!s.b[59]&&!s.b[58]&&!s.b[57]&&!attacked(s,59,'b')&&!attacked(s,58,'b'))add(58,{castle:'Q'})}if(side==='b'&&r===0&&c===4&&!inCheck(s,'b')){if(s.castling.includes('k')&&!s.b[5]&&!s.b[6]&&!attacked(s,5,'w')&&!attacked(s,6,'w'))add(6,{castle:'k'});if(s.castling.includes('q')&&!s.b[3]&&!s.b[2]&&!s.b[1]&&!attacked(s,3,'w')&&!attacked(s,2,'w'))add(2,{castle:'q'})}}else{const dirs=t==='b'?[[1,1],[1,-1],[-1,1],[-1,-1]]:t==='r'?[[1,0],[-1,0],[0,1],[0,-1]]:[[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];for(const[dr,dc]of dirs){let rr=r+dr,cc=c+dc;while(rr>=0&&rr<8&&cc>=0&&cc<8){const to=rr*8+cc;if(!s.b[to])add(to);else{if(color(s.b[to])===enemy)add(to);break}rr+=dr;cc+=dc}}}}return out}
+function applyChess(s,m){const n=cloneChess(s),p=n.b[m.from],side=color(p),enemy=oppColor(side);n.b[m.to]=p;n.b[m.from]=null;if(m.ep){const cr=side==='w'?Math.floor(m.to/8)+1:Math.floor(m.to/8)-1;n.b[cr*8+(m.to%8)]=null}if(m.promotion)n.b[m.to]=side==='w'?m.promotion.toUpperCase():m.promotion;if(m.castle){if(m.to===62){n.b[63]='';n.b[61]='R'}if(m.to===58){n.b[56]='';n.b[59]='R'}if(m.to===6){n.b[7]='';n.b[5]='r'}if(m.to===2){n.b[0]='';n.b[3]='r'}}n.castling=n.castling.replace(side==='w'?/[KQ]/g:/[kq]/g,'');if(m.from===63||m.to===63)n.castling=n.castling.replace('K','');if(m.from===56||m.to===56)n.castling=n.castling.replace('Q','');if(m.from===7||m.to===7)n.castling=n.castling.replace('k','');if(m.from===0||m.to===0)n.castling=n.castling.replace('q','');n.ep='-';if(p.toLowerCase()==='p'&&Math.abs(m.to-m.from)===16)n.ep=sq((Math.floor(m.to/8)+Math.floor(m.from/8))/2,m.from%8);n.half=(p.toLowerCase()==='p'||m.capture||m.ep)?0:n.half+1;if(side==='b')n.full++;n.turn=enemy;return n}
+function legalChessMoves(s){return pseudoMoves(s).filter(m=>!inCheck(applyChess(s,m),s.turn))}
+function chessMoveSAN(s,m){const p=s.b[m.from],capture=!!m.capture||m.ep; if(m.castle)return m.to>m.from?'O-O':'O-O-O';let str=p.toLowerCase()==='p'?'':p.toUpperCase();if(p.toLowerCase()==='p'&&capture)str+=cfile(m.from%8);if(capture)str+='x';str+=sq(Math.floor(m.to/8),m.to%8);if(m.promotion)str+='='+m.promotion.toUpperCase();const n=applyChess(s,m);if(inCheck(n,n.turn)){if(legalChessMoves(n).length===0)str+='#';else str+='+'}return str}
+function chessInit(){return{fen:START_FEN,history:[],repetition:{[START_FEN.split(' ').slice(0,4).join(' ')]:1},turn:0}}
+GAMES.chess={name:'Chess',category:'Strategy',players:2,init:chessInit,move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const cs=chessFromFen(s.fen),from=cidx(m.from?.[0]),fr=8-+m.from?.[1],to=cidx(m.to?.[0]),tr=8-+m.to?.[1];if([from,fr,to,tr].some(v=>!Number.isInteger(v)||v<0||v>7))return'Invalid square';const legal=legalChessMoves(cs).find(x=>x.from===fr*8+from&&x.to===tr*8+to&&(!x.promotion||x.promotion===(m.promotion||'q')));if(!legal)return'Illegal chess move';const san=chessMoveSAN(cs,legal),next=applyChess(cs,legal);s.fen=chessFen(next);s.history.push(san);s.turn=other(i);const key=s.fen.split(' ').slice(0,4).join(' ');s.repetition[key]=(s.repetition[key]||0)+1;const lm=legalChessMoves(next);if(!lm.length){if(inCheck(next,next.turn))return{winner:i,reason:'checkmate'};return{draw:true,reason:'stalemate'}}if(next.half>=100||s.repetition[key]>=3)return{draw:true,reason:'draw rule'} }};
+
+function checkersInit(){const b=Array.from({length:8},()=>Array(8).fill(null));for(let r=0;r<3;r++)for(let c=0;c<8;c++)if((r+c)%2)b[r][c]=1;for(let r=5;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2)b[r][c]=0;return{board:b,turn:0,chain:null}}
+function checkerMoves(s,i,onlyCapture=false){const moves=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=s.board[r][c];if(p==null)continue;const owner=p%2;if(owner!==i)continue;const king=p>=2;const dirs=king?[-1,1]:(i===0?[-1]:[1]);for(const dr of dirs)for(const dc of[-1,1]){const r1=r+dr,c1=c+dc,r2=r+2*dr,c2=c+2*dc;if(r1>=0&&r1<8&&c1>=0&&c1<8&&!s.board[r1][c1]&&!onlyCapture)moves.push({fx:c,fy:r,tx:c1,ty:r1,capture:null});if(r2>=0&&r2<8&&c2>=0&&c2<8&&!s.board[r2][c2]&&s.board[r1]?.[c1]!=null&&s.board[r1][c1]%2!==i)moves.push({fx:c,fy:r,tx:c2,ty:r2,capture:{x:c1,y:r1}})}}return moves}
+GAMES.checkers={name:'Checkers',category:'Strategy',players:2,init:checkersInit,move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const all=checkerMoves(s,i),captures=all.filter(x=>x.capture),legal=s.chain?captures.filter(x=>x.fx===s.chain.x&&x.fy===s.chain.y):(captures.length?captures:all);const mv=legal.find(x=>x.fx===+m.fx&&x.fy===+m.fy&&x.tx===+m.tx&&x.ty===+m.ty);if(!mv)return captures.length?'A capture is mandatory':'Illegal move';const p=s.board[mv.fy][mv.fx];s.board[mv.fy][mv.fx]=null;s.board[mv.ty][mv.tx]=p;if(mv.capture)s.board[mv.capture.y][mv.capture.x]=null;let np=p;if((i===0&&mv.ty===0)||(i===1&&mv.ty===7))np=2+i;s.board[mv.ty][mv.tx]=np;if(mv.capture){const next=checkerMoves(s,i,true).filter(x=>x.fx===mv.tx&&x.fy===mv.ty);if(next.length){s.chain={x:mv.tx,y:mv.ty};return} }s.chain=null;s.turn=other(i);const opp=checkerMoves(s,s.turn);if(!opp.length)return{winner:i}}};
+
+function shipBoard(){const b=Array.from({length:10},()=>Array(10).fill(0));const fleet=[5,4,3,3,2];for(const len of fleet){let placed=false;for(let tries=0;tries<500&&!placed;tries++){const hor=Math.random()<.5,x=Math.floor(Math.random()*(hor?11-len:10)),y=Math.floor(Math.random()*(hor?10:11-len));let ok=true;for(let k=0;k<len;k++)if(b[y+(hor?0:k)][x+(hor?k:0)])ok=false;if(ok){for(let k=0;k<len;k++)b[y+(hor?0:k)][x+(hor?k:0)]=len;placed=true}}}return b}
+GAMES.battleship={name:'Battleship',category:'Strategy',players:2,init:()=>({boards:[shipBoard(),shipBoard()],shots:[[],[]],turn:0,hits:[0,0]}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const x=+m.x,y=+m.y;if(x<0||x>9||y<0||y>9)return'Invalid target';if(s.shots[i].some(p=>p[0]===x&&p[1]===y))return'Already fired';s.shots[i].push([x,y]);const target=s.boards[other(i)][y][x];if(target>0){s.boards[other(i)][y][x]=-target;s.hits[i]++}const remaining=s.boards[other(i)].flat().some(v=>v>0);if(!remaining)return{winner:i};s.turn=other(i)}};
+GAMES.memory={name:'Memory Match',category:'Party',players:2,init:()=>{const vals=shuffle([...Array(8).keys(),...Array(8).keys()]);return{cards:vals.map(v=>({v,up:false,done:false})),turn:0,pick:[],score:[0,0],pendingMismatch:null}},move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';if(s.pendingMismatch)return'Cards are resolving';const c=+m.card;if(c<0||c>=s.cards.length||s.cards[c].up||s.cards[c].done||s.pick.length>=2)return'Invalid card';s.cards[c].up=true;s.pick.push(c);if(s.pick.length<2)return{reveal:true};const[a,b]=s.pick;if(s.cards[a].v===s.cards[b].v){s.cards[a].done=s.cards[b].done=true;s.score[i]++;s.pick=[];if(s.cards.every(c=>c.done))return s.score[0]===s.score[1]?{draw:true}:{winner:s.score[0]>s.score[1]?0:1};return{match:true}}s.pendingMismatch={a,b,player:i};return{mismatch:true,delayMs:900}}};
+function generateMines(n, mineCount, safe){
+ const excluded=new Set([safe]);const sx=safe%n,sy=Math.floor(safe/n);
+ for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=sx+dx,y=sy+dy;if(x>=0&&x<n&&y>=0&&y<n)excluded.add(y*n+x)}
+ const mines=new Set();while(mines.size<mineCount){const z=Math.floor(Math.random()*n*n);if(!excluded.has(z))mines.add(z)}
+ const board=Array.from({length:n*n},(_,i)=>mines.has(i)?-1:0);
+ for(let i=0;i<board.length;i++)if(board[i]>=0){let x=i%n,y=Math.floor(i/n),count=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<n&&yy>=0&&yy<n&&board[yy*n+xx]===-1)count++}board[i]=count}
+ return board;
+}
+function minesInit(){return{size:10,mineCount:12,board:null,revealed:[[],[]],flags:[[],[]],turn:0,started:false}}
+GAMES.minesweeper={name:'Minesweeper Duel',category:'Arcade',players:2,init:minesInit,move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.cell;if(c<0||c>=100||s.revealed[i].includes(c))return'Invalid cell';if(!s.started){s.board=generateMines(s.size,s.mineCount,c);s.started=true}if(s.board[c]===-1)return{winner:other(i),reason:'mine'};const flood=[c],seen=new Set([c]);while(flood.length){const q=flood.shift();if(!s.revealed[i].includes(q))s.revealed[i].push(q);if(s.board[q]===0){const x=q%10,y=Math.floor(q/10);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<10&&yy>=0&&yy<10){const z=yy*10+xx;if(!seen.has(z)&&s.board[z]>=0){seen.add(z);flood.push(z)}}}}}if(s.revealed[i].filter(z=>s.board[z]>=0).length>=88)return{winner:i,reason:'cleared'};s.turn=other(i)}};
+GAMES.wordbattle={name:'Word Battle',category:'Party',players:2,init:()=>({turn:0,score:[0,0],round:1,target:'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random()*26)],used:[]}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const w=String(m.word||'').toLowerCase().trim();if(!/^[a-z]{3,12}$/.test(w))return'Use 3-12 letters';if(w[0]!==s.target)return'Word must start with '+s.target.toUpperCase();if(s.used.includes(w))return'Word already used';s.used.push(w);s.score[i]+=w.length;s.last={player:i,word:w,points:w.length};s.round++;if(s.round>12)return s.score[0]===s.score[1]?{draw:true}:{winner:s.score[0]>s.score[1]?0:1};s.target='abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random()*26)];s.turn=other(i)}};
+GAMES.reaction={name:'Reaction Race',category:'Arcade',players:2,init:()=>({turn:0,scores:[0,0],phase:'ready',goAt:0,round:1}),move:(s,i,m)=>{if(i!==s.turn)return'Wait for your turn';if(s.phase==='ready'){s.phase='armed';s.goAt=Date.now()+1200+Math.floor(Math.random()*2200);return{armed:true}}if(s.phase==='armed'){if(Date.now()<s.goAt)return'False start';s.scores[i]++;if(s.scores[i]>=3)return{winner:i};s.turn=other(i);s.phase='ready';s.round++}}};
+
+function vlen(x,y){return Vector.magnitude({x:Number(x)||0,y:Number(y)||0})||1}
+function clamp01(n){return clamp(Number(n)||0,0,1)}
+
+// Physical games below use deterministic fixed-step 2D simulation. The rules/geometry are
+// deliberately kept server-side so clients cannot decide collisions, pockets or winners.
+// The implementation is informed by established open-source browser game engines and
+// billiards research; no third-party game repository is copied wholesale.
+const POOL={W:1,H:.5,R:.0185,POCKET:.036,RAIL:.045,DT:1/120,MAX_STEPS:2400}
+const POCKETS=[[0,0],[.5,0],[1,0],[0,POOL.H],[.5,POOL.H],[1,POOL.H]]
+function rackBalls(){
+  const balls=[]
+  const colors=['white','yellow','blue','red','purple','orange','green','maroon','black','yellow','blue','red','purple','orange','green']
+  const types=['cue',...Array.from({length:7},(_,i)=>'solid'), 'eight',...Array.from({length:6},(_,i)=>'stripe')]
+  const apexX=.73, cy=.25, gap=POOL.R*2.04
+  balls.push({id:0,number:0,type:'cue',group:'cue',x:.24,y:cy,vx:0,vy:0,pocketed:false})
+  let id=1
+  for(let row=0;row<5;row++){
+    const x=apexX+row*gap*Math.cos(Math.PI/6)
+    const y0=cy-row*gap/2
+    for(let k=0;k<=row;k++){
+      const number=id
+      balls.push({id:number,number,type:types[number],group:number===8?'eight':number<=7?'solid':'stripe',x,y:y0+k*gap,vx:0,vy:0,pocketed:false})
+      id++
+    }
+  }
+  // Standard-ish 8-ball rack: 8 in the center, one solid/stripe at each back corner.
+  const byId=id=>balls.find(b=>b.id===id)
+  const b8=byId(8), center=balls.find(b=>Math.abs(b.x-(apexX+2*gap*Math.cos(Math.PI/6)))<.001 && Math.abs(b.y-cy)<.001)
+  if(b8&&center){const ox=center.x,oy=center.y;b8.x=ox;b8.y=oy;center.x=ox+gap*.02;center.y=oy+gap*.02}
+  return balls
+}
+function poolInit(){return{balls:rackBalls(),turn:0,groups:[null,null],ballInHand:true,phase:'break',foul:false,firstContact:null,lastPocketed:[],shotNo:0,animation:[]}}
+function poolPocketedCount(s,group){return s.balls.filter(b=>b.pocketed&&b.group===group).length}
+function poolRemaining(s,i){const g=s.groups[i];return g?s.balls.some(b=>!b.pocketed&&b.group===g):true}
+function poolCanShoot8(s,i){return s.groups[i]&&poolRemaining(s,i)===false}
+function poolPlaceCue(s,x,y){
+  const cue=s.balls[0]; x=clamp(Number(x),.09,.42); y=clamp(Number(y),.09,POOL.H-.09)
+  const bad=s.balls.some(b=>!b.pocketed&&b.id!==0&&Math.hypot(b.x-x,b.y-y)<POOL.R*2.15)
+  if(bad)return false
+  cue.x=x;cue.y=y;cue.vx=cue.vy=0;cue.pocketed=false;return true
+}
+function poolShot(s,i,m){
+  if(i!==s.turn)return'Not your turn'
+  if(s.phase==='gameover')return'Game over'
+  s.animation=[]
+  if(s.ballInHand){
+    if(!poolPlaceCue(s,m.cueX??.24,m.cueY??.25))return'Place the cue ball in an open position'
+    if(m.placeOnly)return
+  }
+  const dx=Number(m.dx),dy=Number(m.dy),power=clamp01(m.power)
+  if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<.01)return'Choose an aim direction'
+  if(power<.04)return'Shot power is too low'
+  const len=vlen(dx,dy);const cue=s.balls[0];cue.vx=dx/len*(2.4+8.4*power);cue.vy=dy/len*(2.4+8.4*power)
+  for(const b of s.balls){b.vx=b.vx||0;b.vy=b.vy||0}
+  s.ballInHand=false;s.foul=false;s.firstContact=null;s.lastPocketed=[]
+  const frames=[]; let moving=true,steps=0
+  const snapshot=()=>frames.push(s.balls.map(b=>({id:b.id,x:b.x,y:b.y,pocketed:b.pocketed})))
+  snapshot()
+  while(moving&&steps++<POOL.MAX_STEPS){
+    moving=false
+    for(const b of s.balls){
+      if(b.pocketed)continue
+      b.x+=b.vx*POOL.DT;b.y+=b.vy*POOL.DT
+      const drag=Math.max(0,1-2.15*POOL.DT)
+      b.vx*=drag;b.vy*=drag
+      if(Math.hypot(b.vx,b.vy)>0.035)moving=true
+      // cushion reflection, with pockets removed from the rail path
+      if(b.x<POOL.R){b.x=POOL.R;b.vx=Math.abs(b.vx)*.91}
+      if(b.x>1-POOL.R){b.x=1-POOL.R;b.vx=-Math.abs(b.vx)*.91}
+      if(b.y<POOL.R){b.y=POOL.R;b.vy=Math.abs(b.vy)*.91}
+      if(b.y>POOL.H-POOL.R){b.y=POOL.H-POOL.R;b.vy=-Math.abs(b.vy)*.91}
+    }
+    // Equal-mass elastic ball collision with positional correction.
+    for(let a=0;a<s.balls.length;a++)for(let b=a+1;b<s.balls.length;b++){
+      const A=s.balls[a],B=s.balls[b];if(A.pocketed||B.pocketed)continue
+      let ox=B.x-A.x,oy=B.y-A.y,d=Math.hypot(ox,oy)
+      if(d>0&&d<POOL.R*2){const nx=ox/d,ny=oy/d;const rv=(A.vx-B.vx)*nx+(A.vy-B.vy)*ny;if(rv<0){A.vx-=rv*nx;A.vy-=rv*ny;B.vx+=rv*nx;B.vy+=rv*ny}const push=(POOL.R*2-d)/2;A.x-=nx*push;A.y-=ny*push;B.x+=nx*push;B.y+=ny*push;if(!s.firstContact&&A.id===0)s.firstContact=B.id;if(!s.firstContact&&B.id===0)s.firstContact=A.id}
+    }
+    for(const b of s.balls){if(b.pocketed)continue;for(const [px,py] of POCKETS){if(Math.hypot(b.x-px,b.y-py)<POOL.POCKET){b.pocketed=true;b.vx=b.vy=0;s.lastPocketed.push(b.id);break}}}
+    if(steps%10===0)snapshot()
+  }
+  snapshot()
+  if(!s.firstContact)s.foul=true
+  if(s.firstContact){const fc=s.balls.find(b=>b.id===s.firstContact);if(s.groups[i]&&fc&&fc.group!==s.groups[i]&&fc.group!=='eight')s.foul=true}
+  const cuePocket=s.balls[0].pocketed
+  const eightPocket=s.balls[8].pocketed
+  const legalObject=s.lastPocketed.filter(id=>id!==0&&id!==8).map(id=>s.balls[id]).filter(Boolean)
+  if(s.phase==='break'){
+    s.phase='open'
+    if(s.lastPocketed.some(id=>id!==0)){s.turn=i}else{s.turn=other(i)}
+  }else if(eightPocket){
+    if(s.foul||poolRemaining(s,i))return finishPool(s,i,false,'illegal_8')
+    return finishPool(s,i,true,'legal_8')
+  }else if(cuePocket||s.foul){
+    if(cuePocket){s.balls[0].pocketed=false;poolPlaceCue(s,.24,.25)}
+    s.ballInHand=true;s.turn=other(i)
+  }else if(legalObject.length){
+    if(s.groups[i]===null){const first=legalObject[0].group;if(first==='solid'||first==='stripe'){s.groups[i]=first;s.groups[other(i)]=first==='solid'?'stripe':'solid'}}
+    const ownPocket=legalObject.some(b=>b.group===s.groups[i])
+    s.turn=ownPocket?i:other(i)
+  }else s.turn=other(i)
+  s.shotNo++;s.animation=frames.slice(-90);return {animation:true}
+}
+function finishPool(s,i,win,reason){s.phase='gameover';s.winner=i;s.winReason=reason;s.animation=[];return win?{winner:i,reason:'8-ball'}:{winner:other(i),reason:'illegal 8-ball'} }
+GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:poolInit,move:poolShot}
+
+function carromInit(){
+  const coins=[];const cx=.5,cy=.5,r=.037
+  coins.push({id:0,color:'red',x:cx,y:cy,vx:0,vy:0,pocketed:false})
+  let id=1
+  for(let ring=1;ring<=2;ring++)for(let k=0;k<ring*6;k++){const a=(Math.PI*2*k)/(ring*6)+(ring===2?.13:0);coins.push({id,color:k%2?'black':'white',x:cx+Math.cos(a)*r*ring*1.65,y:cy+Math.sin(a)*r*ring*1.65,vx:0,vy:0,pocketed:false});id++}
+  return{turn:0,coins,scores:[0,0],striker:{x:.5,y:.89,vx:0,vy:0,pocketed:false},animation:[],queenOwner:null,phase:'playing',foul:false}
+}
+const CARROM={R:.022,STRIKER:.031,DT:1/120,MAX:1800,pockets:[[.07,.07],[.93,.07],[.07,.93],[.93,.93]]}
+function carromMove(s,i,m){
+  if(i!==s.turn)return'Not your turn';s.animation=[]
+  const sideY=i===0?.88:.12;const sx=clamp(Number(m.x??.5),.16,.84),sy=sideY;const dx=Number(m.dx),dy=Number(m.dy),power=clamp01(m.power);if(Math.hypot(dx,dy)<.01)return'Aim before shooting'
+  s.striker={x:sx,y:sy,vx:dx/vlen(dx,dy)*(1.4+5.6*power),vy:dy/vlen(dx,dy)*(1.4+5.6*power),pocketed:false};s.foul=false
+  const frames=[];const snap=()=>frames.push({striker:{...s.striker},coins:s.coins.map(c=>({id:c.id,x:c.x,y:c.y,pocketed:c.pocketed}))});snap();let moving=true,step=0,scored=0
+  while(moving&&step++<CARROM.MAX){moving=false;const pieces=[s.striker,...s.coins]
+    for(const b of pieces){if(b.pocketed)continue;b.x+=b.vx*CARROM.DT;b.y+=b.vy*CARROM.DT;b.vx*=.985;b.vy*=.985;if(Math.hypot(b.vx,b.vy)>.02)moving=true;if(b.x<CARROM.R){b.x=CARROM.R;b.vx=Math.abs(b.vx)*.92}if(b.x>1-CARROM.R){b.x=1-CARROM.R;b.vx=-Math.abs(b.vx)*.92}if(b.y<CARROM.R){b.y=CARROM.R;b.vy=Math.abs(b.vy)*.92}if(b.y>1-CARROM.R){b.y=1-CARROM.R;b.vy=-Math.abs(b.vy)*.92}}
+    for(let a=0;a<pieces.length;a++)for(let b=a+1;b<pieces.length;b++){const A=pieces[a],B=pieces[b];if(A.pocketed||B.pocketed)continue;let ox=B.x-A.x,oy=B.y-A.y,d=Math.hypot(ox,oy),rad=(A===s.striker?CARROM.STRIKER:CARROM.R)+(B===s.striker?CARROM.STRIKER:CARROM.R);if(d>0&&d<rad){const nx=ox/d,ny=oy/d,rv=(A.vx-B.vx)*nx+(A.vy-B.vy)*ny;if(rv<0){A.vx-=rv*nx;A.vy-=rv*ny;B.vx+=rv*nx;B.vy+=rv*ny}const push=(rad-d)/2;A.x-=nx*push;A.y-=ny*push;B.x+=nx*push;B.y+=ny*push}}
+    for(const b of pieces){if(b.pocketed)continue;for(const [px,py] of CARROM.pockets){if(Math.hypot(b.x-px,b.y-py)<.055){b.pocketed=true;b.vx=b.vy=0;if(b===s.striker)s.foul=true;else{scored++;if(b.color==='red')s.queenOwner=i;s.scores[i]+=b.color==='red'?3:1}break}}}
+    if(step%12===0)snap()
+  }snap();s.animation=frames.slice(-100);if(s.coins.every(c=>c.pocketed)){return s.scores[0]===s.scores[1]?{draw:true}:{winner:s.scores[0]>s.scores[1]?0:1}}
+  s.striker.pocketed=false;s.striker.x=.5;s.striker.y=sideY;s.striker.vx=s.striker.vy=0;s.turn=scored&&!s.foul?i:other(i);return{animation:true}
+}
+GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:carromInit,move:carromMove}
+
+function golfInit(){return{turn:0,strokes:[0,0],balls:[{x:.12,y:.86,vx:0,vy:0},{x:.12,y:.86,vx:0,vy:0}],done:[false,false],hole:{x:.86,y:.14,r:.045},walls:[{x1:.28,y1:.18,x2:.28,y2:.62},{x1:.28,y1:.62,x2:.68,y2:.62},{x1:.68,y1:.38,x2:.68,y2:.82},{x1:.40,y1:.38,x2:.68,y2:.38}],animation:[]}}
+const GOLF={R:.025,DT:1/120,MAX:1600}
+function segBounce(p,v,w){const ax=w.x1,ay=w.y1,bx=w.x2,by=w.y2,dx=bx-ax,dy=by-ay,l=Math.hypot(dx,dy)||1;const t=clamp(((p.x-ax)*dx+(p.y-ay)*dy)/(l*l),0,1),qx=ax+t*dx,qy=ay+t*dy,d=Math.hypot(p.x-qx,p.y-qy);if(d<GOLF.R+.008){const nx=(p.x-qx)/(d||1),ny=(p.y-qy)/(d||1);const vn=v.x*nx+v.y*ny;if(vn<0){v.x-=1.7*vn*nx;v.y-=1.7*vn*ny}p.x=qx+nx*(GOLF.R+.009);p.y=qy+ny*(GOLF.R+.009)}}
+function golfMove(s,i,m){if(i!==s.turn)return'Not your turn';s.animation=[];if(s.done[i])return'You already holed out';const dx=Number(m.dx),dy=Number(m.dy),power=clamp01(m.power);if(Math.hypot(dx,dy)<.01)return'Aim before shooting';const b=s.balls[i];b.vx=dx/vlen(dx,dy)*(1.2+5.2*power);b.vy=dy/vlen(dx,dy)*(1.2+5.2*power);s.strokes[i]++;const frames=[];const snap=()=>frames.push({balls:s.balls.map(x=>({x:x.x,y:x.y,vx:x.vx,vy:x.vy,done:s.done[s.balls.indexOf(x)]}))});snap();let step=0,moving=true;while(moving&&step++<GOLF.MAX){moving=false;for(const ball of s.balls){if(ball!==b||s.done[i])continue;ball.x+=ball.vx*GOLF.DT;ball.y+=ball.vy*GOLF.DT;ball.vx*=.988;ball.vy*=.988;for(const w of s.walls)segBounce(ball,ball,w);if(Math.hypot(ball.vx,ball.vy)>.02)moving=true;const d=Math.hypot(ball.x-s.hole.x,ball.y-s.hole.y);if(d<s.hole.r){s.done[i]=true;ball.vx=ball.vy=0;ball.x=s.hole.x;ball.y=s.hole.y;moving=false}}if(step%10===0)snap()}snap();s.animation=frames.slice(-100);if(s.done.every(Boolean))return s.strokes[0]===s.strokes[1]?{draw:true}:{winner:s.strokes[0]<s.strokes[1]?0:1};s.turn=other(i);return{animation:true}}
+GAMES.minigolf={name:'Mini Golf',category:'Sports',players:2,init:golfInit,move:golfMove}
+
+function racingInit(){return{players:[{x:.18,y:.78,angle:-Math.PI/2,speed:0,lap:0,progress:0,health:1},{x:.18,y:.86,angle:-Math.PI/2,speed:0,lap:0,progress:0,health:1}],inputs:[{up:false,left:false,right:false,brake:false},{up:false,left:false,right:false,brake:false}],started:Date.now(),winner:null,finished:false}}
+GAMES.racing={name:'Neon Circuit Racing',category:'Racing',players:2,init:racingInit,move:(s,i,m)=>{s.inputs[i]={up:!!m.up,left:!!m.left,right:!!m.right,brake:!!m.brake};return}}
+
+
+// ---------------------------------------------------------------------------
+// SOURCE-BACKED RULE ENGINES
+// These adapters replace the earlier hand-written chess/checkers rule paths.
+// The rest of NEXUS keeps the same Socket.IO protocol and UI state shape.
+// ---------------------------------------------------------------------------
+function sourceChessInit(){
+  const g=new Chess();
+  return {fen:g.fen(),history:[],turn:0,pgn:'',status:'playing'};
+}
+function sourceChessMove(s,i,m){
+  const g=new Chess(s.fen);
+  const expected=g.turn()==='w'?0:1;
+  if(i!==expected)return'Not your turn';
+  if(typeof m?.from!=='string'||typeof m?.to!=='string')return'Invalid square';
+  let mv;
+  try{mv=g.move({from:m.from,to:m.to,promotion:m.promotion||'q'});}catch{return'Illegal chess move'}
+  s.fen=g.fen();
+  s.history=g.history();
+  s.pgn=g.pgn();
+  s.status=g.isGameOver()?'finished':'playing';
+  s.turn=g.turn()==='w'?0:1;
+  if(g.isCheckmate())return{winner:i,reason:'checkmate'};
+  if(g.isStalemate())return{draw:true,reason:'stalemate'};
+  if(g.isThreefoldRepetition())return{draw:true,reason:'threefold repetition'};
+  if(g.isDrawByFiftyMoves())return{draw:true,reason:'fifty-move rule'};
+  if(g.isInsufficientMaterial())return{draw:true,reason:'insufficient material'};
+  return{move:mv.san};
+}
+GAMES.chess={name:'Chess',category:'Strategy',players:2,init:sourceChessInit,move:sourceChessMove};
+
+function checkerBoardFromGame(g){
+  const out=Array.from({length:8},()=>Array(8).fill(null));
+  const board=g.board;
+  for(let idx=0;idx<64;idx++){
+    const cell=board[idx];
+    if(!cell?.dark)continue;
+    const x=idx%8,y=Math.floor(idx/8),p=cell.piece;
+    if(p)out[y][x]=p.player==='light'?(p.king?2:0):(p.king?3:1);
+  }
+  return out;
+}
+function checkerStateData(g){
+  const d=g.engine.data;
+  return {player:d.player,board:{light:d.board.light,dark:d.board.dark,king:d.board.king},stats:{...d.stats}};
+}
+function checkerGameFromState(s){
+  return EnglishDraughts.setup(s.engineData||undefined,{moves:s.history||[],boards:[]});
+}
+function sourceCheckersInit(){
+  const g=EnglishDraughts.setup();
+  return {board:checkerBoardFromGame(g),engineData:checkerStateData(g),history:[],turn:0,status:'playing'};
+}
+function sourceCheckersMove(s,i,m){
+  const g=checkerGameFromState(s);
+  const expected=g.player==='light'?0:1;
+  if(i!==expected)return'Not your turn';
+  const from=Number(m?.from),to=Number(m?.to);
+  if(!Number.isInteger(from)||!Number.isInteger(to))return'Invalid checkers move';
+  const move=g.moves.find(x=>x.origin===from&&x.destination===to);
+  if(!move)return'Illegal checkers move';
+  g.move(move);
+  s.engineData=checkerStateData(g);
+  s.board=checkerBoardFromGame(g);
+  s.history.push({origin:from,destination:to,captures:[...(move.captures||[])]});
+  s.turn=g.player==='light'?0:1;
+  s.status=String(g.status);
+  if(g.status==='light_won')return{winner:0,reason:'no legal moves or pieces'};
+  if(g.status==='dark_won')return{winner:1,reason:'no legal moves or pieces'};
+  if(g.status==='draw')return{draw:true,reason:'draw'};
+  return;
+}
+GAMES.checkers={name:'Checkers',category:'Strategy',players:2,init:sourceCheckersInit,move:sourceCheckersMove};
+
+module.exports={GAMES, poolInit, poolShot, carromInit, carromMove, golfInit, golfMove, racingInit, chessFromFen, legalChessMoves, chessFen}
