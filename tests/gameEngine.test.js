@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {GAMES,chessFromFen,legalChessMoves}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,14);
+  assert.equal(Object.keys(GAMES).length,19);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init();GAMES.tictactoe.move(s,0,{cell:0});GAMES.tictactoe.move(s,1,{cell:3});GAMES.tictactoe.move(s,0,{cell:1});GAMES.tictactoe.move(s,1,{cell:4});const out=GAMES.tictactoe.move(s,0,{cell:2});assert.deepEqual(out.winner,0)});
