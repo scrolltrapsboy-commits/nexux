@@ -4,8 +4,10 @@ NEXUS PLAY is a Node.js + Express + Socket.IO multiplayer game platform with a b
 
 ## Game set
 
+The library includes source-backed Connect Four, Chess, Checkers, Carrom, Dots & Boxes, Gomoku and Backgammon alongside the other games listed below.
+
 - Tic Tac Toe
-- Connect Four
+- Connect Four — source-backed MIT rules
 - Rock Paper Scissors
 - Chess
 - Checkers
@@ -15,10 +17,10 @@ NEXUS PLAY is a Node.js + Express + Socket.IO multiplayer game platform with a b
 - Word Battle
 - Reaction Race
 - **8-Ball Pool — fixed-step collision/pocket physics, ball-in-hand, groups, fouls and 8-ball rules**
-- **Carrom — 19-piece board, striker/coin collisions, pockets, scoring and queen**
+- **Carrom — source-backed board/physics integration**
 - **Mini Golf — stroke counting, continuous ball motion, wall reflection and hole detection**
 - **Neon Circuit Racing — simultaneous keyboard/touch driving with server-side race simulation**
-- **Othello** — source-adapted 8×8 Reversi rules
+- **Othello** — 8×8 Reversi rules
 - **Pong** — real-time two-player paddle/ball simulation
 - **2048 Duel** — authentic merge-and-double mechanics
 - **Tetris Duel** — seven tetrominoes, rotation, gravity, line clears
@@ -50,9 +52,9 @@ The physical games use fixed-step deterministic simulations with collision resol
 See `ONLINE_GAME_SOURCES.md` for the open-source projects inspected during the rebuild and their license considerations. GPL code is not copied into the NEXUS PLAY codebase.
 
 
-## 3.0 source-backed game engines
+## Source-backed game engines
 
-NEXUS PLAY 3.0 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.x (BSD-2-Clause), English Checkers is backed by `rapid-draughts` 1.0.6 (MIT), and physical vector calculations use `matter-js` (MIT). The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
+NEXUS PLAY 3.0 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.0 (BSD-2-Clause), English Checkers by `rapid-draughts` 1.0.6 (MIT), Connect Four by vendored MIT source from `bryanbraun/connect-four`, Dots & Boxes by vendored MIT source, Gomoku by vendored MIT source, Carrom by vendored upstream source, and Backgammon by vendored `quasoft/backgammonjs` MIT source. `matter-js` remains available for vector/physics work. The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
 
 After extracting the project, run `npm install` before starting the server so the source-backed engines are installed.
 
