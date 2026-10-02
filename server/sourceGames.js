@@ -283,6 +283,8 @@ function loadExactPoolRuntime(){
   });
   const files=['Global.js','Vector2.js','Score.js','Player.js','Ball.js','Stick.js','GamePolicy.js','GameWorld.js'];
   for(const file of files)vm.runInContext(readThirdParty('pool',file),ctx,{filename:'pool/'+file});
+  vm.runInContext("AI_ON=false; SOUND_ON=false; AI.finishedSession=false; GAME_STOPPED=false; DISPLAY=false;",ctx);
+  ctx.__poolDelta=vm.runInContext("DELTA",ctx);
   return poolSourceContext=ctx;
 }
 function poolRunTimers(ctx){while(ctx.__poolTimers.length){const fn=ctx.__poolTimers.shift();try{fn()}catch{}}}
@@ -378,7 +380,7 @@ function sourcePoolMove(s,i,m){
   const frames=[poolSourceFrame(runtime)];
   let steps=0;
   while(world.ballsMoving()&&steps++<7000){
-    world.update(ctx.DELTA);
+    world.update(ctx.__poolDelta||.01);
     if(steps%6===0)frames.push(poolSourceFrame(runtime));
   }
   poolRunTimers(ctx);
@@ -402,4 +404,4 @@ function sourcePoolMove(s,i,m){
   return{animation:true};
 }
 
-module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
+module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceCarromInit,sourceCarromMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove};
