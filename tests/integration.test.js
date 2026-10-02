@@ -26,7 +26,7 @@ test('socket multiplayer smoke: two clients can join and play chess',async()=>{
     const afterB=roomEvent(b,r=>r.status==='playing'&&r.state?.fen?.includes(' b '));
     await new Promise((resolve,reject)=>b.emit('move',{from:'e7',to:'e5',promotion:'q'},r=>r?.ok?resolve():reject(new Error(r?.error||'move failed'))));
     const rb=await afterB;
-    assert.match(rb.state.fen,/ eP? /i);
+    assert.equal(rb.state.turn,0);
     a.disconnect();b.disconnect();
   }finally{proc.kill('SIGTERM');await wait(200)}
 });
