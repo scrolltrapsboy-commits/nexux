@@ -211,11 +211,12 @@ function drawPool(ctx,w,h,st){
  const shades=['#f4f4f4','#d8d8d8','#bcbcbc','#a0a0a0','#888','#707070','#585858'];
  for(const b of st.balls||[]){if(b.pocketed)continue;const x=b.x*w,y=b.y*h,rad=Math.max(7,w*.0185);ctx.beginPath();ctx.fillStyle=b.group==='eight'?'#0b0b0b':b.group==='solid'?(shades[(b.number-1)%7]||'#ddd'):(shades[(b.number-9)%7]||'#cfcfcf');ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();if(b.type==='stripe'){ctx.save();ctx.beginPath();ctx.arc(x,y,rad*.98,0,Math.PI*2);ctx.clip();ctx.fillStyle='#e4e4e4';ctx.fillRect(x-rad,y-rad*.27,2*rad,rad*.54);ctx.restore()}ctx.strokeStyle=b.group==='eight'?'#aaa':'#444';ctx.stroke();if(b.number){ctx.fillStyle=b.group==='eight'?'#eee':'#111';ctx.font=`${Math.max(7,rad*.9)}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.number,x,y)}}}
 function drawCarrom(ctx,w,h,st){
+ const scaleX=(v)=>Math.abs(Number(v))>2?Number(v)/800:Number(v),scaleY=(v)=>Math.abs(Number(v))>2?Number(v)/800:Number(v);
  ctx.fillStyle='#111';ctx.fillRect(0,0,w,h);ctx.fillStyle='#181818';ctx.fillRect(w*.06,h*.06,w*.88,h*.88);ctx.strokeStyle='#303030';ctx.lineWidth=10;ctx.strokeRect(w*.045,h*.045,w*.91,h*.91);
  for(const [x,y] of [[.07,.07],[.93,.07],[.07,.93],[.93,.93]]){ctx.fillStyle='#050505';ctx.beginPath();ctx.arc(x*w,y*h,Math.max(11,w*.025),0,Math.PI*2);ctx.fill()}
  ctx.strokeStyle='#666';ctx.lineWidth=2;ctx.beginPath();ctx.arc(.5*w,.5*h,w*.08,0,Math.PI*2);ctx.stroke();
- for(const c of st.coins||[]){if(c.pocketed)continue;ctx.fillStyle=c.color==='black'?'#0a0a0a':c.color==='red'?'#bdbdbd':'#ededed';ctx.beginPath();ctx.arc(c.x*w,c.y*h,w*.018,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#777';ctx.stroke()}
- const striker=st.striker;if(striker&&!striker.pocketed){ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(striker.x*w,striker.y*h,w*.027,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#222';ctx.stroke()}
+ for(const c of st.coins||[]){if(c.pocketed)continue;const x=scaleX(c.x)*w,y=scaleY(c.y)*h;ctx.fillStyle=c.color==='black'?'#0a0a0a':c.color==='red'?'#bdbdbd':'#ededed';ctx.beginPath();ctx.arc(x,y,w*.018,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#777';ctx.stroke()}
+ const striker=st.striker;if(striker&&!striker.pocketed){const x=scaleX(striker.x)*w,y=scaleY(striker.y)*h;ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(x,y,w*.027,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#222';ctx.stroke()}
 }
 function drawGolf(ctx,w,h,st){
  ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,w,h);ctx.fillStyle='#151515';ctx.fillRect(w*.05,h*.05,w*.9,h*.9);ctx.strokeStyle='#222';ctx.lineWidth=8;ctx.strokeRect(w*.05,h*.05,w*.9,h*.9);
