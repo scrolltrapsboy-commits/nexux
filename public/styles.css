@@ -4,3 +4,44 @@
 @media(max-width:380px){.hero h1{font-size:38px}.board-c4{padding:5px}.c4{width:9.4vw;height:9.4vw}}
 
 .chat-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}.chat-people{display:grid;align-content:start;gap:8px}.chat-person,.friend-chat-item{width:100%;text-align:left;padding:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:14px;color:#fff}.chat-person.active,.friend-chat-item:hover{background:rgba(255,255,255,.08)}.chat-person small,.friend-chat-item small{display:block;color:#888;margin-top:3px}.compact{min-height:80px;max-height:150px}.game-mobile-social{display:none;border-top:1px solid rgba(255,255,255,.08);margin-top:16px;padding-top:12px}.mobile-social-tabs{display:flex;gap:6px;align-items:center;overflow:auto}.mobile-social-tabs select{min-height:40px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:0 10px}.mobile-call-row{display:flex;gap:6px;justify-content:center;margin:8px 0}.mobile-call-row .icon-btn{min-width:42px}.othello-wrap,.duel-wrap,.pong-wrap,.snake-wrap,.tetris-duel{width:min(860px,100%);margin:0 auto}.board-othello{display:grid;grid-template-columns:repeat(8,1fr);width:min(640px,88vw);aspect-ratio:1;margin:auto;border:8px solid #171717;box-shadow:0 30px 80px rgba(0,0,0,.45)}.oth-cell{border:1px solid rgba(255,255,255,.08);font-size:clamp(18px,4vw,34px);display:grid;place-items:center;padding:0}.oth-cell.light{background:#171717}.oth-cell.dark{background:#0f0f0f}.board-2048{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(520px,88vw);margin:auto;padding:10px;background:#111;border-radius:18px}.tile2048{aspect-ratio:1;border:0;border-radius:12px;background:#1b1b1b;color:#fff;font-weight:800;font-size:clamp(18px,5vw,32px)}.tile2048.t2{background:#ddd;color:#111}.tile2048.t4{background:#bbb;color:#111}.tile2048.t8,.tile2048.t16,.tile2048.t32,.tile2048.t64{background:#777}.tile2048.t128,.tile2048.t256,.tile2048.t512,.tile2048.t1024,.tile2048.t2048{background:#fff;color:#000}.pong-wrap,.snake-wrap{width:min(900px,94vw)}.pong-wrap canvas,.snake-wrap canvas{display:block;width:100%;aspect-ratio:16/9;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:#050505}.tetris-duel{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.tet-column{background:#0c0c0c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px;text-align:center}.tet-canvas{width:min(300px,40vw);aspect-ratio:1/2;display:block;margin:8px auto;background:#050505;border-radius:10px}.tet-controls{grid-column:1/-1;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.tet-controls button{min-width:50px;min-height:44px}.scoreline{text-align:center;color:#ddd;margin:10px}.game-note{color:#777;text-align:center}.chess-layout{display:grid;grid-template-columns:minmax(280px,1fr) 230px;gap:16px;width:min(900px,100%);margin:auto}.chess-side{display:grid;gap:8px}.glass-mini{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}.game-shell-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.move-list{max-height:280px;overflow:auto}.move-item{padding:5px 6px;border-bottom:1px solid #151515;color:#aaa}@media(max-width:760px){.social{display:none}.game-mobile-social{display:block}.chat-layout{grid-template-columns:1fr}.chess-layout{grid-template-columns:1fr}.tetris-duel{grid-template-columns:1fr 1fr}.tet-canvas{width:100%}.board-othello,.board-2048{width:min(94vw,560px)}.game-modal{width:100%;max-height:100dvh;overflow:auto;border-radius:18px 18px 0 0}.game-board{min-height:280px}.mobile-call-row{position:sticky;bottom:0;background:rgba(5,5,5,.88);backdrop-filter:blur(18px);padding:6px;border-radius:14px}.chat-page .chat-list{height:50vh!important}}
+
+
+/* NEXUS PLAY in-game shell: full-window game with dedicated live social rail */
+#gameModal{padding:0;place-items:stretch;align-items:stretch;justify-items:stretch}
+#gameModal .game-modal{width:100vw;max-width:none;height:100vh;max-height:none;margin:0;border-radius:0;overflow:auto;padding:18px}
+body.game-active #gameModal .game-modal{width:calc(100vw - 340px);height:100vh;margin:0 340px 0 0;border-radius:0 24px 24px 0}
+body.game-active #gameModal{z-index:60}
+body.game-active>.social,
+body.game-active .social{display:flex;position:fixed;z-index:70;top:0;right:0;width:340px;height:100vh;margin:0;border-radius:24px 0 0 24px;padding:14px}
+body.game-active #gameModal .game-mobile-social{display:none!important}
+body.game-active #gameModal .game-board{min-height:0;height:clamp(430px,calc(100vh - 240px),760px);overflow:auto}
+body.game-active #gameModal .game-header{position:sticky;top:0;z-index:3;padding:4px 0 12px;background:linear-gradient(180deg,rgba(10,10,10,.97),rgba(10,10,10,.84) 70%,transparent);backdrop-filter:blur(10px)}
+body.game-active #gameModal .players-strip{position:sticky;top:76px;z-index:2;padding:6px 0;background:linear-gradient(180deg,rgba(10,10,10,.92),rgba(10,10,10,.70));backdrop-filter:blur(8px)}
+body.game-active #gameModal .game-actions,body.game-active #gameModal .result{padding-bottom:4px}
+body.game-active .social .call-stage{height:170px}
+body.game-active .social .chat-list{min-height:140px}
+body.game-active .social .call-card{flex:0 0 auto}
+#shareGame{min-width:76px}
+@media(min-width:761px) and (max-width:1150px){
+  body.game-active>.social,body.game-active .social{width:320px}
+  body.game-active #gameModal .game-modal{width:calc(100vw - 320px);margin-right:320px}
+  body.game-active #gameModal .game-board{height:calc(100vh - 250px)}
+}
+@media(max-width:760px){
+  body.game-active #gameModal .game-modal{width:100vw;height:100vh;margin:0;border-radius:0;padding:10px 10px 40vh;overflow:auto}
+  body.game-active>.social,body.game-active .social{display:flex;position:fixed;left:0;right:0;top:auto;bottom:0;width:100%;height:38vh;border-radius:20px 20px 0 0;padding:8px;gap:7px;z-index:80}
+  body.game-active .social .call-stage{height:82px}
+  body.game-active .social .chat-list{min-height:48px;max-height:92px;padding:2px}
+  body.game-active .social .call-title{margin-bottom:4px}
+  body.game-active .social .call-card{padding:7px}
+  body.game-active .social .call-controls{margin-top:5px}
+  body.game-active .social .call-controls .icon-btn{height:32px;width:32px}
+  body.game-active .social .social-tabs{margin-top:0}
+  body.game-active .social .social-tabs .ghost{padding:8px 10px}
+  body.game-active .social .chat-form input{padding:9px 10px}
+  body.game-active #gameModal .game-header{position:sticky;top:0}
+  body.game-active #gameModal .players-strip{position:sticky;top:66px}
+  body.game-active #gameModal .game-board{height:auto;max-height:calc(60vh - 60px);overflow:auto}
+  body.game-active #gameModal .game-head-actions{flex-wrap:wrap;justify-content:flex-end}
+  #shareGame{min-width:auto}
+}
