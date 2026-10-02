@@ -22,7 +22,8 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   }
 
   await enterAsGuest(p1);
-  await expect(p1.locator('#view-home .game-grid')).toContainText('Chess');
+  await expect(p1.locator('#view-home .game-grid .play-btn')).toHaveCount(6);
+  await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
   await expect(p1.locator('#view-games .play-btn')).toHaveCount(19);
