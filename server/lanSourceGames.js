@@ -6,7 +6,10 @@ const ROOT=path.join(__dirname,'..','third_party','source-games','lan-games','se
 const SOURCES={
   tictactoe:require(path.join(ROOT,'tic-tac-toe','game-logic.js')),
   battleship:require(path.join(ROOT,'battleship','game-logic.js')),
-  yahtzee:require(path.join(ROOT,'yahtzee','game-logic.js'))
+  yahtzee:require(path.join(ROOT,'yahtzee','game-logic.js')),
+  monopoly:require(path.join(ROOT,'monopoly','game-logic.js')),
+  risk:require(path.join(ROOT,'risk','game-logic.js')),
+  life:require(path.join(ROOT,'life','game-logic.js'))
 };
 
 function makePlayers(roomPlayers,mod){
@@ -51,12 +54,17 @@ function makeAdapter(id,meta){
       }
       return;
     },
-    getStateForPlayer:(state,viewer)=>mod.getStateForPlayer?mod.getStateForPlayer(state,viewer):state
+    getStateForPlayer:(state,viewer)=>mod.getStateForPlayer?mod.getStateForPlayer(state,viewer):state,
+    getValidActions:(state,userId)=>mod.getValidActions?mod.getValidActions(state,userId):[],
+    getActionDescriptors:(state,userId)=>mod.getActionDescriptors?mod.getActionDescriptors(state,userId):(mod.getValidActions?mod.getValidActions(state,userId).map(action=>({action,label:action,enabled:true})):[])
   };
 }
 const LAN_GAMES={
   tictactoe:makeAdapter('tictactoe',{name:'Tic Tac Toe',category:'Board'}),
   battleship:makeAdapter('battleship',{name:'Battleship',category:'Strategy'}),
-  yahtzee:makeAdapter('yahtzee',{name:'Yahtzee',category:'Dice'})
+  yahtzee:makeAdapter('yahtzee',{name:'Yahtzee',category:'Dice'}),
+  monopoly:makeAdapter('monopoly',{name:'Monopoly',category:'Strategy'}),
+  risk:makeAdapter('risk',{name:'Risk',category:'Strategy'}),
+  life:makeAdapter('life',{name:'The Game of Life',category:'Family'})
 };
 module.exports={LAN_GAMES,SOURCES};
