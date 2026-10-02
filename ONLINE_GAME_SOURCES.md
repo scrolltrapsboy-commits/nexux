@@ -12,7 +12,7 @@ This build uses established open-source game engines/libraries where they provid
 | Racing implementation reference | https://github.com/Steve-IX/Speed_Racer_Game | MIT |
 | Racing pseudo-3D reference | https://github.com/jakesgordon/javascript-racer | MIT (project notes include restrictions on bundled music/sprites) |
 | Battleship multiplayer architecture reference | https://github.com/andreykishtov/BattleShip-Game | See repository license before redistribution |
-| Connect Four UI/reference | https://github.com/bryanbraun/connect-four | MIT |
+| Connect Four rules/UI source | https://github.com/bryanbraun/connect-four | MIT; exact `vars.js`/`functions.js` source retained under `third_party/source-games/connect-four/` |
 | Minesweeper reference | https://github.com/smithsa/minesweeper | Public domain |
 | Multiplayer architecture reference | https://github.com/kbennett2000/lan-games | See repository license before redistribution |
 | Othello / Pong / 2048 / Snake / Tetris source | https://github.com/rkendel1/ganes | MIT; source snapshots retained under `third_party/littlejs-ai/` with license |
@@ -26,3 +26,5 @@ NEXUS PLAY does not download or execute remote JavaScript at runtime. The MIT Li
 ## Policy
 
 New games are not accepted as button-only placeholders. A new game must point to an identified upstream source, retain the source license/notice, and have server integration tests before release. UI skinning is kept outside the upstream rule/physics source so the game behavior is not altered by the Liquid Glass presentation layer.
+
+| Backgammon rules/model | https://github.com/quasoft/backgammonjs | MIT; exact model + RuleBgCasual source retained under `third_party/source-games/backgammon/` |
