@@ -31,7 +31,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
-  await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
+  await expect(p1.locator('#gameBoard')).toContainText('Waiting for opponent');
 
   const lobbyText = await p1.locator('#gameBoard').innerText();
   const codeMatch = lobbyText.match(/[A-Z0-9]{6}/);
