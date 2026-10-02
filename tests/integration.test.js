@@ -27,8 +27,8 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   a.connect();b.connect();
   await Promise.all([onceEvent(a,'connect'),onceEvent(b,'connect')]);
   const ha=await call(a,'hello',{name:'SmokeA'}),hb=await call(b,'hello',{name:'SmokeB'});
-  const roomStartedA=onceRoom(a,r=>r.status==='playing');
   const created=await call(a,'create',{game:'chess'});
+  const roomStartedA=onceRoom(a,r=>r.status==='playing');
   await call(b,'join',{code:created.code});
   const started=await roomStartedA;
   assert.equal(started.game,'chess');
