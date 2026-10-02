@@ -16,5 +16,13 @@ This build uses established open-source game engines/libraries where they provid
 | Minesweeper reference | https://github.com/smithsa/minesweeper | Public domain |
 | Multiplayer architecture reference | https://github.com/kbennett2000/lan-games | See repository license before redistribution |
 | Othello / Pong / 2048 / Snake / Tetris source | https://github.com/rkendel1/ganes | MIT; source snapshots retained under `third_party/littlejs-ai/` with license |
+| Dots & Boxes engine | https://github.com/gmetzker/DotBox | MIT; vendored engine + required state utilities under `third_party/source-games/dots-and-boxes/` |
+| Gomoku source | https://github.com/lunatikek/Gomoku | MIT; upstream `Gomoku.js` and license retained under `third_party/source-games/gomoku/` |
+| Carrom physics/controller source | https://github.com/sasidharreddy-janke/Carrom-Game- | Repository README states MIT, but no LICENSE file is present; retained source copies are clearly marked and should be reviewed before any external redistribution |
 
 NEXUS PLAY does not download or execute remote JavaScript at runtime. The MIT LittleJS-AI source snapshots are retained in-repository for audit/reference; NEXUS PLAY adapts their game concepts into the server-authoritative multiplayer layer. Do not add code/assets from a repository whose license does not permit redistribution.
+
+
+## Policy
+
+New games are not accepted as button-only placeholders. A new game must point to an identified upstream source, retain the source license/notice, and have server integration tests before release. UI skinning is kept outside the upstream rule/physics source so the game behavior is not altered by the Liquid Glass presentation layer.

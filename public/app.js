@@ -28,7 +28,9 @@ function sendMove(m){state.socket.emit('move',m,res=>{if(res?.error)toast(res.er
 function renderBoard(r){const el=$('#gameBoard');const s=r.state;if(r.status==='lobby'){el.innerHTML=`<div class="lobby-panel"><div class="lobby-icon">${icons[r.game]||'◈'}</div><span class="eyebrow">PRIVATE ROOM</span><h3>Waiting for opponent</h3><p>Share the code or send the invite link. Your game starts automatically when the second player joins.</p><div class="room-code-big">${r.code}</div><div class="lobby-actions"><button class="primary" id="copyRoom">Copy room code</button><button class="ghost" id="copyInvite">Copy invite link</button><button class="ghost" id="shareInvite">Share</button></div></div>`;$('#copyRoom').onclick=async()=>{try{await navigator.clipboard.writeText(r.code);toast('Room code copied')}catch{toast(r.code)}};$('#copyInvite').onclick=copyCurrentRoomLink;$('#shareInvite').onclick=shareCurrentRoom;return}
  if(r.game==='tictactoe')return el.innerHTML=`<div class="board-ttt">${s.board.map((v,i)=>`<button class="cell" data-c="${i}">${v===null?'':v===0?'×':'○'}</button>`).join('')}</div>`,$$('[data-c]').forEach(b=>b.onclick=()=>sendMove({cell:b.dataset.c}));
  if(r.game==='connect4')return el.innerHTML=`<div class="board-c4">${s.board.flatMap((row,y)=>row.map((v,x)=>`<button class="c4 ${v===null?'':'p'+v}" data-col="${x}" data-row="${y}"></button>`)).join('')}</div>`,$$('[data-col]').forEach(b=>b.onclick=()=>sendMove({col:b.dataset.col}));
- if(r.game==='rps')return el.innerHTML=`<div style="text-align:center"><h2>Round ${s.round}</h2><p style="color:#777">${s.choices[state.room.players.findIndex(p=>p.id===state.me.id)]?'Choice locked':'Choose your move'}</p><div class="game-actions"><button class="primary big-action" data-rps="rock">✊ Rock</button><button class="ghost big-action" data-rps="paper">✋ Paper</button><button class="ghost big-action" data-rps="scissors">✌ Scissors</button></div><p style="color:#777">${s.score[0]} — ${s.score[1]}</p></div>`,$$('[data-rps]').forEach(b=>b.onclick=()=>sendMove({choice:b.dataset.rps}));
+ if(r.game==='rps')return el.innerHTML=`<div style="text-align:center"><h2>Round ${s.round}</h2><p style="color:#777">${s.choices[state.room.players.findIndex(p=>p.id===state.me.id)]?'Choice locked':'Choose your move'}</p><div class="game-actions"><button class="primary big-action" data-rps="rock">✊ Rock</button><button class="ghost big-action" data-rps="paper">✋ Paper</button><button class="ghost big-action" data-rps="scissors">✌ Scissors</button></div><p style="color:#777">${s.score[0]} — ${s.score[1]}</p></div>`,$('[data-rps]').forEach(b=>b.onclick=()=>sendMove({choice:b.dataset.rps}));
+ if(r.game==='dotsboxes')return renderDotsBoxes(el,s);
+ if(r.game==='gomoku')return renderGomoku(el,s);
  if(r.game==='chess')return renderChess(el,s);
  if(r.game==='checkers')return renderCheckers(el,s);
  if(r.game==='battleship')return renderBattle(el,s);
@@ -75,9 +77,9 @@ function renderChess(el,s){
    }
    const from=toSquare(state.selectedChess),to=toSquare(i);
    if(!state.chessLegal.includes(i)){state.selectedChess=null;state.chessLegal=[];renderGame();return}
-   const moving=arr[state.selectedChess];let promotion;
-   if(moving?.toLowerCase()==='p'&&(i<8||i>=56)){promotion=(prompt('Promote to: q = queen, r = rook, b = bishop, n = knight','q')||'q').toLowerCase();if(!'qrbn'.includes(promotion))promotion='q'}
-   sendMove({from,to,promotion:promotion||'q'});state.selectedChess=null;state.chessLegal=[];
+   const moving=arr[state.selectedChess];let promotion='q';
+   if(moving?.toLowerCase()==='p'&&(i<8||i>=56))promotion=await choosePromotion();
+   sendMove({from,to,promotion});state.selectedChess=null;state.chessLegal=[];
  });
  $('#offerDraw').onclick=()=>state.socket.emit('drawOffer');$('#resignChess').onclick=()=>state.socket.emit('resign');
 }
@@ -89,6 +91,34 @@ function renderCheckers(el,s){
  el.innerHTML='<div><div class="board-checkers">'+cells+'</div><p class="game-note">Mandatory captures, multi-jumps and kings are enforced by the source checkers engine. '+(turn?'Your move.':'Opponent move.')+'</p></div>';
  const refresh=()=>$$('[data-checkxy]').forEach(b=>{const pos=+b.dataset.pos;b.classList.toggle('sel',!!(selected&&selected.pos===pos));b.classList.toggle('legal',!!(turn&&selected&&legal.some(m=>m.from===selected.pos&&m.to===pos)))});
  $$('[data-checkxy]').forEach(b=>b.onclick=()=>{if(!turn)return;const pos=+b.dataset.pos;if(pos<0)return;if(!selected){if(!legal.some(m=>m.from===pos))return;selected={pos};refresh();return}if(!legal.some(m=>m.from===selected.pos&&m.to===pos)){selected=null;refresh();return}sendMove({from:selected.pos,to:pos});selected=null});
+}
+async function choosePromotion(){
+  const old=document.querySelector('.promotion-popover');old?.remove();
+  return new Promise(resolve=>{
+    const wrap=document.createElement('div');wrap.className='promotion-popover';wrap.innerHTML='<div class="promotion-card"><span class="eyebrow">PROMOTION</span><h4>Choose a piece</h4><div class="promotion-options"><button data-p="q">♛<small>Queen</small></button><button data-p="r">♜<small>Rook</small></button><button data-p="b">♝<small>Bishop</small></button><button data-p="n">♞<small>Knight</small></button></div></div>';
+    document.body.appendChild(wrap);
+    wrap.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p;wrap.remove();resolve(p)});
+  });
+}
+function renderGomoku(el,s){
+  const me=state.room.players.findIndex(p=>p.id===state.me.id);
+  el.innerHTML='<div class="gomoku-wrap"><div class="gomoku-board">'+s.board.map((v,i)=>'<button class="gomoku-cell '+(v===1?'black':v===2?'white':'')+'" data-gomoku="'+i+'" aria-label="Gomoku '+i+'">'+(v===1?'●':v===2?'○':'')+'</button>').join('')+'</div><div class="scoreline">'+(s.turn===me?'Your move':'Opponent move')+' · '+s.moves+'/225</div></div>';
+  $('[data-gomoku]').forEach(b=>b.onclick=()=>{if(s.turn!==me||s.board[+b.dataset.gomoku])return;const idx=+b.dataset.gomoku;sendMove({x:idx%15,y:Math.floor(idx/15)})});
+}
+function lineActive(s,kind,x,y){return kind==='h'?s.hLines.some(l=>l.x===x&&l.y===y):s.vLines.some(l=>l.x===x&&l.y===y)}
+function renderDotsBoxes(el,s){
+  const me=state.room.players.findIndex(p=>p.id===state.me.id);
+  const cells=[];
+  for(let gy=0;gy<19;gy++){
+    for(let gx=0;gx<19;gx++){
+      if(gy%2===0&&gx%2===0){cells.push('<div class="db-dot"></div>');continue}
+      if(gy%2===1&&gx%2===1){const bx=(gx-1)/2,by=(gy-1)/2,owner=s.boxes?.[0]?.includes(by*9+bx)?0:s.boxes?.[1]?.includes(by*9+bx)?1:null;cells.push('<div class="db-box '+(owner===0?'owner0':owner===1?'owner1':'')+'">'+(owner===null?'':owner===0?'×':'○')+'</div>');continue}
+      if(gy%2===0){const x=(gx-1)/2,y=gy/2,active=lineActive(s,'h',x,y);cells.push('<button class="db-line h '+(active?'active':'')+'" '+(active||s.turn!==me?'disabled':'')+' data-db="h,'+x+','+y+'" aria-label="horizontal line"></button>')}
+      else{const x=gx/2,y=(gy-1)/2,active=lineActive(s,'v',x,y);cells.push('<button class="db-line v '+(active?'active':'')+'" '+(active||s.turn!==me?'disabled':'')+' data-db="v,'+x+','+y+'" aria-label="vertical line"></button>')}
+    }
+  }
+  el.innerHTML='<div class="dots-wrap"><div class="dots-grid">'+cells.join('')+'</div><div class="scoreline">'+(s.turn===me?'Your move':'Opponent move')+' · You '+s.scores[me]+' — Opponent '+s.scores[1-me]+'</div></div>';
+  $('[data-db]').forEach(b=>b.onclick=()=>{const [kind,x,y]=b.dataset.db.split(',').map((v,i)=>i?Number(v):v);sendMove(kind==='h'?{x1:x,y1:y,x2:x+1,y2:y}:{x1:x,y1:y,x2:x,y2:y+1})});
 }
 function renderBattle(el,s){const me=state.room.players.findIndex(p=>p.id===state.me.id),myShots=s.shots[me]||[];el.innerHTML=`<div><p style="color:#777;text-align:center">Your fleet is hidden from opponent. Fire on their grid.</p><div class="grid10">${Array.from({length:100},(_,i)=>{const x=i%10,y=Math.floor(i/10),shot=myShots.find(p=>p[0]===x&&p[1]===y);return`<button class="${shot?.[2]==='hit'?'hit':''}" data-shot="${x},${y}">${shot?shot[2]==='hit'?'×':'·':''}</button>`}).join('')}</div></div>`;$$('[data-shot]').forEach(b=>b.onclick=()=>{const[x,y]=b.dataset.shot.split(',').map(Number);sendMove({x,y})})}
 function renderCanvasGame(el,r){

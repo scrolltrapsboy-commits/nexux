@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,19);
+  assert.equal(Object.keys(GAMES).length,21);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init();GAMES.tictactoe.move(s,0,{cell:0});GAMES.tictactoe.move(s,1,{cell:3});GAMES.tictactoe.move(s,0,{cell:1});GAMES.tictactoe.move(s,1,{cell:4});const out=GAMES.tictactoe.move(s,0,{cell:2});assert.deepEqual(out.winner,0)});
@@ -98,4 +98,31 @@ test('Othello starts with four center pieces and flips a bracket',()=>{
 });
 test('Pong accepts clamped realtime paddle input',()=>{
  const s=GAMES.pong.init();assert.equal(GAMES.pong.move(s,0,{axis:2}),'Invalid paddle input');GAMES.pong.move(s,0,{axis:-1});assert.equal(s.inputs[0],-1);
+});
+
+test('source-backed Dots & Boxes enforces legal adjacent lines and scoring turns',()=>{
+  const s=GAMES.dotsboxes.init();
+  assert.equal(s.turn,0);
+  assert.equal(GAMES.dotsboxes.move(s,0,{x1:0,y1:0,x2:1,y2:0}),undefined);
+  assert.equal(s.turn,1);
+  assert.equal(s.hLines.length,1);
+  assert.equal(GAMES.dotsboxes.move(s,1,{x1:0,y1:0,x2:1,y2:0}),'Line already connected');
+  assert.equal(GAMES.dotsboxes.move(s,0,{x1:0,y1:0,x2:0,y2:2}),'Not your turn');
+});
+test('source-backed Gomoku detects five in a row',()=>{
+  const s=GAMES.gomoku.init();
+  for(let k=0;k<4;k++){
+    GAMES.gomoku.move(s,0,{x:k,y:0});
+    GAMES.gomoku.move(s,1,{x:k,y:1});
+  }
+  const out=GAMES.gomoku.move(s,0,{x:4,y:0});
+  assert.deepEqual(out,{winner:0,reason:'five in a row'});
+});
+test('source-backed Carrom initializes authentic source board and supports a shot',()=>{
+  const s=GAMES.carrom.init();
+  assert.equal(s.coins.length,19);
+  assert.equal(s.coins.filter(c=>c.type==='queen').length,1);
+  const out=GAMES.carrom.move(s,0,{x:.5,dx:0,dy:-1,power:.18});
+  assert.equal(out?.animation,true);
+  assert.equal(Array.isArray(s.animation),true);
 });

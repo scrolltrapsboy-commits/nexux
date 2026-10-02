@@ -63,3 +63,8 @@ Release hardening includes authoritative chess/checkers rules, realtime arcade s
 ## In-game experience
 
 The game view opens as a full-window play surface. On desktop, live voice/video and Room/Global/Friend chat stay in a dedicated right-side social rail; on phones, the same controls collapse into a compact bottom social panel so the game remains usable without overlap. Game rooms expose a shareable `?room=CODE` invite link and can auto-join from that link.
+
+
+## Source-engine rebuild
+
+This release adds exact vendored upstream source snapshots for Dots & Boxes (MIT DotBox), Gomoku (MIT), and Carrom physics/rule reference (MIT Carrom-Game-). Their licenses are retained in `third_party/source-games/`. Chess and English Checkers continue to use source-backed libraries. The NEXUS multiplayer layer remains responsible for rooms, synchronized state, chat and calls.

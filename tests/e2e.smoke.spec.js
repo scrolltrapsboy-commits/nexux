@@ -28,7 +28,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(19);
+  await expect(p1.locator('#view-games .play-btn')).toHaveCount(21);
 
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
@@ -94,7 +94,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','reaction','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','dotsboxes','gomoku'];
   for(const game of allGames){
     await p1.locator('.sidebar [data-view="games"]').click();
     await p1.locator(`.play-btn[data-game="${game}"]`).click();
@@ -105,6 +105,17 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
     await expect(p1.locator('#gameTitle')).not.toHaveText('Game');
     await expect(p2.locator('#gameModal')).toBeVisible();
     await expect(p2.locator('#gameBoard')).not.toBeEmpty();
+    if(game==='dotsboxes'){
+      await expect(p1.locator('.dots-grid')).toBeVisible();
+      await expect(p2.locator('.dots-grid')).toBeVisible();
+      await p1.locator('[data-db^="h,0,0"]').click();
+      await expect(p2.locator('.db-line.active')).toHaveCount(1);
+    }
+    if(game==='gomoku'){
+      await expect(p1.locator('.gomoku-board')).toBeVisible();
+      await p1.locator('[data-gomoku="112"]').click();
+      await expect(p2.locator('[data-gomoku="112"]')).toHaveText('●');
+    }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
     expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);

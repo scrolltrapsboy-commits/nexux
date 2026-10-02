@@ -286,4 +286,13 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 
 
 
-module.exports={GAMES,poolInit,poolShot,carromInit,carromMove,golfInit,golfMove,racingInit};
+/* -------------------------------------------------------------------------- */
+/* Source-engine integrations. The complete upstream snapshots live under   */
+/* third_party/source-games and their licenses are retained alongside them.  */
+/* -------------------------------------------------------------------------- */
+const {sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove}=require('./sourceGames');
+GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromInit,move:sourceCarromMove};
+GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsBoxesInit,move:sourceDotsBoxesMove};
+GAMES.gomoku={name:'Gomoku',category:'Strategy',players:2,init:sourceGomokuInit,move:sourceGomokuMove};
+
+module.exports={GAMES,poolInit,poolShot,carromInit,carromMove,golfInit,golfMove,racingInit,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove};
