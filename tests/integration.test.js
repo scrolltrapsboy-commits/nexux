@@ -19,6 +19,13 @@ function call(sock,event,data){return new Promise((resolve,reject)=>sock.emit(ev
 test('two clients can connect, chat, friend-DM, relay call signaling and play chess',{timeout:30000},async()=>{
  const port=3199,base='http://127.0.0.1:'+port;
  let a,b;
+ const waitRoom=(sock,predicate,timeout=5000)=>new Promise((resolve,reject)=>{
+   let done=false;
+   const finish=v=>{if(done)return;done=true;clearTimeout(timer);sock.off('room',handler);resolve(v)};
+   const handler=r=>{try{if(predicate(r))finish(r)}catch(err){if(!done){done=true;clearTimeout(timer);sock.off('room',handler);reject(err)}}};
+   const timer=setTimeout(()=>{if(done)return;done=true;sock.off('room',handler);reject(new Error('room event timeout'))},timeout);
+   sock.on('room',handler);
+ });
  const proc=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:String(port),DB_PATH:':memory:'},stdio:'ignore'});
  try{
   await waitForHealth(base+'/health');
@@ -27,8 +34,8 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   a.connect();b.connect();
   await Promise.all([onceEvent(a,'connect'),onceEvent(b,'connect')]);
   const ha=await call(a,'hello',{name:'SmokeA'}),hb=await call(b,'hello',{name:'SmokeB'});
+  const roomStartedA=waitRoom(a,r=>r.status==='playing');
   const created=await call(a,'create',{game:'chess'});
-  const roomStartedA=onceRoom(a,r=>r.status==='playing');
   await call(b,'join',{code:created.code});
   const started=await roomStartedA;
   assert.equal(started.game,'chess');
@@ -48,8 +55,8 @@ test('two clients can connect, chat, friend-DM, relay call signaling and play ch
   const rtcSeen=onceEvent(b,'webrtc',m=>m.from===ha.me.id&&m.type==='offer');
   a.emit('webrtc',{to:hb.me.id,type:'offer',data:{type:'offer',sdp:'smoke'}});
   await rtcSeen;
+  const bReady=waitRoom(b,r=>r.status==='playing'&&typeof r.state?.fen==='string'&&r.state.fen.split(' ')[1]==='b');
   await call(a,'move',{from:'e2',to:'e4',promotion:'q'});
-  const bReady=onceRoom(b,r=>r.status==='playing'&&r.state?.fen?.includes(' b '));
   await call(b,'move',{from:'e7',to:'e5',promotion:'q'});
   const after=await bReady;
   assert.equal(after.state.turn,0);
