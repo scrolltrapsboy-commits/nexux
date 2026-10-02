@@ -32,6 +32,7 @@ function renderBoard(r){const el=$('#gameBoard');const s=r.state;if(r.status==='
  if(r.game==='dotsboxes')return renderDotsBoxes(el,s);
  if(r.game==='gomoku')return renderGomoku(el,s);
  if(r.game==='chess')return renderChess(el,s);
+ if(r.game==='backgammon')return renderBackgammon(el,s);
  if(r.game==='checkers')return renderCheckers(el,s);
  if(r.game==='battleship')return renderBattle(el,s);
  if(r.game==='memory')return el.innerHTML=`<div><div class="memory-grid">${s.cards.map((c,i)=>`<button class="memory-card ${c.up||c.done?'up':''}" data-memory="${i}">${c.up||c.done?(c.v+1):'?'}</button>`).join('')}</div><p style="color:#777;text-align:center">Score ${s.score[0]} — ${s.score[1]}</p></div>`,$$('[data-memory]').forEach(b=>b.onclick=()=>sendMove({card:b.dataset.memory}));
@@ -45,6 +46,15 @@ function renderBoard(r){const el=$('#gameBoard');const s=r.state;if(r.status==='
  if(r.game==='game2048')return render2048(el,r);
  if(r.game==='snake')return renderSnake(el,r);
  if(r.game==='tetris')return renderTetris(el,r);
+}
+function renderBackgammon(el,s){
+ const me=state.room.players.findIndex(p=>p.id===state.me.id),turn=s.turn===me,dice=s.dice; let selected=null;
+ const pointHtml=(p,idx)=>{const stack=p||[],top=stack[stack.length-1],mine=top&&top.type===me,count=stack.length;return '<button class="bg-point '+(mine&&turn?'usable':'')+' '+(selected&&selected.point===idx?'selected':'')+'" data-bg-point="'+idx+'"><span class="bg-count">'+count+'</span><span class="bg-stack '+(top&&top.type===0?'white':'black')+'"></span></button>';};
+ el.innerHTML='<div class="backgammon-wrap"><div class="bg-head"><div><b>Backgammon</b><span>'+ (turn?'Your turn':'Opponent turn') +'</span></div><div class="bg-dice">'+(dice&&dice.values?dice.values.map(v=>'<span>'+v+'</span>').join(''):'')+'</div></div><div class="backgammon-board"><div class="bg-row top">'+Array.from({length:12},(_,k)=>pointHtml(s.points[23-k],23-k)).join('')+'</div><div class="bg-divider"></div><div class="bg-row bottom">'+Array.from({length:12},(_,k)=>pointHtml(s.points[k],k)).join('')+'</div><div class="bg-bars"><button class="bg-bar '+(((s.bar[me]||[]).length&&turn)?'usable':'')+'" data-bg-bar>BAR <b>'+((s.bar[me]||[]).length)+'</b></button><div class="bg-out">You borne off <b>'+((s.outside[me]||[]).length)+'</b> · Opponent <b>'+((s.outside[1-me]||[]).length)+'</b></div></div></div><div class="bg-info">Dice '+((dice&&dice.movesLeft?dice.movesLeft.join(', '):'—'))+' · '+(turn?'Select a checker, then choose a die value.':'Waiting for opponent.')+'</div><div class="bg-steps">'+((dice&&dice.movesLeft?dice.movesLeft:[]).map(v=>'<button class="ghost bg-step" data-bg-step="'+v+'" '+(!turn?'disabled':'')+'>'+v+'</button>').join(''))+'</div></div>';
+ const refresh=()=>{$('[data-bg-point]').forEach(b=>{const i=+b.dataset.bgPoint;b.classList.toggle('selected',!!(selected&&selected.point===i));});};
+ $('[data-bg-point]').forEach(b=>b.onclick=()=>{if(!turn)return;const idx=+b.dataset.bgPoint,stack=s.points[idx]||[],top=stack[stack.length-1];if(!top||top.type!==me)return;selected={point:idx,pieceId:top.id};refresh();});
+ $('[data-bg-bar]')?.addEventListener('click',()=>{if(turn&&(s.bar[me]||[]).length){selected={point:-1,pieceId:s.bar[me][s.bar[me].length-1]};}});
+ $('[data-bg-step]').forEach(b=>b.onclick=()=>{if(!selected)return toast('Select a checker first');sendMove({pieceId:selected.pieceId,steps:+b.dataset.bgStep});selected=null;});
 }
 function renderOthello(el,r){const s=r.state,me=r.players.findIndex(p=>p.id===state.me.id);el.innerHTML='<div class="othello-wrap"><div class="board-othello">'+s.board.flatMap((row,y)=>row.map((v,x)=>'<button class="oth-cell '+((x+y)%2?'dark':'light')+'" data-oth="'+(y*8+x)+'">'+(v==null?'':v===0?'●':'○')+'</button>')).join('')+'</div><div class="scoreline">Black '+s.scores[0]+' — White '+s.scores[1]+'</div><p class="game-note">'+(s.turn===me?'Your move.':'Opponent move.')+'</p></div>';$('[data-oth]').forEach(b=>b.onclick=()=>sendMove({cell:+b.dataset.oth}))}
 function render2048(el,r){const s=r.state,me=r.players.findIndex(p=>p.id===state.me.id);el.innerHTML='<div class="duel-wrap"><div class="board-2048">'+s.board.map((v,i)=>'<button class="tile2048 t'+(v||0)+'" data-2048="'+i+'">'+(v||'')+'</button>').join('')+'</div><div class="scoreline">You '+s.score[me]+' — Opponent '+s.score[1-me]+' · '+(s.turn===me?'Your turn':'Opponent turn')+'</div><div class="touch-pad"><button data-2048-dir="up">↑</button><button data-2048-dir="left">←</button><button data-2048-dir="right">→</button><button data-2048-dir="down">↓</button></div></div>';$('[data-2048-dir]').forEach(b=>b.onclick=()=>sendMove({dir:b.dataset['2048Dir']}))}
