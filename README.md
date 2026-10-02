@@ -55,3 +55,7 @@ See `THIRD_PARTY_SOURCES.md` for the open-source projects inspected during the r
 NEXUS PLAY 3.0 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.x (BSD-2-Clause), English Checkers is backed by `rapid-draughts` 1.0.6 (MIT), and physical vector calculations use `matter-js` (MIT). The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
 
 After extracting the project, run `npm install` before starting the server so the source-backed engines are installed.
+
+
+## Release verification
+Current release hardening includes authoritative chess/checkers engines, realtime arcade state, in-game room/global/friend chat, and WebRTC media controls. CI is the release gate.
