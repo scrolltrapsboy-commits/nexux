@@ -21,6 +21,7 @@
     "matter-js": "^0.20.0"
   },
   "devDependencies": {
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "@playwright/test": "^1.56.1"
   }
 }
