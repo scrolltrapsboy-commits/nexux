@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,23);
+  assert.equal(Object.keys(GAMES).length,26);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('source-backed tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init([{id:'a',name:'A'},{id:'b',name:'B'}]);GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:0}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:0}});GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:1}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:1}});const out=GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:2}});assert.equal(out.winner,0)});
@@ -145,3 +145,6 @@ test('source-backed NEXUS LAN Games engines expose real state and turn rules',()
   const b=GAMES.battleship.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(b.turnState.phase,'setup');assert.equal(b.players.length,2);assert.equal(b.config.settings.ships.length,5);
   const y=GAMES.yahtzee.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(y.turnState.dice.length,0);const yr=GAMES.yahtzee.move(y,0,{action:'rollDice',payload:{held:[false,false,false,false,false]}});assert.equal(yr,undefined);assert.equal(y.turnState.dice.length,5);
 });
+
+
+test('source-backed Monopoly Risk and Life initialize from upstream engines',()=>{const players=[{id:'a',name:'A'},{id:'b',name:'B'}];const mono=GAMES.monopoly.init(players);assert.equal(mono.status,'playing');assert.equal(mono.players.length,2);assert.equal(mono.players[0].money,mono.config.settings.startingMoney);assert.equal(mono.turnState.phase,'pre-roll');const risk=GAMES.risk.init(players);assert.equal(risk.status,'playing');assert.equal(risk.players.length,2);assert.equal(Object.keys(risk.territories).length,42);assert.equal(risk.turnState.phase,'reinforce');const life=GAMES.life.init(players);assert.equal(life.status,'playing');assert.equal(life.players.length,2);assert.equal(life.players[0].pending?.type,'fork');assert.ok(life.config.board.length>=60)});
