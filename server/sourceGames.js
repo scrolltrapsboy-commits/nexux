@@ -252,6 +252,95 @@ function sourceBackgammonMove(s,i,m){
   return bgState(game,s);
 }
 
+/* Exact controller adapter for the vendored Carrom-Game source.
+   The upstream CarromGame prototype is used directly; only DOM/audio/AI
+   dependencies are stubbed because NEXUS supplies its own synchronized UI. */
+let exactCarromContext;
+function loadExactCarromController(){
+  if(exactCarromContext)return exactCarromContext;
+  const ctx=vm.createContext({
+    console,
+    Math,
+    Date,
+    setTimeout(){return 0},
+    clearTimeout(){},
+    requestAnimationFrame(){return 0},
+    cancelAnimationFrame(){},
+    document:{getElementById(){return null}},
+    window:{devicePixelRatio:1},
+    performance:{now:()=>0}
+  });
+  const physics=readThirdParty('carrom','carrom-physics.js');
+  const controller=readThirdParty('carrom','carrom-game.js');
+  vm.runInContext(physics+'\n'+controller+'\nglobalThis.__NEXUS_CARROM_EXACT={CarromGame,CarromPhysicsEngine,Vector2,Disc};',ctx,{filename:'carrom-exact-source.js'});
+  return exactCarromContext=ctx;
+}
+function carromDomStub(){
+  const el=()=>({style:{display:'',color:''},value:'50',innerText:'',textContent:'',className:'',classList:{add(){},remove(){},toggle(){}}});
+  return {
+    p1PosSlider:el(),p2PosSlider:el(),p1Score:el(),p2Score:el(),p1Name:el(),p2Name:el(),
+    bannerText:el(),queenStatusText:el(),gameoverModal:el(),winnerTitle:el(),winnerSubtitle:el(),
+    finalP1Score:el(),finalP2Score:el(),finalP1Name:el(),finalP2Name:el(),
+    p1Card:el(),p2Card:el(),p1TurnBadge:el(),p2TurnBadge:el(),p1SliderBox:el(),p2SliderBox:el()
+  };
+}
+function exactCarromRuntimeNew(){
+  const ctx=loadExactCarromController(), C=ctx.__NEXUS_CARROM_EXACT;
+  const g=Object.create(C.CarromGame.prototype);
+  g.canvas={parentElement:{},getContext(){return{}}};g.ctx=g.canvas.getContext();
+  g.width=800;g.height=800;g.boardConfig=CARROM_CFG;
+  g.audio={playStrike(){},playCoinHit(){},playWallBounce(){},playPocketSink(){},playQueenCovered(){},playFoul(){},toggleSound(){return true}};
+  g.physics=new C.CarromPhysicsEngine(g.boardConfig,g.audio);
+  g.ai={calculateBestShot(){return null},startSession(){}};
+  g.dom=carromDomStub();g.mode='2p';g.gameState='PLACEMENT';g.currentPlayer=1;
+  g.scores={1:0,2:0};g.pocketedCoins={1:[],2:[]};g.foulPenaltiesDue={1:0,2:0};
+  g.queenStatus='CENTER';g.queenAwaitingPlayer=null;g.coinsPocketedThisTurn=[];g.strikerPocketedThisTurn=false;g.hasFoulThisTurn=false;
+  g.aimAngle=-Math.PI/2;g.shotPower=60;g.isDraggingAim=false;g.dragStartPos=null;g.showAimGuide=true;
+  g.coins=[];g.striker=null;g.pockets=[];
+  g.updateUI=()=>{};g.setAnnouncement=()=>{};g.triggerAITurn=()=>{};
+  g.initPockets();g.arrangeCoins();g.createStriker();
+  return {ctx,g};
+}
+function exactCarromState(runtime,target={}){
+  const g=runtime.g;
+  target.source='carrom-game-exact';target.turn=g.currentPlayer-1;target.scores=[g.scores[1],g.scores[2]];
+  target.pocketed=[g.pocketedCoins[1].slice(),g.pocketedCoins[2].slice()];target.foulPenaltiesDue=[g.foulPenaltiesDue[1],g.foulPenaltiesDue[2]];
+  target.queenStatus=g.queenStatus;target.queenAwaitingPlayer=g.queenAwaitingPlayer==null?null:g.queenAwaitingPlayer-1;
+  target.phase=g.gameState;target.foul=!!g.hasFoulThisTurn;target.status=g.gameState==='GAME_OVER'?'finished':'playing';
+  target.coins=g.coins.map((c,id)=>({id,type:c.type,x:c.pos.x/800,y:c.pos.y/800,vx:c.vel.x,vy:c.vel.y,pocketed:!!c.pocketed,isSinking:!!c.isSinking,sinkScale:Number(c.sinkScale??1)}));
+  target.striker={id:19,type:'striker',x:g.striker.pos.x/800,y:g.striker.pos.y/800,vx:g.striker.vel.x,vy:g.striker.vel.y,pocketed:!!g.striker.pocketed,isSinking:!!g.striker.isSinking,sinkScale:Number(g.striker.sinkScale??1)};
+  target.animation=target.animation||[];
+  Object.defineProperty(target,'__carromRuntime',{value:runtime,writable:true,configurable:true});
+  return target;
+}
+function exactCarromInit(){return exactCarromState(exactCarromRuntimeNew(),{animation:[]})}
+function restoreCarromRuntime(s){
+  if(s.__carromRuntime)return s.__carromRuntime;
+  const runtime=exactCarromRuntimeNew(),g=runtime.g;
+  g.currentPlayer=Number(s.turn||0)+1;g.scores={1:Number(s.scores?.[0]||0),2:Number(s.scores?.[1]||0)};
+  g.pocketedCoins={1:[...(s.pocketed?.[0]||[])],2:[...(s.pocketed?.[1]||[])]};
+  g.foulPenaltiesDue={1:Number(s.foulPenaltiesDue?.[0]||0),2:Number(s.foulPenaltiesDue?.[1]||0)};
+  g.queenStatus=s.queenStatus||'CENTER';g.queenAwaitingPlayer=s.queenAwaitingPlayer==null?null:Number(s.queenAwaitingPlayer)+1;
+  if(Array.isArray(s.coins))s.coins.forEach((c,id)=>{const q=g.coins[id];if(!q)return;q.pos.x=Number(c.x||0)*800;q.pos.y=Number(c.y||0)*800;q.vel.x=Number(c.vx||0);q.vel.y=Number(c.vy||0);q.pocketed=!!c.pocketed;q.isSinking=!!c.isSinking;q.sinkScale=Number(c.sinkScale??1)});
+  if(s.striker){g.striker.pos.x=Number(s.striker.x||.5)*800;g.striker.pos.y=Number(s.striker.y||.5)*800;g.striker.vel.x=Number(s.striker.vx||0);g.striker.vel.y=Number(s.striker.vy||0);g.striker.pocketed=!!s.striker.pocketed;g.striker.isSinking=!!s.striker.isSinking;g.striker.sinkScale=Number(s.striker.sinkScale??1)}
+  g.physics.setDiscs([...g.coins,g.striker]);s.__carromRuntime=runtime;return runtime;
+}
+function exactCarromMove(s,i,m){
+  const runtime=restoreCarromRuntime(s),g=runtime.g;
+  if(g.gameState==='GAME_OVER')return'Game over';if(i!==g.currentPlayer-1)return'Not your turn';
+  const x=clamp(Number(m?.x??(g.striker.pos.x/800)),180/800,620/800)*800,y=g.currentPlayer===1?700:100;
+  g.striker.pos.set(x,y);g.striker.vel.set(0,0);g.striker.pocketed=false;g.striker.isSinking=false;g.striker.sinkScale=1;
+  try{g.adjustStrikerOverlap()}catch{}
+  const dx=Number(m?.dx),dy=Number(m?.dy),mag=Math.hypot(dx,dy),power=Number(m?.power);
+  if(!Number.isFinite(dx)||!Number.isFinite(dy)||mag<.01)return'Aim before shooting';if(!Number.isFinite(power)||power<=.02)return'Shot power is too low';
+  g.aimAngle=Math.atan2(dy,dx);g.shotPower=15+85*Math.max(0,Math.min(1,power));g.executeStrike();
+  const frame=()=>({striker:{x:g.striker.pos.x/800,y:g.striker.pos.y/800,pocketed:!!g.striker.pocketed},coins:g.coins.map((c,id)=>({id,type:c.type,x:c.pos.x/800,y:c.pos.y/800,pocketed:!!c.pocketed}))});
+  const frames=[frame()];let steps=0;while(!g.physics.areAllDiscsStopped()&&steps++<6000){g.physics.update();if(steps%6===0)frames.push(frame())}frames.push(frame());
+  g.processTurnEnd();const out=exactCarromState(runtime,s);s.animation=frames.slice(-180);out.animation=s.animation;
+  if(g.gameState==='GAME_OVER'){if(g.scores[1]===g.scores[2])return{draw:true,reason:'source carrom score tie'};return{winner:g.scores[1]>g.scores[2]?0:1,reason:'source carrom game over'}}
+  return{animation:true};
+}
+
 /* Exact MIT Classic-Pool-Game runtime adapter.
    The source files under third_party/source-games/pool are executed unchanged
    inside an isolated VM. NEXUS only supplies browser-global stubs and
@@ -404,4 +493,4 @@ function sourcePoolMove(s,i,m){
   return{animation:true};
 }
 
-module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceCarromInit,sourceCarromMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove};
+module.exports={sourceConnectFourInit,sourceConnectFourMove,sourceCarromInit,sourceCarromMove,sourceCarromExactInit:exactCarromInit,sourceCarromExactMove:exactCarromMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove};
