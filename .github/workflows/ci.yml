@@ -1,7 +1,7 @@
 name: NEXUS PLAY CI
 on:
   push:
-    branches: [main, nexus-v3-rebuild]
+    branches: [main, nexus-v3-rebuild, nexus-v3-release]
   pull_request:
     branches: [main]
 jobs:
