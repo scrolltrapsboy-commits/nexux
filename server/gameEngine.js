@@ -269,6 +269,9 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* -------------------------------------------------------------------------- */
 const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove}=require('./sourceGames');
 GAMES.yahtzee=LAN_GAMES.yahtzee;
+GAMES.monopoly=LAN_GAMES.monopoly;
+GAMES.risk=LAN_GAMES.risk;
+GAMES.life=LAN_GAMES.life;
 GAMES.connect4={name:'Connect Four',category:'Board',players:2,init:sourceConnectFourInit,move:sourceConnectFourMove};
 GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromInit,move:sourceCarromMove};
 GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsBoxesInit,move:sourceDotsBoxesMove};
