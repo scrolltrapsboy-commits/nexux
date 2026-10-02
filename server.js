@@ -116,6 +116,9 @@ io.on('connection',socket=>{
  socket.on('rematch',()=>{const r=roomOf(me());if(!r||r.status!=='finished')return;r.rematch.add(me());if(r.rematch.size===r.players.length)startRoom(r);else broadcastRoom(r)});
  socket.on('leave',()=>leaveRoom(me()));
  socket.on('invite',(d,cb)=>{const to=String(d?.to||''),r=roomOf(me());if(!r||!areFriends(me(),to))return reply(cb,{error:'Friends only'});notify(to,'invite',q.userById.get(me()).name+' invited you to '+GAMES[r.game].name,{room:r.code,game:r.game});io.to('u:'+to).emit('gameInvite',{room:r.code,game:r.game,from:publicUser(me())});reply(cb,{ok:true})});
+ socket.on('resign',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());finish(r,{winnerId:r.players[other(i)],reason:'resign'});broadcastRoom(r);reply(cb,{ok:true})});
+ socket.on('drawOffer',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const to=r.players.find(x=>x!==me());if(to){notify(to,'draw',q.userById.get(me()).name+' offered a draw',{room:r.code});io.to('u:'+to).emit('drawOffer',{from:publicUser(me())})}reply(cb,{ok:true})});
+ socket.on('drawRespond',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});if(d?.accept){finish(r,{draw:true,reason:'agreement'});broadcastRoom(r)}reply(cb,{ok:true})});
  socket.on('webrtc',(d)=>{const to=String(d?.to||'');if(to)io.to('u:'+to).emit('webrtc',{from:me(),type:d.type,data:d.data})});
  socket.on('disconnect',()=>{const id=me();if(!id)return;const n=(sockets.get(id)||1)-1;if(n>0)sockets.set(id,n);else sockets.delete(id);io.emit('online',[...sockets.values()].reduce((a,b)=>a+b,0));io.emit('presence',publicUser(id))});
 });
