@@ -137,7 +137,7 @@ function poolShot(s,i,m){
   s.shotNo++;s.animation=frames.slice(-90);return {animation:true}
 }
 function finishPool(s,i,win,reason){s.phase='gameover';s.winner=i;s.winReason=reason;s.animation=[];return win?{winner:i,reason:'8-ball'}:{winner:other(i),reason:'illegal 8-ball'} }
-GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:sourcePoolInit,move:sourcePoolMove}
+GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:poolInit,move:poolShot}
 
 function golfInit(){return{turn:0,strokes:[0,0],balls:[{x:.12,y:.86,vx:0,vy:0},{x:.12,y:.86,vx:0,vy:0}],done:[false,false],hole:{x:.86,y:.14,r:.045},walls:[{x1:.28,y1:.18,x2:.28,y2:.62},{x1:.28,y1:.62,x2:.68,y2:.62},{x1:.68,y1:.38,x2:.68,y2:.82},{x1:.40,y1:.38,x2:.68,y2:.38}],animation:[]}}
 const GOLF={R:.025,DT:1/120,MAX:1600}
@@ -277,5 +277,6 @@ GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromInit,mo
 GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsBoxesInit,move:sourceDotsBoxesMove};
 GAMES.gomoku={name:'Gomoku',category:'Strategy',players:2,init:sourceGomokuInit,move:sourceGomokuMove};
 GAMES.backgammon={name:'Backgammon',category:'Strategy',players:2,init:sourceBackgammonInit,move:sourceBackgammonMove};
+GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:sourcePoolInit,move:sourcePoolMove};
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
