@@ -1,6 +1,6 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {GAMES,chessFromFen,legalChessMoves}=require('../server/gameEngine');
+const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
   assert.equal(Object.keys(GAMES).length,19);
@@ -8,7 +8,7 @@ test('all game engines expose two-player lifecycle',()=>{
 });
 test('tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init();GAMES.tictactoe.move(s,0,{cell:0});GAMES.tictactoe.move(s,1,{cell:3});GAMES.tictactoe.move(s,0,{cell:1});GAMES.tictactoe.move(s,1,{cell:4});const out=GAMES.tictactoe.move(s,0,{cell:2});assert.deepEqual(out.winner,0)});
 test('connect four detects four',()=>{const s=GAMES.connect4.init();for(const c of [0,1,0,1,0,1,0]){const i=s.turn;const out=GAMES.connect4.move(s,i,{col:c});if(out)assert.equal(out.winner,0)}assert.equal(s.board[2][0],0)});
-test('chess initial position has 20 legal moves',()=>{const s=chessFromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');assert.equal(legalChessMoves(s).length,20)});
+test('source-backed chess starts with 20 legal moves and accepts e2-e4',()=>{const s=GAMES.chess.init();const moves=s.fen&&s.history;assert.equal(new (require('chess.js').Chess)(s.fen).moves().length,20);const out=GAMES.chess.move(s,0,{from:'e2',to:'e4'});assert.equal(out.move,'e4');assert.equal(s.turn,1);});
 test('checkers requires capture',()=>{const s=GAMES.checkers.init();s.board=Array.from({length:8},()=>Array(8).fill(null));s.board[5][0]=0;s.board[4][1]=1;s.turn=0;assert.equal(GAMES.checkers.move(s,0,{fx:0,fy:5,tx:1,ty:4}),'A capture is mandatory');const out=GAMES.checkers.move(s,0,{fx:0,fy:5,tx:2,ty:3});assert.equal(out.winner,0);assert.equal(s.board[3][2],0)});
 test('battleship accepts a shot and alternates',()=>{const s=GAMES.battleship.init();const out=GAMES.battleship.move(s,0,{x:0,y:0});assert.equal(out,undefined);assert.equal(s.turn,1)});
 
@@ -16,6 +16,10 @@ test('physical games have real stateful boards',()=>{
   const pool=GAMES.pool.init();
   assert.equal(pool.balls.length,16);
   assert.equal(pool.balls.filter(b=>!b.pocketed).length,16);
+  assert.equal(pool.balls.filter(b=>b.group==='solid').length,7);
+  assert.equal(pool.balls.filter(b=>b.group==='stripe').length,7);
+  assert.equal(pool.balls.filter(b=>b.group==='eight').length,1);
+  assert.ok(pool.balls.every(b=>typeof b.type==='string'));
   const carrom=GAMES.carrom.init();
   assert.equal(carrom.coins.length,19);
   const golf=GAMES.minigolf.init();
@@ -41,12 +45,17 @@ test('source-backed chess engine enforces legal moves and checkmate',()=>{
   assert.equal(out.reason,'checkmate');
 });
 
-test('source-backed checkers engine starts with 12 pieces each',()=>{
+test('source-backed checkers engine starts with 12 pieces each and allows dark first move',()=>{
   const s=GAMES.checkers.init();
+  assert.equal(s.turn,0);
   assert.equal(s.board.flat().filter(v=>v===0||v===2).length,12);
   assert.equal(s.board.flat().filter(v=>v===1||v===3).length,12);
-  const moves=GAMES.checkers.move(s,0,{from:21,to:17,captures:[]});
-  assert.notEqual(moves,'Illegal checkers move');
+  assert.ok(s.legalMoves.length>0);
+  const mv=s.legalMoves[0];
+  const out=GAMES.checkers.move(s,0,{from:mv.from,to:mv.to});
+  assert.notEqual(out,'Not your turn');
+  assert.notEqual(out,'Illegal checkers move');
+  assert.equal(s.turn,1);
 });
 
 
