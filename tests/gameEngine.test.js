@@ -53,3 +53,12 @@ test('source-backed checkers engine starts with 12 pieces each',()=>{
 test('2048 moves and scores',()=>{const s=GAMES.game2048.init();s.board=[2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0];const out=GAMES.game2048.move(s,0,{dir:'left'});assert.equal(s.board[0],4);assert.equal(s.score[0],4);assert.notEqual(out,'No tiles moved')});
 test('snake accepts legal direction changes',()=>{const s=GAMES.snake.init();assert.equal(GAMES.snake.move(s,0,{dir:'up'}),undefined);assert.deepEqual(s.snakes[0].next,[0,-1]);assert.equal(GAMES.snake.move(s,0,{dir:'down'}),'Cannot reverse')});
 test('tetris accepts movement and drop input',()=>{const s=GAMES.tetris.init();const p=s.players[0];const x=p.x;GAMES.tetris.move(s,0,{action:'left'});assert.equal(p.x,x-1);GAMES.tetris.move(s,0,{action:'drop'});assert.ok(p.score>=0)});
+test('Othello starts with four center pieces and flips a bracket',()=>{
+ const s=GAMES.othello.init();
+ assert.equal(s.board.flat().filter(v=>v===0).length,2);assert.equal(s.board.flat().filter(v=>v===1).length,2);
+ const out=GAMES.othello.move(s,0,{cell:19});
+ assert.equal(out,undefined);assert.equal(s.board[3][3],0);assert.equal(s.scores[0],4);
+});
+test('Pong accepts clamped realtime paddle input',()=>{
+ const s=GAMES.pong.init();assert.equal(GAMES.pong.move(s,0,{axis:2}),'Invalid paddle input');GAMES.pong.move(s,0,{axis:-1});assert.equal(s.inputs[0],-1);
+});
