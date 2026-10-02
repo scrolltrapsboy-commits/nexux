@@ -17,7 +17,6 @@ function winLines(board,n=3,w=3,h=3){
  const dirs=[[1,0],[0,1],[1,1],[1,-1]]; for(let y=0;y<h;y++)for(let x=0;x<w;x++)for(const[dX,dY]of dirs){let line=[];for(let k=0;k<n;k++){const xx=x+dX*k,yy=y+dY*k;if(xx<0||xx>=w||yy<0||yy>=h){line=[];break}line.push(yy*w+xx)}if(line.length&&line.every(i=>board[i]!==null&&board[i]!==undefined&&board[i]===board[line[0]]))return line} return null;
 }
 GAMES.tictactoe={name:'Tic Tac Toe',category:'Board',players:2,init:()=>({board:Array(9).fill(null),turn:0}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.cell;if(!Number.isInteger(c)||c<0||c>8||s.board[c]!=null)return'Invalid cell';s.board[c]=i;const line=winLines(s.board);if(line)return{winner:i,line};if(s.board.every(v=>v!==null))return{draw:true};s.turn=other(i)}};
-GAMES.connect4={name:'Connect Four',category:'Board',players:2,init:()=>({board:Array.from({length:6},()=>Array(7).fill(null)),turn:0}),move:(s,i,m)=>{if(i!==s.turn)return'Not your turn';const c=+m.col;if(c<0||c>6)return'Invalid column';let r=5;while(r>=0&&s.board[r][c]!==null)r--;if(r<0)return'Column full';s.board[r][c]=i;s.last=[r,c];const dirs=[[1,0],[0,1],[1,1],[1,-1]];for(const[dX,dY]of dirs){let n=1;for(const sign of[-1,1]){let x=c+dX*sign,y=r+dY*sign;while(x>=0&&x<7&&y>=0&&y<6&&s.board[y][x]===i){n++;x+=dX*sign;y+=dY*sign}}if(n>=4)return{winner:i}}if(s.board[0].every(v=>v!==null))return{draw:true};s.turn=other(i)}};
 GAMES.rps={name:'Rock Paper Scissors',category:'Party',players:2,init:()=>({choices:[null,null],score:[0,0],round:1,turn:0}),move:(s,i,m)=>{if(s.choices[i])return'Choice already submitted';if(!['rock','paper','scissors'].includes(m.choice))return'Invalid choice';s.choices[i]=m.choice;if(!s.choices[0]||!s.choices[1])return;const[a,b]=s.choices;let w=null;if(a!==b)w=['rock','paper','scissors'].indexOf(a)===(['rock','paper','scissors'].indexOf(b)+1)%3?0:1;if(w!==null)s.score[w]++;s.lastRound={choices:[a,b],winner:w};if(s.score.some(x=>x>=3))return w===null?{draw:true}:{winner:w};s.round++;s.choices=[null,null];s.turn=other(i)}};
 
 // Chess: complete legal move generation for normal chess, castling, en-passant, promotion and check/checkmate/stalemate.
@@ -138,29 +137,6 @@ function poolShot(s,i,m){
 }
 function finishPool(s,i,win,reason){s.phase='gameover';s.winner=i;s.winReason=reason;s.animation=[];return win?{winner:i,reason:'8-ball'}:{winner:other(i),reason:'illegal 8-ball'} }
 GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:poolInit,move:poolShot}
-
-function carromInit(){
-  const coins=[];const cx=.5,cy=.5,r=.037
-  coins.push({id:0,color:'red',x:cx,y:cy,vx:0,vy:0,pocketed:false})
-  let id=1
-  for(let ring=1;ring<=2;ring++)for(let k=0;k<ring*6;k++){const a=(Math.PI*2*k)/(ring*6)+(ring===2?.13:0);coins.push({id,color:k%2?'black':'white',x:cx+Math.cos(a)*r*ring*1.65,y:cy+Math.sin(a)*r*ring*1.65,vx:0,vy:0,pocketed:false});id++}
-  return{turn:0,coins,scores:[0,0],striker:{x:.5,y:.89,vx:0,vy:0,pocketed:false},animation:[],queenOwner:null,phase:'playing',foul:false}
-}
-const CARROM={R:.022,STRIKER:.031,DT:1/120,MAX:1800,pockets:[[.07,.07],[.93,.07],[.07,.93],[.93,.93]]}
-function carromMove(s,i,m){
-  if(i!==s.turn)return'Not your turn';s.animation=[]
-  const sideY=i===0?.88:.12;const sx=clamp(Number(m.x??.5),.16,.84),sy=sideY;const dx=Number(m.dx),dy=Number(m.dy),power=clamp01(m.power);if(Math.hypot(dx,dy)<.01)return'Aim before shooting'
-  s.striker={x:sx,y:sy,vx:dx/vlen(dx,dy)*(1.4+5.6*power),vy:dy/vlen(dx,dy)*(1.4+5.6*power),pocketed:false};s.foul=false
-  const frames=[];const snap=()=>frames.push({striker:{...s.striker},coins:s.coins.map(c=>({id:c.id,x:c.x,y:c.y,pocketed:c.pocketed}))});snap();let moving=true,step=0,scored=0
-  while(moving&&step++<CARROM.MAX){moving=false;const pieces=[s.striker,...s.coins]
-    for(const b of pieces){if(b.pocketed)continue;b.x+=b.vx*CARROM.DT;b.y+=b.vy*CARROM.DT;b.vx*=.985;b.vy*=.985;if(Math.hypot(b.vx,b.vy)>.02)moving=true;if(b.x<CARROM.R){b.x=CARROM.R;b.vx=Math.abs(b.vx)*.92}if(b.x>1-CARROM.R){b.x=1-CARROM.R;b.vx=-Math.abs(b.vx)*.92}if(b.y<CARROM.R){b.y=CARROM.R;b.vy=Math.abs(b.vy)*.92}if(b.y>1-CARROM.R){b.y=1-CARROM.R;b.vy=-Math.abs(b.vy)*.92}}
-    for(let a=0;a<pieces.length;a++)for(let b=a+1;b<pieces.length;b++){const A=pieces[a],B=pieces[b];if(A.pocketed||B.pocketed)continue;let ox=B.x-A.x,oy=B.y-A.y,d=Math.hypot(ox,oy),rad=(A===s.striker?CARROM.STRIKER:CARROM.R)+(B===s.striker?CARROM.STRIKER:CARROM.R);if(d>0&&d<rad){const nx=ox/d,ny=oy/d,rv=(A.vx-B.vx)*nx+(A.vy-B.vy)*ny;if(rv<0){A.vx-=rv*nx;A.vy-=rv*ny;B.vx+=rv*nx;B.vy+=rv*ny}const push=(rad-d)/2;A.x-=nx*push;A.y-=ny*push;B.x+=nx*push;B.y+=ny*push}}
-    for(const b of pieces){if(b.pocketed)continue;for(const [px,py] of CARROM.pockets){if(Math.hypot(b.x-px,b.y-py)<.055){b.pocketed=true;b.vx=b.vy=0;if(b===s.striker)s.foul=true;else{scored++;if(b.color==='red')s.queenOwner=i;s.scores[i]+=b.color==='red'?3:1}break}}}
-    if(step%12===0)snap()
-  }snap();s.animation=frames.slice(-100);if(s.coins.every(c=>c.pocketed)){return s.scores[0]===s.scores[1]?{draw:true}:{winner:s.scores[0]>s.scores[1]?0:1}}
-  s.striker.pocketed=false;s.striker.x=.5;s.striker.y=sideY;s.striker.vx=s.striker.vy=0;s.turn=scored&&!s.foul?i:other(i);return{animation:true}
-}
-GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:carromInit,move:carromMove}
 
 function golfInit(){return{turn:0,strokes:[0,0],balls:[{x:.12,y:.86,vx:0,vy:0},{x:.12,y:.86,vx:0,vy:0}],done:[false,false],hole:{x:.86,y:.14,r:.045},walls:[{x1:.28,y1:.18,x2:.28,y2:.62},{x1:.28,y1:.62,x2:.68,y2:.62},{x1:.68,y1:.38,x2:.68,y2:.82},{x1:.40,y1:.38,x2:.68,y2:.38}],animation:[]}}
 const GOLF={R:.025,DT:1/120,MAX:1600}
