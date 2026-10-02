@@ -1,0 +1,25 @@
+name: NEXUS PLAY CI
+on:
+  push:
+    branches: [main, nexus-v3-rebuild]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: node --check server.js
+      - run: node --check server/gameEngine.js
+      - run: node --check public/app.js
+      - run: npm test
+      - run: |
+          node server.js > /tmp/nexus.log 2>&1 &
+          PID=$!
+          sleep 2
+          curl --fail http://127.0.0.1:3000/health
+          kill $PID
