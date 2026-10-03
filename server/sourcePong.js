@@ -13,7 +13,7 @@ function loadSource(){
   const srcActor=fs.readFileSync(path.join(ROOT,'actor.es6.js'),'utf8');
   const srcPong=fs.readFileSync(path.join(ROOT,'pong.es6.js'),'utf8')
     .replace(/^import .*$/gm,'')
-    .replace(/^export class Pong/, 'class Pong')
+    .replace(/export class Pong/, 'class Pong')
     .replace(/var\s+win = window,\s*doc = document;/,'var win = window, doc = document;')
     .replace(/var\s+_ctx = _ctx \|\| null,\s*_io = _io \|\| null,\s*istance = null;/,'var _ctx = null, _io = null, istance = null;');
   const ctx=vm.createContext({
