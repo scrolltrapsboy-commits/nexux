@@ -103,8 +103,17 @@ function advanceRealtime(r){
 }
 function startRoom(r){
  const roomPlayers=r.players.map(id=>({id,name:q.userById.get(id)?.name||'Guest'}));
- r.state=GAMES[r.game].init(roomPlayers);
- r.status='playing';r.result=null;r.rematch=new Set();broadcastRoom(r);
+ const sourceContext={broadcast:()=>{
+   if(r.status==='playing'&&r.state?.status==='finished'){
+     const scores=(r.state.players||[]).map(p=>Number(p.score)||0);
+     const win=scores.length===2?(scores[0]===scores[1]?null:(scores[0]>scores[1]?0:1)):null;
+     finish(r,win===null?{draw:true,reason:'source engine game over'}:{winnerId:r.players[win],reason:'source engine game over'});
+   }
+   broadcastRoom(r);
+ }};
+ r.status='playing';r.result=null;r.rematch=new Set();
+ r.state=GAMES[r.game].init(roomPlayers,sourceContext);
+ broadcastRoom(r);
  if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}
 }
 function leaveRoom(id,reason='leave'){const r=roomOf(id);if(!r)return;if(r.status==='playing'&&r.players.length===2){const o=r.players.find(x=>x!==id);if(o)finish(r,{winnerId:o,reason})}else stopRace(r);r.players=r.players.filter(x=>x!==id);if(!r.players.length){stopRace(r);rooms.delete(r.code);return}if(r.host===id)r.host=r.players[0];broadcastRoom(r)}
