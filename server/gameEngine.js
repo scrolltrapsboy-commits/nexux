@@ -137,8 +137,6 @@ function poolShot(s,i,m){
   s.shotNo++;s.animation=frames.slice(-90);return {animation:true}
 }
 function finishPool(s,i,win,reason){s.phase='gameover';s.winner=i;s.winReason=reason;s.animation=[];return win?{winner:i,reason:'8-ball'}:{winner:other(i),reason:'illegal 8-ball'} }
-GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:poolInit,move:poolShot}
-
 function golfInit(){return{turn:0,strokes:[0,0],balls:[{x:.12,y:.86,vx:0,vy:0},{x:.12,y:.86,vx:0,vy:0}],done:[false,false],hole:{x:.86,y:.14,r:.045},walls:[{x1:.28,y1:.18,x2:.28,y2:.62},{x1:.28,y1:.62,x2:.68,y2:.62},{x1:.68,y1:.38,x2:.68,y2:.82},{x1:.40,y1:.38,x2:.68,y2:.38}],animation:[]}}
 const GOLF={R:.025,DT:1/120,MAX:1600}
 function segBounce(p,v,w){const ax=w.x1,ay=w.y1,bx=w.x2,by=w.y2,dx=bx-ax,dy=by-ay,l=Math.hypot(dx,dy)||1;const t=clamp(((p.x-ax)*dx+(p.y-ay)*dy)/(l*l),0,1),qx=ax+t*dx,qy=ay+t*dy,d=Math.hypot(p.x-qx,p.y-qy);if(d<GOLF.R+.008){const nx=(p.x-qx)/(d||1),ny=(p.y-qy)/(d||1);const vn=v.x*nx+v.y*ny;if(vn<0){v.x-=1.7*vn*nx;v.y-=1.7*vn*ny}p.x=qx+nx*(GOLF.R+.009);p.y=qy+ny*(GOLF.R+.009)}}
@@ -273,7 +271,6 @@ GAMES.monopoly=LAN_GAMES.monopoly;
 GAMES.risk=LAN_GAMES.risk;
 GAMES.life=LAN_GAMES.life;
 GAMES.connect4={name:'Connect Four',category:'Board',players:2,init:sourceConnectFourInit,move:sourceConnectFourMove};
-GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromInit,move:sourceCarromMove};
 GAMES.carrom={name:'Carrom',category:'Sports',players:2,init:sourceCarromExactInit,move:sourceCarromExactMove};
 GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsBoxesInit,move:sourceDotsBoxesMove};
 GAMES.gomoku={name:'Gomoku',category:'Strategy',players:2,init:sourceGomokuInit,move:sourceGomokuMove};
