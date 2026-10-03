@@ -199,9 +199,13 @@ function sourceGomokuMove(s,i,m){
   if(g.chessBoard[y][x]!==0)return'Cell occupied';
   const who=i===0?1:2;
   g._place(x,y,who);s.moves++;
-  const win=g._checkWin(x,y,who===1?g.playerWin:g.AIWin);
+  const sourceWin=g._checkWin(x,y,who===1?g.playerWin:g.AIWin);
+  // Use the vendored source engine's generated win patterns as a second
+  // verification path. This keeps the rule data entirely source-derived
+  // while avoiding a browser-shell dependency in the multiplayer adapter.
+  const patternWin=Array.isArray(g.winPatterns)&&g.winPatterns.findIndex(cells=>cells.every(cell=>g.chessBoard[cell.i]?.[cell.j]===who));
   s.board=g.chessBoard.flat();
-  if(win!==-1){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
+  if(sourceWin!==-1||patternWin!==-1){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
   if(s.moves>=225){g.over=true;g.player=false;return{draw:true,reason:'board full'}}
   s.turn=other(i);g.player=other(i)===0;
   return;
