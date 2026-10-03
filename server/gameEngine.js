@@ -266,6 +266,7 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* third_party/source-games and their licenses are retained alongside them.  */
 /* -------------------------------------------------------------------------- */
 const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceCarromExactInit,sourceCarromExactMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove}=require('./sourceGames');
+const {CLASSIC_SOURCE_GAMES}=require('./classicSourceGames');
 GAMES.yahtzee=LAN_GAMES.yahtzee;
 GAMES.monopoly=LAN_GAMES.monopoly;
 GAMES.risk=LAN_GAMES.risk;
@@ -276,5 +277,13 @@ GAMES.dotsboxes={name:'Dots & Boxes',category:'Board',players:2,init:sourceDotsB
 GAMES.gomoku={name:'Gomoku',category:'Strategy',players:2,init:sourceGomokuInit,move:sourceGomokuMove};
 GAMES.backgammon={name:'Backgammon',category:'Strategy',players:2,init:sourceBackgammonInit,move:sourceBackgammonMove};
 GAMES.pool={name:'8-Ball Pool',category:'Sports',players:2,init:sourcePoolInit,move:sourcePoolMove};
+GAMES.rps=CLASSIC_SOURCE_GAMES.rps;
+GAMES.memory=CLASSIC_SOURCE_GAMES.memory;
+GAMES.minesweeper=CLASSIC_SOURCE_GAMES.minesweeper;
+GAMES.game2048=CLASSIC_SOURCE_GAMES.game2048;
+GAMES.snake=CLASSIC_SOURCE_GAMES.snake;
+GAMES.othello=CLASSIC_SOURCE_GAMES.othello;
+GAMES.uno=CLASSIC_SOURCE_GAMES.uno;
+GAMES.wordchain=CLASSIC_SOURCE_GAMES.wordchain;
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
