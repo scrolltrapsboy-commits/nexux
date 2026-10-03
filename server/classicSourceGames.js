@@ -182,14 +182,17 @@ GAMES.memory=bbAdapter('memory',bbMemory,{name:'Memory Match',category:'Party'},
 GAMES.wordchain=(()=>({
   name:'Word Chain',category:'Word',players:2,
   sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',
-  init(players=[]){
+  init(players=[],context={}){
     const ps=players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}];
     const room={state:'playing',game:'wordchain',players:ps.map((p,idx)=>({id:'p'+idx,name:p.name,score:0,ready:true})),gameState:{currentPlayer:0,chain:[],usedWords:[],lastLetter:'a'},timers:{}};
-    const rooms={NEXUS:room},io={to:()=>({emit:()=>{}})};
+    room.__ready=false;
+    const rooms={NEXUS:room},io={to:()=>({emit:()=>{if(!room.__ready)return;queueMicrotask(()=>{try{room.__sync?.();context.broadcast?.()}catch{}})}})};
     Object.defineProperty(room,'__io',{value:io,enumerable:false});
     Object.defineProperty(room,'__rooms',{value:rooms,enumerable:false});
     const state={gameState:room.gameState,players:room.players,status:'playing'};
+    room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};
     Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});
+    room.__ready=true;
     return state;
   },
   move(state,i,msg={}){
