@@ -44,7 +44,8 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await p2.locator('#joinBtn').click();
   await expect(p2.locator('#gameModal')).toBeVisible();
   await expect(p2.locator('#gameTitle')).toHaveText('Chess',{timeout:10000});
-  await expect.poll(async()=>p2.locator('.board-chess .chess-cell').count(),{timeout:10000}).toBe(64);
+  console.log('P2 chess DOM:', await p2.evaluate(()=>({boards:[...document.querySelectorAll('.board-chess')].map(b=>b.querySelectorAll('.chess-cell').length),total:document.querySelectorAll('.board-chess .chess-cell').length,boardHtml:document.querySelector('#gameBoard')?.innerHTML.slice(0,160)})));
+  await expect.poll(async()=>p2.locator('.board-chess').last().locator('.chess-cell').count(),{timeout:10000}).toBe(64);
 
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
   await expect(p2.locator('#gameTitle')).toHaveText('Chess');
