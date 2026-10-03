@@ -60,7 +60,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(socialBox.width).toBeGreaterThan(250);
 
   await p1.locator('[data-chess="52"]').click();
-  await expect(p1.locator('[data-chess="36"].legal')).toBeVisible();
+  console.log('P1 chess selection:', await p1.evaluate(()=>({selected:document.querySelector('.chess-cell.sel')?.dataset.chess,legal:[...document.querySelectorAll('.board-chess .chess-cell.legal')].map(x=>x.dataset.chess),capture:[...document.querySelectorAll('.board-chess .chess-cell.capture')].map(x=>x.dataset.chess),turnText:document.querySelector('.chess-side .glass-mini')?.innerText,fenNode:[...document.querySelectorAll('.glass-mini')].map(x=>x.innerText).find(x=>x.includes('rnbqkbnr'))})));\n  await expect(p1.locator('[data-chess="36"].legal')).toBeVisible();
   await p1.locator('[data-chess="36"]').click();
   await expect(p2.locator('.move-item').last()).toContainText('e4');
 
