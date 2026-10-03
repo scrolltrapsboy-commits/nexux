@@ -48,7 +48,7 @@ function clone(x){return JSON.parse(JSON.stringify(x))}
 function sanitizeState(r,viewer){
  const eng=GAMES[r.game];
  if(eng?.getStateForPlayer){
-  try{return clone(eng.getStateForPlayer(clone(r.state),viewer))}
+  try{return clone(eng.getStateForPlayer(r.state,viewer))}
   catch{}
  }
  const s=clone(r.state);if(!s)return null;
