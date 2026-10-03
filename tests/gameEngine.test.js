@@ -148,3 +148,14 @@ test('source-backed NEXUS LAN Games engines expose real state and turn rules',()
 
 
 test('source-backed Monopoly Risk and Life initialize from upstream engines',()=>{const players=[{id:'a',name:'A'},{id:'b',name:'B'}];const mono=GAMES.monopoly.init(players);assert.equal(mono.status,'playing');assert.equal(mono.players.length,2);assert.equal(mono.players[0].money,mono.config.settings.startingMoney);assert.equal(mono.turnState.phase,'pre-roll');const risk=GAMES.risk.init(players);assert.equal(risk.status,'playing');assert.equal(risk.players.length,2);assert.equal(Object.keys(risk.territories).length,42);assert.equal(risk.turnState.phase,'reinforce');const life=GAMES.life.init(players);assert.equal(life.status,'playing');assert.equal(life.players.length,2);assert.equal(life.players[0].pending?.type,'fork');assert.ok(life.config.board.length>=60)});
+
+test('source-backed Gomoku uses vendored rule methods and detects five in a row',()=>{
+ const s=GAMES.gomoku.init();
+ for(const x of [0,1,2,3,4]) GAMES.gomoku.move(s,0,{x,y:0}), s.turn=0;
+ assert.equal(s.status,'finished');
+});
+test('source-backed source-game catalog remains available',()=>{
+ for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool']){
+  assert.ok(GAMES[id],id);
+ }
+});
