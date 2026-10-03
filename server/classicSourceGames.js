@@ -245,7 +245,7 @@ GAMES.speedtyping=(()=>({
   name:'Speed Typing',category:'Word',players:2,sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',sourceTimerDriven:true,
   init(players=[],context={}){const room=bbRoom(bbSpeedTyping,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}],context);const state={gameState:room.gameState,players:room.players,status:'playing'};room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});room.__ready=true;bbSpeedTyping('NEXUS',room.__io,room.__rooms);return state;},
   move(state,i,msg={}){const room=state.__bb;if(!room)return'Source room unavailable';try{bbSpeedTyping('NEXUS',room.__io,room.__rooms,{playerId:'p'+i,typed:String(msg.typed||'')})}catch(e){return e?.message||'Source engine rejected move'}state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished';const scores=state.players.map(p=>p.score||0);if(state.status==='finished')return scores[0]===scores[1]?{draw:true,reason:'source typing complete'}:{winner:scores[0]>scores[1]?0:1,reason:'source typing complete'};},
-  getStateForPlayer:state=>clone(state.gameState||{})
+  getStateForPlayer:state=>{const g=clone(state.gameState||{});if(Array.isArray(g.words)){g.currentWord=g.words[g.currentWordIndex||0]||null;delete g.words;}return g}
 }))();
 
 module.exports={CLASSIC_SOURCE_GAMES:GAMES};
