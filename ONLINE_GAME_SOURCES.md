@@ -37,3 +37,18 @@ New games are not accepted as button-only placeholders. A new game must point to
 - Vendored under: third_party/source-games/lan-games
 - Executed by: server/lanSourceGames.js
 - Current NEXUS integrations: Tic Tac Toe, Battleship, Yahtzee
+
+
+## Newly integrated upstream engines
+
+### Tetris — paulfxyz/tetris
+- Repository: https://github.com/paulfxyz/tetris
+- Snapshot: `public/js/engine.js`
+- License: MIT
+- NEXUS integration: the vendored upstream `Engine` is executed by a thin server adapter; the NEXUS UI only renders the engine state and sends player input.
+
+### Pong — enricolucia/pong
+- Repository: https://github.com/enricolucia/pong
+- Snapshots: `src/scripts/elements/ball.es6.js`, `actor.es6.js`, `pong.es6.js`
+- License: MIT
+- NEXUS integration: the upstream Ball/Actor/Pong collision methods are loaded by a thin server adapter; the NEXUS social/game shell does not replace the game rules.
