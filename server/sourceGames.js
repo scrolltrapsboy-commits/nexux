@@ -151,7 +151,7 @@ let gomokuSourceContext;
 function extractMethodSource(source,name){
   const escaped=name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
   const re=new RegExp('\\n  '+escaped+'\\s*\\([^)]*\\)\\s*\\{');
-  const m=re.exec('\\n'+source);
+  const m=re.exec(source);
   if(!m)throw new Error('Gomoku source method not found: '+name);
   const begin=m.index+m[0].length-1;let depth=0;
   for(let i=begin;i<source.length;i++){const ch=source[i];if(ch==='{')depth++;else if(ch==='}'){depth--;if(depth===0)return source.slice(m.index,i+1)}}
