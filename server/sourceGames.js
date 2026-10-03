@@ -154,7 +154,7 @@ function extractMethodSource(source,name){
   const m=re.exec('\\n'+source);
   if(!m)throw new Error('Gomoku source method not found: '+name);
   const begin=m.index+m[0].length-1;let depth=0;
-  for(let i=begin;i<source.length;i++){const ch=source[i];if(ch==='{')depth++;else if(ch==='}'){depth--;if(depth===0)return source.slice(m.index+1,i+1)}}
+  for(let i=begin;i<source.length;i++){const ch=source[i];if(ch==='{')depth++;else if(ch==='}'){depth--;if(depth===0)return source.slice(m.index,i+1)}}
   throw new Error('Unbalanced Gomoku source method: '+name);
 }
 function loadGomokuSource(){
