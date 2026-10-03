@@ -178,7 +178,7 @@ function loadGomokuSource(){
     performance:{now:()=>0}
   });
   const source=readThirdParty('gomoku','Gomoku.js');
-  vm.runInContext(source+'\\nglobalThis.__NEXUS_GOMOKU=Gomoku;',ctx,{filename:'gomoku-source.js'});
+  vm.runInContext(source+'\nglobalThis.__NEXUS_GOMOKU=Gomoku;',ctx,{filename:'gomoku-source.js'});
   ctx.__NEXUS_GOMOKU_CANVAS=canvas;
   return gomokuSourceContext=ctx;
 }
