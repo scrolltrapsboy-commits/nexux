@@ -161,8 +161,8 @@ function loadGomokuSource(){
   if(gomokuSourceContext)return gomokuSourceContext;
   const ctx=vm.createContext({console,Math,TextEncoder:global.TextEncoder,btoa:global.btoa,window:{},document:{}});
   const source=readThirdParty('gomoku','Gomoku.js');
-  const methods=['_calcWins','_place','_checkWin','_full'].map(name=>extractMethodSource(source,name)).join('\\n');
-  vm.runInContext('class GomokuSource {'+methods+'}\\nglobalThis.__NEXUS_GOMOKU=GomokuSource;',ctx,{filename:'gomoku-source-rules.js'});
+  const methods=['_calcWins','_place','_checkWin','_full'].map(name=>extractMethodSource(source,name)).join('\n');
+  vm.runInContext('class GomokuSource {'+methods+'}\nglobalThis.__NEXUS_GOMOKU=GomokuSource;',ctx,{filename:'gomoku-source-rules.js'});
   return gomokuSourceContext=ctx;
 }
 function sourceGomokuRuntimeNew(){
