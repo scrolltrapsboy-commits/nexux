@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,28);
+  assert.equal(Object.keys(GAMES).length,31);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('source-backed tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init([{id:'a',name:'A'},{id:'b',name:'B'}]);GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:0}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:0}});GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:1}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:1}});const out=GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:2}});assert.equal(out.winner,0)});
@@ -155,4 +155,7 @@ test('source-backed Gomoku uses vendored rule methods and detects five in a row'
  assert.equal(out.winner,0);
  assert.equal(s.status,'finished');
 });
-test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain'])assert.ok(GAMES[id],id);});
+test('source-backed Anagram Sprint uses the upstream word list and scoring',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.anagram.init(p);const word=s.gameState.roundWords[0];assert.ok(typeof word==='string');assert.ok(typeof s.gameState.scrambled==='string');assert.equal(GAMES.anagram.move(s,0,{word}),undefined);assert.equal(s.players[0].score,10);});
+test('source-backed Number Hunt hides target from player view and scores both guesses',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.numberhunt.init(p);const target=s.gameState.target;const publicState=GAMES.numberhunt.getStateForPlayer(s,'a');assert.equal(publicState.target,undefined);GAMES.numberhunt.move(s,0,{guess:target});GAMES.numberhunt.move(s,1,{guess:target});assert.equal(s.players[0].score,4);assert.equal(s.players[1].score,2);});
+test('source-backed Speed Typing advances only after both players finish',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.speedtyping.init(p);const word=s.gameState.words[s.gameState.currentWordIndex];GAMES.speedtyping.move(s,0,{typed:word});assert.equal(s.gameState.currentWordIndex,0);GAMES.speedtyping.move(s,1,{typed:word});assert.equal(s.gameState.currentWordIndex,1);assert.ok(s.players.every(x=>x.score>0));});
+test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping'])assert.ok(GAMES[id],id);});
