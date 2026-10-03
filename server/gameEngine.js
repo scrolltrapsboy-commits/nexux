@@ -285,5 +285,8 @@ GAMES.snake=CLASSIC_SOURCE_GAMES.snake;
 GAMES.othello=CLASSIC_SOURCE_GAMES.othello;
 GAMES.uno=CLASSIC_SOURCE_GAMES.uno;
 GAMES.wordchain=CLASSIC_SOURCE_GAMES.wordchain;
+GAMES.anagram=CLASSIC_SOURCE_GAMES.anagram;
+GAMES.numberhunt=CLASSIC_SOURCE_GAMES.numberhunt;
+GAMES.speedtyping=CLASSIC_SOURCE_GAMES.speedtyping;
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
