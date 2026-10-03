@@ -153,63 +153,48 @@ function renderPong(el,r){el.innerHTML='<div class="pong-wrap"><canvas id="pongC
 function renderSnake(el,r){el.innerHTML='<div class="snake-wrap source-board-shell"><div class="source-game-kicker">SOURCE ENGINE · GAMENEST SNAKEBATTLE</div><canvas id="snakeCanvas" class="game-canvas"></canvas><div class="physics-hud"><span id="snakeScore"></span><span>WASD / arrows</span></div></div>';const c=$('#snakeCanvas');const draw=()=>{const st=state.room?.state||r.state,d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight,g=c.getContext('2d');if(!w||!h)return;c.width=w*d;c.height=h*d;g.setTransform(d,0,0,d,0,0);g.fillStyle='#050505';g.fillRect(0,0,w,h);const cw=w/st.width,ch=h/st.height;if(st.food){g.fillStyle='#aaa';g.beginPath();g.arc((st.food.x+.5)*cw,(st.food.y+.5)*ch,Math.min(cw,ch)*.35,0,Math.PI*2);g.fill()}(st.snakes||[]).forEach((sn,i)=>{g.fillStyle=i?'#777':'#fff';(sn.body||[]).forEach((p,j)=>{g.globalAlpha=j?Math.max(.35,1-j/(sn.body.length+2)):1;g.fillRect(p.x*cw+1,p.y*ch+1,cw-2,ch-2)});g.globalAlpha=1});$('#snakeScore').textContent=(st.snakes||[]).map(sn=>sn.score||0).join(' — ')};const key=e=>{const m={ArrowUp:'up',w:'up',ArrowDown:'down',s:'down',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'}[e.key];if(m){e.preventDefault();state.socket.emit('drive',{dir:m})}};window.addEventListener('keydown',key);window.addEventListener('resize',draw);state.realtimeDraw=draw;state.gameCleanup=()=>{window.removeEventListener('keydown',key);window.removeEventListener('resize',draw);state.realtimeDraw=null};draw()}
 function renderTetris(el,r){
   const me=r.players.findIndex(p=>p.id===state.me.id);
-  el.innerHTML=\`
-    <div class="tetris-source-wrap">
-      <div class="tetris-source-head">
-        <div><span class="eyebrow">UPSTREAM TETRIS ENGINE</span><h3>7-Bag · SRS · Hold · Ghost · Lock Delay</h3></div>
-        <div class="scoreline" id="tetSourceScore"></div>
-      </div>
-      <div class="tetris-duel">
-        <div class="tet-column"><b>You</b><canvas id="tetMe" class="tet-canvas"></canvas><div class="tet-meta" id="tetMeMeta"></div></div>
-        <div class="tet-column"><b>Opponent</b><canvas id="tetOp" class="tet-canvas"></canvas><div class="tet-meta" id="tetOpMeta"></div></div>
-        <div class="tet-controls">
-          <button data-tet="left">←</button>
-          <button data-tet="rotate">↻</button>
-          <button data-tet="right">→</button>
-          <button data-tet="down">↓</button>
-          <button data-tet="drop">DROP</button>
-          <button data-tet="hold">HOLD</button>
-        </div>
-      </div>
-    </div>\`;
+  el.innerHTML="<div class='tetris-source-wrap'>"+
+    "<div class='tetris-source-head'><div><span class='eyebrow'>UPSTREAM TETRIS ENGINE</span><h3>7-Bag · SRS · Hold · Ghost · Lock Delay</h3></div><div class='scoreline' id='tetSourceScore'></div></div>"+
+    "<div class='tetris-duel'>"+
+      "<div class='tet-column'><b>You</b><canvas id='tetMe' class='tet-canvas'></canvas><div class='tet-meta' id='tetMeMeta'></div></div>"+
+      "<div class='tet-column'><b>Opponent</b><canvas id='tetOp' class='tet-canvas'></canvas><div class='tet-meta' id='tetOpMeta'></div></div>"+
+      "<div class='tet-controls'><button data-tet='left'>←</button><button data-tet='rotate'>↻</button><button data-tet='right'>→</button><button data-tet='down'>↓</button><button data-tet='drop'>DROP</button><button data-tet='hold'>HOLD</button></div>"+
+    "</div></div>";
   const draw=()=>{
     const s=state.room?.state||r.state;
-    if(!s?.players?.length)return;
+    if(!s||!Array.isArray(s.players))return;
     const a=s.players[me],b=s.players[1-me];
-    drawTet('#tetMe',a);
-    drawTet('#tetOp',b);
-    $('#tetSourceScore').textContent=(a?.score??0)+' — '+(b?.score??0);
-    $('#tetMeMeta').textContent='Score '+(a?.score??0)+' · Lv '+(a?.level??1)+' · Hold '+(a?.hold||'—');
-    $('#tetOpMeta').textContent='Score '+(b?.score??0)+' · Lv '+(b?.level??1)+' · Hold '+(b?.hold||'—');
+    if(!a||!b)return;
+    drawTet("#tetMe",a);
+    drawTet("#tetOp",b);
+    $("#tetSourceScore").textContent=(a.score??0)+" — "+(b.score??0);
+    $("#tetMeMeta").textContent="Score "+(a.score??0)+" · Lv "+(a.level??1)+" · Hold "+(a.hold||"—");
+    $("#tetOpMeta").textContent="Score "+(b.score??0)+" · Lv "+(b.level??1)+" · Hold "+(b.hold||"—");
   };
-  $$('[data-tet]').forEach(b=>b.onclick=()=>state.socket.emit('drive',{action:b.dataset.tet},res=>{if(res?.error)toast(res.error)}));
+  $$("[data-tet]").forEach(b=>b.onclick=()=>state.socket.emit("drive",{action:b.dataset.tet},res=>{if(res?.error)toast(res.error)}));
   const key=e=>{
-    const m={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'rotate',ArrowDown:'down',' ':'drop',c:'hold'}[e.key];
-    if(m){e.preventDefault();state.socket.emit('drive',{action:m})}
+    const m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"rotate",ArrowDown:"down"," ":"drop",c:"hold"}[e.key];
+    if(m){e.preventDefault();state.socket.emit("drive",{action:m})}
   };
-  window.addEventListener('keydown',key);
-  window.addEventListener('resize',draw);
+  window.addEventListener("keydown",key);
+  window.addEventListener("resize",draw);
   state.realtimeDraw=draw;
-  state.gameCleanup=()=>{window.removeEventListener('keydown',key);window.removeEventListener('resize',draw);state.realtimeDraw=null};
+  state.gameCleanup=()=>{window.removeEventListener("keydown",key);window.removeEventListener("resize",draw);state.realtimeDraw=null};
   draw();
 }
 function drawTet(sel,p){
   const c=$(sel);
   if(!c||!p)return;
-  const d=devicePixelRatio||1,w=Math.max(120,c.clientWidth),h=Math.max(240,c.clientHeight),ctx=c.getContext('2d');
-  c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#050505';ctx.fillRect(0,0,w,h);
+  const d=devicePixelRatio||1,w=Math.max(120,c.clientWidth),h=Math.max(240,c.clientHeight),ctx=c.getContext("2d");
+  c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
   const rows=20,cols=10,cw=w/cols,ch=h/rows;
   const cell=(x,y,v)=>{
     if(y<0||y>=rows||x<0||x>=cols||!v)return;
-    ctx.fillStyle=v==='I'?'#fff':v==='O'?'#ddd':v==='T'?'#bbb':v==='S'?'#aaa':v==='Z'?'#999':v==='J'?'#888':'#777';
+    ctx.fillStyle=v==="I"?"#fff":v==="O"?"#ddd":v==="T"?"#bbb":v==="S"?"#aaa":v==="Z"?"#999":v==="J"?"#888":"#777";
     ctx.fillRect(x*cw+1,y*ch+1,cw-2,ch-2);
   };
   const board=Array.isArray(p.board)?p.board:[];
-  for(let y=0;y<rows;y++){
-    for(let x=0;x<cols;x++){
-      ctx.strokeStyle='#141414';ctx.strokeRect(x*cw,y*ch,cw,ch);cell(x,y,board[y]?.[x]);
-    }
-  }
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){ctx.strokeStyle="#141414";ctx.strokeRect(x*cw,y*ch,cw,ch);cell(x,y,board[y]?.[x])}
   const cur=p.current;
   if(cur?.matrix){
     for(let y=0;y<cur.matrix.length;y++)for(let x=0;x<cur.matrix[y].length;x++)if(cur.matrix[y][x])cell(cur.x+x,cur.y+y,cur.type);
