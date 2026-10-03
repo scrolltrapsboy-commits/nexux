@@ -50,10 +50,9 @@ function gnAdapter(id,mod,meta,moveAdapter,viewAdapter){
   };
 }
 
-function view2048(state){
+function view2048(state,idx){
   // GameNest is a simultaneous race: each player owns one board.
-  const idx=state._viewerIndex||0;
-  const b=state.boards[idx]||[];
+  const b=state.boards?.[idx]||[];
   return {board:(b.flat?b.flat():b),score:state.scores?.[idx]||0,highScore:(state.scores||[]).reduce((m,v)=>Math.max(m,v),0),alive:!!state.alive?.[idx],winner:state.winner,currentPlayer:-1,maxTile:gn2048lib.maxTile(b),startTime:state.startTime};
 }
 
@@ -124,18 +123,19 @@ function bbAdapter(id,source,meta,playerPayload,view){
     sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',
     init(players=[]){
       const room=bbRoom(source,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}]);
-      const state={gameState:clone(room.gameState),players:clone(room.players),status:'playing'};
+      const state={gameState:room.gameState,players:room.players,status:'playing'};
       Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});
       return state;
     },
     move(state,i,msg={}){
       const room=state.__bb;
       if(!room)return'Source room unavailable';
+      if(room.players[room.gameState.currentPlayer]?.id&&room.gameState.currentPlayer!==undefined&&id!=='rps'&&id!=='memory'&&id!=='wordchain'&&room.gameState.currentPlayer!==i){
+        return'Not your turn';
+      }
       const move=playerPayload(i,msg,room);
       try{source('NEXUS',room.__io,room.__rooms,move)}catch(err){return err?.message||'Source engine rejected move';}
-      if(room.timers){for(const key of Object.keys(room.timers)){if(room.timers[key]){clearTimeout(room.timers[key]);clearInterval(room.timers[key]);}delete room.timers[key];}}
-      const before=room.gameState||{};
-      state.gameState=clone(before);state.players=clone(room.players);
+      state.gameState=room.gameState;state.players=room.players;
       if(room.state==='lobby'&&!state.gameState.round&&!state.gameState.chain&&!state.gameState.cards){
         state.status='finished';
         const scores=state.players.map(p=>p.score||0);
@@ -147,8 +147,14 @@ function bbAdapter(id,source,meta,playerPayload,view){
       if(max&&round>=max&&!Object.keys(state.gameState.choices||{}).length){
         state.status='finished';
         const scores=state.players.map(p=>p.score||0);
-        if(scores[0]===scores[1])return{draw:true,reason:'source round tie'};
+        if(scores[0]===scores[1])return{draw:true,reason:'source rounds tie'};
         return{winner:scores[0]>scores[1]?0:1,reason:'source rounds complete'};
+      }
+      if(id==='memory'&&Number(state.gameState.totalMatches||0)>=8){
+        state.status='finished';
+        const scores=state.players.map(p=>p.score||0);
+        if(scores[0]===scores[1])return{draw:true,reason:'all pairs matched'};
+        return{winner:scores[0]>scores[1]?0:1,reason:'all pairs matched'};
       }
       state.status='playing';
       return;
@@ -169,6 +175,33 @@ GAMES.memory=bbAdapter('memory',bbMemory,{name:'Memory Match',category:'Party'},
   return{cards:Array.isArray(s.cards)?s.cards.map((v,k)=>visible.has(k)?v:null):[],flipped:s.flipped||[],matched:s.matched||[],currentPlayer:s.currentPlayer||0,score:state.players.map(p=>p.score||0),lockBoard:!!s.lockBoard};
 });
 
-GAMES.wordchain=bbAdapter('wordchain',bbWordChain,{name:'Word Chain',category:'Word'},(i,m)=>({playerId:'p'+i,word:String(m.word||'')}),(state)=>clone(state.gameState));
+GAMES.wordchain=(()=>({
+  name:'Word Chain',category:'Word',players:2,
+  sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',
+  init(players=[]){
+    const ps=players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}];
+    const room={state:'playing',game:'wordchain',players:ps.map((p,idx)=>({id:'p'+idx,name:p.name,score:0,ready:true})),gameState:{currentPlayer:0,chain:[],usedWords:[],lastLetter:'a'},timers:{}};
+    const rooms={NEXUS:room},io={to:()=>({emit:()=>{}})};
+    Object.defineProperty(room,'__io',{value:io,enumerable:false});
+    Object.defineProperty(room,'__rooms',{value:rooms,enumerable:false});
+    const state={gameState:room.gameState,players:room.players,status:'playing'};
+    Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});
+    return state;
+  },
+  move(state,i,msg={}){
+    const room=state.__bb;
+    if(!room)return'Source room unavailable';
+    if(room.gameState.currentPlayer!==i)return'Not your turn';
+    try{bbWordChain('NEXUS',String(msg.word||''),room.__io,room.__rooms,'p'+i)}catch(err){return err?.message||'Source engine rejected move';}
+    state.gameState=room.gameState;state.players=room.players;
+    if(room.state==='lobby'){
+      state.status='finished';
+      const a=state.players.map(p=>p.score||0);
+      if(a[0]===a[1])return{draw:true,reason:'source word chain complete'};
+      return{winner:a[0]>a[1]?0:1,reason:'source word chain complete'};
+    }
+  },
+  getStateForPlayer:state=>clone(state.gameState)
+}))();
 
 module.exports={CLASSIC_SOURCE_GAMES:GAMES};
