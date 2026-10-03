@@ -148,19 +148,21 @@ function sourceCarromMove(s,i,m){
    The NEXUS adapter bypasses the source AI/UI shell but calls the source's
    _calcWins(), _place() and _checkWin() methods against the same 15x15 board. */
 let gomokuSourceContext;
+function extractMethodSource(source,name){
+  const escaped=name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
+  const re=new RegExp('\\n  '+escaped+'\\s*\\(\\)\\s*\\{');
+  const m=re.exec('\\n'+source);
+  if(!m)throw new Error('Gomoku source method not found: '+name);
+  const begin=m.index+m[0].length-1;let depth=0;
+  for(let i=begin;i<source.length;i++){const ch=source[i];if(ch==='{')depth++;else if(ch==='}'){depth--;if(depth===0)return source.slice(m.index+1,i+1)}}
+  throw new Error('Unbalanced Gomoku source method: '+name);
+}
 function loadGomokuSource(){
   if(gomokuSourceContext)return gomokuSourceContext;
-  const ctx=vm.createContext({
-    console,Math,Date,
-    document:{getElementById(id){return {disabled:false,className:'',textContent:'',innerText:''}} ,body:{appendChild(){}}},
-    window:{devicePixelRatio:1,crypto:null},
-    ResizeObserver:class{observe(){}disconnect(){}},
-    TextEncoder:global.TextEncoder,
-    crypto:{subtle:null},
-    btoa:global.btoa
-  });
+  const ctx=vm.createContext({console,Math,TextEncoder:global.TextEncoder,btoa:global.btoa,window:{},document:{}});
   const source=readThirdParty('gomoku','Gomoku.js');
-  vm.runInContext(source+'\\nglobalThis.__NEXUS_GOMOKU=Gomoku;',ctx,{filename:'gomoku-source.js'});
+  const methods=['_calcWins','_place','_checkWin','_full'].map(name=>extractMethodSource(source,name)).join('\\n');
+  vm.runInContext('class GomokuSource {'+methods+'}\\nglobalThis.__NEXUS_GOMOKU=GomokuSource;',ctx,{filename:'gomoku-source-rules.js'});
   return gomokuSourceContext=ctx;
 }
 function sourceGomokuRuntimeNew(){
