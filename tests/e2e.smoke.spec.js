@@ -115,7 +115,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon'];
   for(const game of allGames){
     await p1.locator('.sidebar [data-view="games"]').click();
     await p1.locator(`.play-btn[data-game="${game}"]`).click();
