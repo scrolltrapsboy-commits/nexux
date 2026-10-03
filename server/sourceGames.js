@@ -150,7 +150,7 @@ function sourceCarromMove(s,i,m){
 let gomokuSourceContext;
 function extractMethodSource(source,name){
   const escaped=name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
-  const re=new RegExp('\\n  '+escaped+'\\s*\\(\\)\\s*\\{');
+  const re=new RegExp('\\n  '+escaped+'\\s*\\([^)]*\\)\\s*\\{');
   const m=re.exec('\\n'+source);
   if(!m)throw new Error('Gomoku source method not found: '+name);
   const begin=m.index+m[0].length-1;let depth=0;
