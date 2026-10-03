@@ -206,8 +206,20 @@ function sourceGomokuMove(s,i,m){
   // verification path. This keeps the rule data entirely source-derived
   // while avoiding a browser-shell dependency in the multiplayer adapter.
   const patternWin=Array.isArray(g.winPatterns)&&g.winPatterns.findIndex(cells=>cells.every(cell=>g.chessBoard[cell.i]?.[cell.j]===who));
+  let fallbackWin=patternWin!==-1;
+  if(!fallbackWin){
+    const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+    fallbackWin=dirs.some(([dx,dy])=>{
+      let total=1;
+      for(const sign of [1,-1]){
+        let xx=x+dx*sign,yy=y+dy*sign;
+        while(xx>=0&&xx<15&&yy>=0&&yy<15&&g.chessBoard[yy][xx]===who){total++;xx+=dx*sign;yy+=dy*sign}
+      }
+      return total>=5;
+    });
+  }
   s.board=g.chessBoard.flat();
-  if(sourceWin!==-1||patternWin!==-1){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
+  if(sourceWin!==-1||fallbackWin){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
   if(s.moves>=225){g.over=true;g.player=false;return{draw:true,reason:'board full'}}
   s.turn=other(i);g.player=other(i)===0;
   return;
