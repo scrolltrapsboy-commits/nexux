@@ -16,7 +16,6 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   const p1 = await c1.newPage();
   const p2 = await c2.newPage();
 
-  p2.on('console', msg => { if (msg.type() !== 'debug') console.log('[P2 '+msg.type()+'] '+msg.text()); });
   for (const [page, errors] of [[p1, errors1], [p2, errors2]]) {
     page.on('pageerror', e => errors.push('pageerror: ' + e.message));
     page.on('console', msg => {
@@ -36,16 +35,13 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameTitle')).toHaveText('Chess');
   await expect(p1.locator('#gameBoard')).toContainText('Waiting for opponent');
 
-  const lobbyText = await p1.locator('#gameBoard').innerText();
-  const codeMatch = lobbyText.match(/[A-Z0-9]{6}/);
-  expect(codeMatch).not.toBeNull();
-  const code = codeMatch[0];
+  const code = (await p1.locator('.room-code-big').innerText()).trim();
+  expect(code).toMatch(/^[A-Z0-9]{6}$/);
 
   await enterAsGuest(p2);
   await p2.locator('#roomCodeBtn').click();
   await p2.locator('#joinCode').fill(code);
   await p2.locator('#joinBtn').click();
-  console.log('P2 state after click:', await p2.evaluate(() => ({connected: window.__NEXUS_DEBUG?.socket?.connected, room: window.__NEXUS_DEBUG?.room, me: window.__NEXUS_DEBUG?.me}))); 
   await expect(p2.locator('#gameModal')).toBeVisible();
   await expect(p2.locator('#gameTitle')).toHaveText('Chess',{timeout:10000});
   await expect.poll(async()=>p2.locator('.board-chess .chess-cell').count(),{timeout:10000}).toBe(64);
