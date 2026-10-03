@@ -74,7 +74,22 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
 
   await p1.locator('#socialGlobalTab').click();
   await p1.locator('#globalChatInput').fill('E2E global message');
+  console.log('GLOBAL_DEBUG_BEFORE', await p1.evaluate(() => ({
+    fn: typeof window.sendActiveGlobalChat,
+    onclick: document.querySelector('#globalChatForm button')?.getAttribute('onclick'),
+    tab: document.querySelector('#socialGlobalTab')?.className,
+    pane: document.querySelector('#socialGlobalPane')?.className,
+    input: document.querySelector('#globalChatInput')?.value,
+    connected: !!window.__nexusSocketConnected
+  })));
   await p1.locator('#globalChatForm button').click();
+  await p1.waitForTimeout(250);
+  console.log('GLOBAL_DEBUG_AFTER', await p1.evaluate(() => ({
+    input: document.querySelector('#globalChatInput')?.value,
+    list: document.querySelector('#globalChatList')?.textContent,
+    tab: document.querySelector('#socialGlobalTab')?.className,
+    pane: document.querySelector('#socialGlobalPane')?.className
+  })));
   await expect(p1.locator('#globalChatList')).toContainText('E2E global message');
 
   await p1.locator('#callVideo').click();
