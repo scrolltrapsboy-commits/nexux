@@ -1,4 +1,4 @@
-# NEXUS PLAY 3.0.3 — Real Multiplayer Game Platform
+# NEXUS PLAY 3.2 — Source-backed Multiplayer Game Platform
 
 NEXUS PLAY is a Node.js + Express + Socket.IO multiplayer game platform with a black/white Liquid Glass interface, persistent SQLite profiles, room/global chat and in-game WebRTC voice/video.
 
@@ -54,7 +54,7 @@ See `ONLINE_GAME_SOURCES.md` for the open-source projects inspected during the r
 
 ## Source-backed game engines
 
-NEXUS PLAY 3.0 uses established online open-source engines/libraries instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.0 (BSD-2-Clause), English Checkers by `rapid-draughts` 1.0.6 (MIT), Connect Four by vendored MIT source from `bryanbraun/connect-four`, Dots & Boxes by vendored MIT source, Gomoku by vendored MIT source, Carrom by vendored upstream source, and Backgammon by vendored `quasoft/backgammonjs` MIT source. `matter-js` remains available for vector/physics work. The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
+NEXUS PLAY uses established open-source engines and source snapshots instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.0 (BSD-2-Clause), English Checkers by `rapid-draughts` 1.0.6 (MIT), Connect Four by vendored MIT source from `bryanbraun/connect-four`, Dots & Boxes by vendored MIT source, Gomoku by vendored MIT source, Carrom by vendored upstream source, and Backgammon by vendored `quasoft/backgammonjs` MIT source. `matter-js` remains available for vector/physics work. The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
 
 After extracting the project, run `npm install` before starting the server so the source-backed engines are installed.
 
@@ -74,3 +74,9 @@ This release adds exact vendored upstream source snapshots for Dots & Boxes (MIT
 ## Source-engine policy
 
 NEXUS PLAY now vendors and executes unchanged MIT-licensed game logic from `kbennett2000/lan-games` for Tic Tac Toe, Battleship, and Yahtzee. The NEXUS layer only adapts room identities, Socket.IO transport, privacy filtering, and the existing monochrome UI. Additional source integrations are only accepted when the upstream rules code and license can be verified; gameplay logic is not replaced by a simplified look-alike implementation.
+
+## Source-backed game policy
+
+The source-backed multiplayer set currently includes Tic Tac Toe, Connect Four, Chess, Checkers, Battleship, Yahtzee, Monopoly, Risk, The Game of Life, Dots & Boxes, Gomoku, Backgammon, Carrom and 8-Ball Pool. Their rule/controller source is vendored under `third_party/source-games` with the corresponding license/notice files, and NEXUS wraps that source for Socket.IO state synchronization and the Liquid Glass presentation layer.
+
+The remaining arcade/physics games in the catalog retain NEXUS-specific realtime adapters. They are not described as verbatim upstream ports unless their source is actually executed by the adapter.
