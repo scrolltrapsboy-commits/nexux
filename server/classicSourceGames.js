@@ -86,7 +86,7 @@ function viewUno(state,idx){
 
 const GAMES={
   game2048:{
-    ...gnAdapter('game2048',gn2048,{name:'2048 Duel',category:'Puzzle'},null,(s,idx)=>view2048({...s,_viewerIndex:idx})),
+    ...gnAdapter('game2048',gn2048,{name:'2048 Duel',category:'Puzzle'},null,(s,idx)=>view2048(s,idx)),
   },
   minesweeper:{
     ...gnAdapter('minesweeper',gnMines,{name:'Minesweeper Duel',category:'Arcade'},(i,m)=>({
@@ -107,10 +107,11 @@ const GAMES={
   },
 };
 
-function bbRoom(initGameState,players){
-  const room={state:'playing',players:players.map((p,idx)=>({id:p.id,name:p.name,score:0,ready:true,index:idx})),gameState:{},timers:{}};
+function bbRoom(initGameState,players,context={}){
+  const room={state:'playing',players:players.map((p,idx)=>({id:'p'+idx,name:p.name,score:0,ready:true,index:idx})),gameState:{},timers:{}};
   const rooms={NEXUS:room};
-  const io={to:()=>({emit:()=>{}})};
+  room.__ready=false;
+  const io={to:()=>({emit:()=>{if(!room.__ready)return;queueMicrotask(()=>{try{room.__sync?.();context.broadcast?.()}catch{}})}})};
   initGameState('NEXUS',io,rooms);
   Object.defineProperty(room,'__io',{value:io,enumerable:false});
   Object.defineProperty(room,'__rooms',{value:rooms,enumerable:false});
@@ -121,10 +122,12 @@ function bbAdapter(id,source,meta,playerPayload,view){
   return {
     name:meta.name,category:meta.category,players:2,
     sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',
-    init(players=[]){
-      const room=bbRoom(source,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}]);
+    init(players=[],context={}){
+      const room=bbRoom(source,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}],context);
       const state={gameState:room.gameState,players:room.players,status:'playing'};
+      room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};
       Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});
+      room.__ready=true;
       return state;
     },
     move(state,i,msg={}){
@@ -159,7 +162,8 @@ function bbAdapter(id,source,meta,playerPayload,view){
       state.status='playing';
       return;
     },
-    getStateForPlayer:(state,idx)=>view?view(state,idx):clone(state.gameState)
+    getStateForPlayer:(state,idx)=>view?view(state,idx):clone(state.gameState),
+    sourceTimerDriven:true
   };
 }
 
