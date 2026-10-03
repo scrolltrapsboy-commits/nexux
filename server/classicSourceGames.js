@@ -23,6 +23,7 @@ function initGameNest(mod,players){
   const s=mod.createState();
   if(typeof mod.initGame==='function')mod.initGame(s,players.length);
   s._playerCount=players.length;
+  Object.defineProperty(s,'_playerIds',{value:players.map(p=>p.id),enumerable:false,writable:true});
   return s;
 }
 
@@ -30,7 +31,7 @@ function gnAdapter(id,mod,meta,moveAdapter,viewAdapter){
   return {
     name:meta.name,category:meta.category,players:2,
     sourceName:'absswds/GameNest',sourceLicense:'Apache-2.0',
-    init(players=[]){return initGameNest(mod,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}])},
+    init(players=[]){const ps=players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}];return initGameNest(mod,ps)},
     move(state,i,msg={}){
       const payload=moveAdapter?moveAdapter(i,msg,state):msg;
       let out;
@@ -43,7 +44,7 @@ function gnAdapter(id,mod,meta,moveAdapter,viewAdapter){
       return;
     },
     getStateForPlayer(state,viewer){
-      const idx=Number(viewer);
+      const idx=Math.max(0,state._playerIds?state._playerIds.indexOf(viewer):Number(viewer)||0);
       return viewAdapter?viewAdapter(state,idx):clone(state);
     }
   };
@@ -57,7 +58,8 @@ function view2048(state){
 }
 
 function viewMines(state,idx){
-  const board=gnMines.playerBoardView(state,idx);
+  const raw=gnMines.playerBoardView(state,idx);
+  const board=raw.map(row=>row.map(cell=>({...cell,mine:!!cell.revealed&&!!cell.mine})));
   return {rows:state.rows,cols:state.cols,mineCount:state.mineCount,board,revealedCount:state.cellsRevealed?.[idx]||0,alive:!!state.alive?.[idx],winner:state.winner,currentPlayer:-1};
 }
 
@@ -96,6 +98,7 @@ const GAMES={
   },
   snake:{
     ...gnAdapter('snake',gnSnake,{name:'Snake Arena',category:'Arcade'},(i,m)=>({direction:m.direction||m.dir}),s=>clone(s)),
+    tick:s=>gnSnake.tick(s)
   },
   othello:{
     ...gnAdapter('reversi',gnReversi,{name:'Othello',category:'Strategy'},(i,m)=>m.pass?{pass:true}:{row:Math.floor(Number(m.cell)/8),col:Number(m.cell)%8},(s,idx)=>viewReversi(s,idx)),
