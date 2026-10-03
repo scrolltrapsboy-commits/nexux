@@ -15,6 +15,9 @@ const gnUno=require(path.join(GN_ROOT,'uno.js'));
 const bbRps=require(path.join(BB_ROOT,'rpsarena.js'));
 const bbMemory=require(path.join(BB_ROOT,'memorymatch.js'));
 const bbWordChain=require(path.join(BB_ROOT,'wordchain.js'));
+const bbAnagram=require(path.join(BB_ROOT,'anagram.js'));
+const bbNumberHunt=require(path.join(BB_ROOT,'numberhunt.js'));
+const bbSpeedTyping=require(path.join(BB_ROOT,'speedtyping.js'));
 
 function clone(v){return JSON.parse(JSON.stringify(v));}
 function other(i){return i===0?1:0;}
@@ -209,6 +212,40 @@ GAMES.wordchain=(()=>({
     }
   },
   getStateForPlayer:state=>clone(state.gameState)
+}))();
+
+GAMES.anagram=(()=>({
+  name:'Anagram Sprint',category:'Word',players:2,sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',sourceTimerDriven:true,
+  init(players=[],context={}){
+    const room=bbRoom(bbAnagram,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}],context);
+    const state={gameState:room.gameState,players:room.players,status:'playing'};
+    room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};
+    Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});room.__ready=true;bbAnagram('NEXUS',room.__io,room.__rooms);return state;
+  },
+  move(state,i,msg={}){
+    const room=state.__bb;if(!room)return'Source room unavailable';if(room.gameState.currentPlayer!==undefined&&room.gameState.currentPlayer!==i)return'Not your turn';
+    try{bbAnagram('NEXUS',room.__io,room.__rooms,String(msg.word||''))}catch(e){return e?.message||'Source engine rejected move';}
+    state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished';
+    const scores=state.players.map(p=>p.score||0);if(state.status==='finished')return scores[0]===scores[1]?{draw:true,reason:'source anagram complete'}:{winner:scores[0]>scores[1]?0:1,reason:'source anagram complete'};
+  },
+  getStateForPlayer:state=>{const g=clone(state.gameState||{});delete g.roundWords;delete g.currentWord;return g}
+}))();
+
+GAMES.numberhunt=(()=>({
+  name:'Number Hunt',category:'Arcade',players:2,sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',sourceTimerDriven:true,
+  init(players=[],context={}){
+    const room=bbRoom(bbNumberHunt,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}],context);
+    const state={gameState:room.gameState,players:room.players,status:'playing'};room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});room.__ready=true;bbNumberHunt('NEXUS',room.__io,room.__rooms);return state;
+  },
+  move(state,i,msg={}){const room=state.__bb;if(!room)return'Source room unavailable';try{bbNumberHunt('NEXUS',room.__io,room.__rooms,{playerId:'p'+i,guess:Number(msg.guess)})}catch(e){return e?.message||'Source engine rejected move'}state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished';const scores=state.players.map(p=>p.score||0);if(state.status==='finished')return scores[0]===scores[1]?{draw:true,reason:'source number hunt complete'}:{winner:scores[0]>scores[1]?0:1,reason:'source number hunt complete'};},
+  getStateForPlayer:state=>{const g=clone(state.gameState||{});delete g.target;return g}
+}))();
+
+GAMES.speedtyping=(()=>({
+  name:'Speed Typing',category:'Word',players:2,sourceName:'assishmoncs/battlebox',sourceLicense:'MIT',sourceTimerDriven:true,
+  init(players=[],context={}){const room=bbRoom(bbSpeedTyping,players.length?players:[{id:'p0',name:'Player 1'},{id:'p1',name:'Player 2'}],context);const state={gameState:room.gameState,players:room.players,status:'playing'};room.__sync=()=>{state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished'};Object.defineProperty(state,'__bb',{value:room,enumerable:false,writable:true});room.__ready=true;bbSpeedTyping('NEXUS',room.__io,room.__rooms);return state;},
+  move(state,i,msg={}){const room=state.__bb;if(!room)return'Source room unavailable';try{bbSpeedTyping('NEXUS',room.__io,room.__rooms,{playerId:'p'+i,typed:String(msg.typed||'')})}catch(e){return e?.message||'Source engine rejected move'}state.gameState=room.gameState;state.players=room.players;if(room.state==='lobby')state.status='finished';const scores=state.players.map(p=>p.score||0);if(state.status==='finished')return scores[0]===scores[1]?{draw:true,reason:'source typing complete'}:{winner:scores[0]>scores[1]?0:1,reason:'source typing complete'};},
+  getStateForPlayer:state=>clone(state.gameState||{})
 }))();
 
 module.exports={CLASSIC_SOURCE_GAMES:GAMES};
