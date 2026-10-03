@@ -59,6 +59,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   expect(gameBox.height).toBeGreaterThan(vp.h*0.9);
   expect(socialBox.width).toBeGreaterThan(250);
 
+  await expect(p1.locator('#turnPill')).toHaveText('Your turn');
   await p1.locator('[data-chess="52"]').click();
   await expect(p1.locator('[data-chess="52"]')).toHaveClass(/sel/);
   await expect(p1.locator('.chess-cell.legal')).toHaveCount(2);
