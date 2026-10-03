@@ -195,13 +195,13 @@ function sourceGomokuMove(s,i,m){
   const x=Number(m?.x),y=Number(m?.y);
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||x>=15||y<0||y>=15)return'Invalid cell';
   if(g.chessBoard[y][x]!==0)return'Cell occupied';
-  const pre=[...g.playerWin];
-  g._place(x,y,1);s.moves++;
-  const win=g._checkWin(x,y,g.playerWin);
+  const who=i===0?1:2;
+  g._place(x,y,who);s.moves++;
+  const win=g._checkWin(x,y,who===1?g.playerWin:g.AIWin);
   s.board=g.chessBoard.flat();
-  if(win!==-1){g.over=true;s.status='finished';s.turn=i;return{winner:i,reason:'five in a row'}}
-  if(s.moves>=225){g.over=true;s.status='finished';return{draw:true,reason:'board full'}}
-  s.turn=other(i);g.player=false;g.AIWin=new Array(g.count).fill(0);
+  if(win!==-1){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
+  if(s.moves>=225){g.over=true;g.player=false;return{draw:true,reason:'board full'}}
+  s.turn=other(i);g.player=other(i)===0;
   return;
 }
 
