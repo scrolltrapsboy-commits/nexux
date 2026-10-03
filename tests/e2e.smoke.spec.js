@@ -2,6 +2,8 @@ const { test, expect } = require('@playwright/test');
 
 test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
 
+test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
+
 async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
