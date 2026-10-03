@@ -219,8 +219,8 @@ function sourceGomokuMove(s,i,m){
     });
   }
   s.board=g.chessBoard.flat();
-  if(sourceWin!==-1||fallbackWin){g.over=true;g.player=false;return{winner:i,reason:'five in a row'}}
-  if(s.moves>=225){g.over=true;g.player=false;return{draw:true,reason:'board full'}}
+  if(sourceWin!==-1||fallbackWin){g.over=true;g.player=false;s.status='finished';return{winner:i,reason:'five in a row'}}
+  if(s.moves>=225){g.over=true;g.player=false;s.status='finished';return{draw:true,reason:'board full'}}
   s.turn=other(i);g.player=other(i)===0;
   return;
 }
