@@ -151,7 +151,9 @@ test('source-backed Monopoly Risk and Life initialize from upstream engines',()=
 
 test('source-backed Gomoku uses vendored rule methods and detects five in a row',()=>{
  const s=GAMES.gomoku.init();
- for(const x of [0,1,2,3,4]) GAMES.gomoku.move(s,0,{x,y:0}), s.turn=0;
+ for(const [i,x] of [[0,0],[1,0],[0,1],[1,1],[0,2],[1,2],[0,3],[1,3]]) GAMES.gomoku.move(s,i,{x,y:i%2});
+ const out=GAMES.gomoku.move(s,0,{x:4,y:0});
+ assert.equal(out.winner,0);
  assert.equal(s.status,'finished');
 });
 test('source-backed source-game catalog remains available',()=>{
