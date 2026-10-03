@@ -289,6 +289,8 @@ GAMES.anagram=CLASSIC_SOURCE_GAMES.anagram;
 GAMES.numberhunt=CLASSIC_SOURCE_GAMES.numberhunt;
 GAMES.speedtyping=CLASSIC_SOURCE_GAMES.speedtyping;
 const {TETRIS_SOURCE}=require('./sourceTetris');
+const {PONG_SOURCE}=require('./sourcePong');
 GAMES.tetris=TETRIS_SOURCE;
+GAMES.pong=PONG_SOURCE;
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
