@@ -144,19 +144,65 @@ function sourceCarromMove(s,i,m){
   const y=s.turn===0?700:100;s.striker={id:19,type:'striker',x:400,y,vx:0,vy:0,pocketed:false,isSinking:false,sinkScale:1};return{animation:true};
 }
 
-/* Gomoku: 15x15 five-in-a-row rules match the vendored MIT browser source. */
-const GOMOKU_SIZE=15;
-function sourceGomokuInit(){return{size:15,board:Array(225).fill(0),turn:0,moves:0,status:'playing'}}
+/* Gomoku: execute the vendored MIT browser source's real rule methods.
+   The NEXUS adapter bypasses the source AI/UI shell but calls the source's
+   _calcWins(), _place() and _checkWin() methods against the same 15x15 board. */
+let gomokuSourceContext;
+function loadGomokuSource(){
+  if(gomokuSourceContext)return gomokuSourceContext;
+  const ctx=vm.createContext({
+    console,Math,Date,
+    document:{getElementById(id){return {disabled:false,className:'',textContent:'',innerText:''}} ,body:{appendChild(){}}},
+    window:{devicePixelRatio:1,crypto:null},
+    ResizeObserver:class{observe(){}disconnect(){}},
+    TextEncoder:global.TextEncoder,
+    crypto:{subtle:null},
+    btoa:global.btoa
+  });
+  const source=readThirdParty('gomoku','Gomoku.js');
+  vm.runInContext(source+'\\nglobalThis.__NEXUS_GOMOKU=Gomoku;',ctx,{filename:'gomoku-source.js'});
+  return gomokuSourceContext=ctx;
+}
+function sourceGomokuRuntimeNew(){
+  const ctx=loadGomokuSource(),G=ctx.__NEXUS_GOMOKU;
+  const canvas={style:{width:'600px',height:'600px'},parentElement:{clientWidth:600},getContext(){return{}}};
+  const g=Object.create(G.prototype);
+  g.canvas=canvas;
+  g.ctx=canvas.getContext();
+  g.titleEl={textContent:'',className:''};
+  g.subEl={textContent:''};
+  g._backBtn={disabled:false};g._cancelBtn={disabled:false};
+  g.LINES=15;g.PADDING=0;g.RATE=40;g.DPR=1;
+  g.chessBoard=Array.from({length:15},()=>Array(15).fill(0));
+  g.wins=Array.from({length:15},()=>Array.from({length:15},()=>[]));
+  g.winPatterns=[];g.count=0;g.playerWin=[];g.AIWin=[];
+  g.over=false;g.player=true;g.history=[];g.canBack=false;g.canCancel=false;g._cancelSnapshot=null;
+  g.hoverPos=null;g.aiThinking=false;g._aiTimer=null;g._winLineTimer=null;g._integrityViolated=false;
+  g._updateBtns=()=>{};g._redraw=()=>{};
+  g._calcWins();
+  g.playerWin=new Array(g.count).fill(0);g.AIWin=new Array(g.count).fill(0);
+  return {ctx,g};
+}
+function sourceGomokuInit(){
+  const rt=sourceGomokuRuntimeNew();
+  return{size:15,board:rt.g.chessBoard.flat(),turn:0,moves:0,status:'playing',source:'gomoku.Gomoku.js',
+    __gomokuRuntime:rt};
+}
 function sourceGomokuMove(s,i,m){
-  if(i!==s.turn)return'Not your turn';const x=Number(m?.x),y=Number(m?.y);
+  const g=s.__gomokuRuntime?.g;
+  if(!g)return'Gomoku source runtime unavailable';
+  if(i!==s.turn||g.over)return g.over?'Game over':'Not your turn';
+  const x=Number(m?.x),y=Number(m?.y);
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||x>=15||y<0||y>=15)return'Invalid cell';
-  const idx=y*15+x;if(s.board[idx])return'Cell occupied';const who=i+1;s.board[idx]=who;s.moves++;
-  for(const [dx,dy] of [[1,0],[0,1],[1,1],[1,-1]]){
-    let n=1;
-    for(const sign of [-1,1]){for(let k=1;k<5;k++){const xx=x+dx*k*sign,yy=y+dy*k*sign;if(xx<0||xx>=15||yy<0||yy>=15||s.board[yy*15+xx]!==who)break;n++}}
-    if(n>=5){s.status='finished';return{winner:i,reason:'five in a row'}}
-  }
-  if(s.moves===225){s.status='finished';return{draw:true,reason:'board full'}}s.turn=other(i);
+  if(g.chessBoard[y][x]!==0)return'Cell occupied';
+  const pre=[...g.playerWin];
+  g._place(x,y,1);s.moves++;
+  const win=g._checkWin(x,y,g.playerWin);
+  s.board=g.chessBoard.flat();
+  if(win!==-1){g.over=true;s.status='finished';s.turn=i;return{winner:i,reason:'five in a row'}}
+  if(s.moves>=225){g.over=true;s.status='finished';return{draw:true,reason:'board full'}}
+  s.turn=other(i);g.player=false;g.AIWin=new Array(g.count).fill(0);
+  return;
 }
 
 /* Shared helpers. */
