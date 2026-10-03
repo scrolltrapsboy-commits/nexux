@@ -131,7 +131,7 @@ function drawTet(sel,p){
 function renderActions(r){const el=$('#gameActions');el.innerHTML=r.status==='finished'?`<button class="primary" id="rematch">Rematch</button>`:'';if($('#rematch'))$('#rematch').onclick=()=>state.socket.emit('rematch');}
 function renderChess(el,s){
  const map={r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',p:'♟',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔',P:'♙'};
- const board=s.fen.split(' ')[0],arr=[];for(const ch of board){if(/\d/.test(ch))for(let i=0;i<+ch;i++)arr.push(null);else arr.push(ch)}
+ const ranks=s.fen.split(' ')[0].split('/'),arr=[];for(const rank of ranks){for(const ch of rank){if(/\d/.test(ch))for(let i=0;i<+ch;i++)arr.push(null);else arr.push(ch)}}
  const me=state.room.players.findIndex(p=>p.id===state.me.id),turn=s.turn===me;
  const moves=Array.isArray(s.legalMoves)?s.legalMoves:[];
  el.innerHTML='<div class="chess-layout"><div><div class="board-chess">'+arr.map((p,i)=>'<button class="chess-cell '+((Math.floor(i/8)+i%8)%2?'dark':'light')+' '+(state.selectedChess===i?'sel':'')+' '+(state.chessLegal.includes(i)?(p?'capture':'legal'):'')+'" data-chess="'+i+'" aria-label="'+toSquare(i)+'">'+(p?map[p]:'')+'</button>').join('')+'</div><div class="game-shell-tools"><button class="ghost" id="offerDraw">Offer draw</button><button class="ghost" id="resignChess">Resign</button></div></div><div class="chess-side"><div class="glass-mini"><b>Turn</b><div>'+ (turn?'Your move':'Opponent move') +'</div><div style="color:#777;margin-top:4px">'+escapeHtml(s.fen)+'</div></div><div class="glass-mini"><b>Move history</b><div class="move-list">'+(s.history||[]).map((m,i)=>'<div class="move-item">'+(i%2===0?(Math.floor(i/2)+1)+'. ':'')+escapeHtml(m)+'</div>').join('')+'</div></div></div></div>';
