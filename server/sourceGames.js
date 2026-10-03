@@ -148,41 +148,43 @@ function sourceCarromMove(s,i,m){
    The NEXUS adapter bypasses the source AI/UI shell but calls the source's
    _calcWins(), _place() and _checkWin() methods against the same 15x15 board. */
 let gomokuSourceContext;
-function extractMethodSource(source,name){
-  const escaped=name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
-  const re=new RegExp('\\n  '+escaped+'\\s*\\([^)]*\\)\\s*\\{');
-  const m=re.exec(source);
-  if(!m)throw new Error('Gomoku source method not found: '+name);
-  const begin=m.index+m[0].length-1;let depth=0;
-  for(let i=begin;i<source.length;i++){const ch=source[i];if(ch==='{')depth++;else if(ch==='}'){depth--;if(depth===0)return source.slice(m.index,i+1)}}
-  throw new Error('Unbalanced Gomoku source method: '+name);
-}
 function loadGomokuSource(){
   if(gomokuSourceContext)return gomokuSourceContext;
-  const ctx=vm.createContext({console,Math,TextEncoder:global.TextEncoder,btoa:global.btoa,window:{},document:{}});
+  const noop=()=>{};
+  const gradient=()=>({addColorStop:noop});
+  const ctx2d={
+    createLinearGradient:gradient,createRadialGradient:gradient,
+    clearRect:noop,fillRect:noop,strokeRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,
+    arc:noop,fill:noop,stroke:noop,save:noop,restore:noop,setTransform:noop,
+    closePath:noop,translate:noop,rotate:noop,fillText:noop,strokeText:noop,
+    measureText:()=>({width:0}),setLineDash:noop
+  };
+  const nodes=new Map();
+  const makeNode=()=>({style:{},className:'',textContent:'',innerText:'',disabled:false,
+    addEventListener:noop,removeEventListener:noop,appendChild:noop,
+    classList:{add:noop,remove:noop,toggle:noop}});
+  const document={
+    getElementById(id){if(!nodes.has(id))nodes.set(id,makeNode());return nodes.get(id)},
+    addEventListener:noop,removeEventListener:noop,body:makeNode()
+  };
+  const canvas={parentElement:{clientWidth:600},style:{},width:0,height:0,
+    getContext:()=>ctx2d,addEventListener:noop,removeEventListener:noop};
+  const ctx=vm.createContext({
+    console,Math,Date,TextEncoder:global.TextEncoder,btoa:global.btoa,
+    window:{devicePixelRatio:1},document,
+    getComputedStyle:()=>({paddingLeft:'0',paddingRight:'0'}),
+    ResizeObserver:class{observe(){}disconnect(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:noop,cancelAnimationFrame:noop,
+    performance:{now:()=>0}
+  });
   const source=readThirdParty('gomoku','Gomoku.js');
-  const methods=['_calcWins','_place','_checkWin','_full'].map(name=>extractMethodSource(source,name)).join('\n');
-  vm.runInContext('class GomokuSource {'+methods+'}\nglobalThis.__NEXUS_GOMOKU=GomokuSource;',ctx,{filename:'gomoku-source-rules.js'});
+  vm.runInContext(source+'\\nglobalThis.__NEXUS_GOMOKU=Gomoku;',ctx,{filename:'gomoku-source.js'});
+  ctx.__NEXUS_GOMOKU_CANVAS=canvas;
   return gomokuSourceContext=ctx;
 }
 function sourceGomokuRuntimeNew(){
   const ctx=loadGomokuSource(),G=ctx.__NEXUS_GOMOKU;
-  const canvas={style:{width:'600px',height:'600px'},parentElement:{clientWidth:600},getContext(){return{}}};
-  const g=Object.create(G.prototype);
-  g.canvas=canvas;
-  g.ctx=canvas.getContext();
-  g.titleEl={textContent:'',className:''};
-  g.subEl={textContent:''};
-  g._backBtn={disabled:false};g._cancelBtn={disabled:false};
-  g.LINES=15;g.PADDING=0;g.RATE=40;g.DPR=1;
-  g.chessBoard=Array.from({length:15},()=>Array(15).fill(0));
-  g.wins=Array.from({length:15},()=>Array.from({length:15},()=>[]));
-  g.winPatterns=[];g.count=0;g.playerWin=[];g.AIWin=[];
-  g.over=false;g.player=true;g.history=[];g.canBack=false;g.canCancel=false;g._cancelSnapshot=null;
-  g.hoverPos=null;g.aiThinking=false;g._aiTimer=null;g._winLineTimer=null;g._integrityViolated=false;
-  g._updateBtns=()=>{};g._redraw=()=>{};
-  g._calcWins();
-  g.playerWin=new Array(g.count).fill(0);g.AIWin=new Array(g.count).fill(0);
+  const g=new G(ctx.__NEXUS_GOMOKU_CANVAS);
   return {ctx,g};
 }
 function sourceGomokuInit(){
