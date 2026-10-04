@@ -94,3 +94,8 @@ NEXUS PLAY vendors the core source files from tmatth11/hangman (MIT): third_part
 ## 3.5 source-backed expansion
 
 The catalog now contains 34 games. Mini Golf executes the vendored MIT `freegamestore-online/minigolf` physics/course source through `server/sourceMiniGolf.js`; Neon Circuit Racing executes the vendored MIT `Steve-IX/Speed_Racer_Game` Car and Track source through `server/sourceRacing.js`; Hangman vendors the MIT `tmatth11/hangman` rule and 37-word-list source through `server/sourceHangman.js`. NEXUS adds only the multiplayer transport, player isolation and Liquid Glass presentation shell around those engines.
+
+
+## 3.6 online-source expansion
+
+The 3.6 arcade expansion vendors the gameplay source used by Breakout, Space Invaders, Pac-Man, Frogger, Flappy Bird and Sudoku from the MIT-licensed `forinda/canvas-games` repository. The upstream gameplay/system files are retained under `third_party/source-games/canvas-games/`; NEXUS replaces only the presentation/input bridge so the Liquid Glass shell does not alter the upstream mechanics. The upstream project documents all of these games as complete TypeScript/Canvas implementations and publishes its MIT license. See `ONLINE_GAME_SOURCES.md` for the exact source paths.
