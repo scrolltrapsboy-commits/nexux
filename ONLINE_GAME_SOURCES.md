@@ -18,6 +18,7 @@ This build uses established open-source game engines/libraries where they provid
 | Othello / Pong / 2048 / Snake / Tetris source | https://github.com/rkendel1/ganes | MIT; source snapshots retained under `third_party/littlejs-ai/` with license |
 | Dots & Boxes engine | https://github.com/gmetzker/DotBox | MIT; vendored engine + required state utilities under `third_party/source-games/dots-and-boxes/` |
 | Gomoku source | https://github.com/lunatikek/Gomoku | MIT; upstream `Gomoku.js` and license retained under `third_party/source-games/gomoku/` |
+| Mancala source | https://github.com/halilayyildiz/mancala-game | MIT; exact `mancala.js`, `move-stones.js`, and `check-winner.js` rule source retained under `third_party/source-games/mancala/` |
 | Carrom physics/controller source | https://github.com/sasidharreddy-janke/Carrom-Game- | Repository README states MIT, but no LICENSE file is present; retained source copies are clearly marked and should be reviewed before any external redistribution |
 
 NEXUS PLAY does not download or execute remote JavaScript at runtime. The MIT LittleJS-AI source snapshots are retained in-repository for audit/reference; NEXUS PLAY adapts their game concepts into the server-authoritative multiplayer layer. Do not add code/assets from a repository whose license does not permit redistribution.
@@ -110,3 +111,11 @@ NEXUS retains the upstream gameplay/system source used for these six additions. 
 - Sudoku: `src/games/sudoku/SudokuEngine.ts`, `types.ts`, `data/puzzles.ts`, `systems/BoardSystem.ts`, `systems/InputSystem.ts`.
 
 Note: the upstream source is a single-player Canvas arcade collection. NEXUS wraps each engine/system set in a two-player server-authoritative match state; that multiplayer wrapper is NEXUS code, while the retained gameplay systems remain upstream snapshots.
+
+
+### Mancala — halilayyildiz/mancala-game
+- Repository: https://github.com/halilayyildiz/mancala-game
+- License: MIT (Copyright (c) 2018 Halil AYYILDIZ)
+- Exact rule snapshots retained at: `third_party/source-games/mancala/mancala.js`, `move-stones.js`, `check-winner.js`
+- NEXUS adapter: `server/sourceMancala.js`
+- The upstream sowing, extra-turn, capture, and end-of-game rule methods execute unchanged inside an isolated server runtime; NEXUS only supplies the multiplayer state bridge and presentation.
