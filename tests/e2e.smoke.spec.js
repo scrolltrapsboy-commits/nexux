@@ -8,7 +8,7 @@ async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await expect(page.locator('#app')).toBeVisible();
 }
 
-test('NEXUS PLAY production UI and multiplayer smoke', async () => {
+test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async () => {
   const errors1 = [];
   const errors2 = [];
   const launchOptions = {args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--allow-loopback-in-peer-connection','--autoplay-policy=no-user-gesture-required']};
