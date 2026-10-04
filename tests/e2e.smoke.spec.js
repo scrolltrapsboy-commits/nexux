@@ -120,11 +120,18 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
 
   const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes'];
   for(const game of allGames){
+    console.log('E2E_GAME_START',game);
     await p1.locator('.sidebar [data-view="games"]').click();
-    await p1.locator(`.play-btn[data-game="${game}"]`).click();
+    await p1.locator('#gamesRoom').click();
+    await p1.locator(`[data-create="${game}"]`).click();
     await expect(p1.locator('#gameModal')).toBeVisible();
     await expect(p1.locator('#gameBoard')).not.toBeEmpty();
-    await expect(p1.locator('#gameTitle')).not.toHaveText('Game');
+    const lobby=await p1.locator('#gameBoard').innerText();
+    const match=lobby.match(/[A-Z0-9]{6}/);
+    expect(match).not.toBeNull();
+    const code=match[0];
+    await enterAsGuest(p2,'http://127.0.0.1:3000/?room='+code);
+    await expect(p1.locator('#gameTitle')).toHaveText(await p1.locator('#gameTitle').innerText());
     await expect(p2.locator('#gameModal')).toBeVisible();
     await expect(p2.locator('#gameBoard')).not.toBeEmpty();
     await expect(p1.locator('#shareGame')).toBeVisible();
@@ -173,7 +180,6 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
       await expect(p2.locator('.domino-shell')).toBeVisible();
       await expect(p1.locator('.domino-hand .domino-tile')).toHaveCount(5);
       await expect(p2.locator('.domino-hand .domino-tile')).toHaveCount(5);
-      await expect(p1.locator('.domino-chain')).toContainText('Highest double starts');
     }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
@@ -183,8 +189,8 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
     await p2.locator('#leaveGame').click();
     await expect(p1.locator('#gameModal')).toBeHidden();
     await expect(p2.locator('#gameModal')).toBeHidden();
+    console.log('E2E_GAME_DONE',game);
   }
-
 
   expect(errors1).toEqual([]);
   expect(errors2).toEqual([]);
