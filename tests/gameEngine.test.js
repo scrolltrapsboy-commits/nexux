@@ -39,9 +39,10 @@ test('physical games have real stateful boards',()=>{
   assert.ok(pool.balls.every(b=>typeof b.type==='string'));
   const carrom=GAMES.carrom.init();
   assert.equal(carrom.coins.length,19);
-  const golf=GAMES.minigolf.init();
-  assert.ok(golf.walls.length>=4);
-  const race=GAMES.racing.init();
+  const golf=GAMES.minigolf.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
+  assert.ok(golf.course.walls.length>=4);
+  assert.equal(golf.holeCount,9);
+  const race=GAMES.racing.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
   assert.equal(race.players.length,2);
   assert.ok(race.players.every(p=>typeof p.angle==='number'));
 });
@@ -158,6 +159,9 @@ test('source-backed Gomoku uses vendored rule methods and detects five in a row'
 test('source-backed Anagram Sprint uses the upstream word list and scoring',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.anagram.init(p);const word=s.gameState.roundWords[0];assert.ok(typeof word==='string');assert.ok(typeof s.gameState.scrambled==='string');assert.equal(GAMES.anagram.move(s,0,{word}),undefined);assert.equal(s.players[0].score,10);});
 test('source-backed Number Hunt hides target from player view and scores both guesses',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.numberhunt.init(p);const target=s.gameState.target;const publicState=GAMES.numberhunt.getStateForPlayer(s,'a');assert.equal(publicState.target,undefined);GAMES.numberhunt.move(s,0,{guess:target});GAMES.numberhunt.move(s,1,{guess:target});assert.equal(s.players[0].score,4);assert.equal(s.players[1].score,2);});
 test('source-backed Speed Typing advances only after both players finish',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.speedtyping.init(p);const word=s.gameState.words[s.gameState.currentWordIndex];GAMES.speedtyping.move(s,0,{typed:word});assert.equal(s.gameState.currentWordIndex,0);GAMES.speedtyping.move(s,1,{typed:word});assert.equal(s.gameState.currentWordIndex,1);assert.ok(s.players.every(x=>x.score>0));});
+
+test('source-backed Mini Golf uses upstream physics and course rules',()=>{const s=GAMES.minigolf.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(s.players.length,2);assert.equal(s.course.name,'Opening Bend');const out=GAMES.minigolf.move(s,0,{dx:1,dy:-.2,power:.25});assert.equal(out.animation,true);assert.ok(Array.isArray(s.animation)&&s.animation.length>1);assert.equal(s.players[0].totalStrokes,1)});
+test('source-backed Racing uses upstream Car and Track methods',()=>{const s=GAMES.racing.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(s.totalLaps,3);const before=s.players[0].x;GAMES.racing.move(s,0,{up:true,left:false,right:false,brake:false});assert.equal(s.inputs[0].up,true);const out=GAMES.racing.tick(s);assert.ok(out===undefined||out.winner!==undefined||out.draw);assert.notEqual(s.players[0].x,before)});
 test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping'])assert.ok(GAMES[id],id);});
 
 test('source-backed Ludo uses upstream seed-path and six-start rule',()=>{
