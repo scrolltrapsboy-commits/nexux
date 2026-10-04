@@ -93,3 +93,20 @@ New games are not accepted as button-only placeholders. A new game must point to
 - Snapshots: third_party/source-games/racing/car.js, track.js, LICENSE
 - NEXUS integration: server/sourceRacing.js
 - Upstream classes executed: Car and Track including checkpoints and lap progression.
+
+
+## 3.6 source arcade expansion — forinda/canvas-games
+
+Upstream repository: https://github.com/forinda/canvas-games
+License: MIT (copyright notice retained in `third_party/source-games/canvas-games/LICENSE`). The upstream repository describes 52 playable TypeScript/HTML5 Canvas games.
+
+NEXUS retains the upstream gameplay/system source used for these six additions. The NEXUS renderer and multiplayer transport are separate adapters; upstream gameplay files are not rewritten into placeholder logic.
+
+- Breakout: `src/games/breakout/BreakoutEngine.ts`, `types.ts`, `data/levels.ts`, `systems/PhysicsSystem.ts`, `systems/CollisionSystem.ts`, `systems/PowerupSystem.ts`, `systems/LevelSystem.ts`.
+- Space Invaders: `src/games/space-invaders/InvadersEngine.ts`, `types.ts`, `data/formations.ts`, `systems/AlienSystem.ts`, `systems/CollisionSystem.ts`, `systems/PlayerSystem.ts`, `systems/UFOSystem.ts`, `systems/InputSystem.ts`.
+- Pac-Man: `src/games/pacman/PacManEngine.ts`, `types.ts`, `data/maze.ts`, `systems/CollisionSystem.ts`, `systems/GhostSystem.ts`, `systems/PlayerSystem.ts`.
+- Frogger: `src/games/frogger/FroggerEngine.ts`, `types.ts`, `data/levels.ts`, `systems/CollisionSystem.ts`, `systems/RiverSystem.ts`, `systems/TrafficSystem.ts`, `systems/InputSystem.ts`.
+- Flappy Bird: `src/games/flappy-bird/FlappyEngine.ts`, `types.ts`, `systems/BirdSystem.ts`, `systems/PipeSystem.ts`, `systems/CollisionSystem.ts`, `systems/InputSystem.ts`.
+- Sudoku: `src/games/sudoku/SudokuEngine.ts`, `types.ts`, `data/puzzles.ts`, `systems/BoardSystem.ts`, `systems/InputSystem.ts`.
+
+Note: the upstream source is a single-player Canvas arcade collection. NEXUS wraps each engine/system set in a two-player server-authoritative match state; that multiplayer wrapper is NEXUS code, while the retained gameplay systems remain upstream snapshots.
