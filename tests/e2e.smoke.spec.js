@@ -162,6 +162,12 @@ async function runCatalog(pair, games) {
       await p1.locator('button.sudoku-cell:not(.given)').first().click();
       await p1.locator('[data-snum="1"]').click();
       await expect(p1.locator('.sudoku-grid')).toBeVisible();
+    } else if (game === 'xiangqi') {
+      await p1.locator('[data-xq="9,1"]').click();
+      await expect(p1.locator('.xiangqi-shell')).toBeVisible();
+    } else if (game === 'go9') {
+      await p1.locator('[data-go9="4,4"]').click();
+      await expect(p2.locator('.go9-board')).toBeVisible();
     } else if (game === 'yahtzee') {
       await p1.locator('[data-src-action="rollDice"]').click();
       await expect(p1.locator('.dice-row')).toBeVisible();
@@ -216,7 +222,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
   try {
     const { p1, p2, errors } = pair;
     await p1.locator('.sidebar [data-view="games"]').click();
-    await expect(p1.locator('#view-games .play-btn')).toHaveCount(41);
+    await expect(p1.locator('#view-games .play-btn')).toHaveCount(43);
     await expect(p1.locator('#view-games')).toContainText('Hangman');
 
     console.log('[NEXUS-E2E] core: create/join');
@@ -264,7 +270,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect(p1.locator('#callEmpty')).toBeHidden();
     await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
     console.log('[NEXUS-E2E] core: local video');
-    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true).catch(async err=>{console.log('[NEXUS-E2E] remote probe '+await p1.evaluate(()=>JSON.stringify({rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null})));console.log('[NEXUS-E2E] remote probe p2 '+await p2.evaluate(()=>JSON.stringify({rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null,src:!!document.querySelector('#remoteVideo')?.srcObject,tracks:document.querySelector('#remoteVideo')?.srcObject?.getTracks?.().map(t=>t.kind)||[]})));throw err});
+    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true).catch(async err=>{console.log('[NEXUS-E2E] remote probe '+await p1.evaluate(()=>JSON.stringify({call:window.__nexusCall||null,rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null,rtcError:document.body.dataset.rtcError||null})));console.log('[NEXUS-E2E] remote probe p2 '+await p2.evaluate(()=>JSON.stringify({call:window.__nexusCall||null,rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null,rtcError:document.body.dataset.rtcError||null,src:!!document.querySelector('#remoteVideo')?.srcObject,tracks:document.querySelector('#remoteVideo')?.srcObject?.getTracks?.().map(t=>t.kind)||[]})));throw err});
     console.log('[NEXUS-E2E] core: remote video');
     await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length), { timeout: 10000 }).toBe(true);
     console.log('[NEXUS-E2E] core: remote audio');
@@ -288,7 +294,7 @@ test('NEXUS PLAY catalog A - board, word and arcade games', async () => {
   test.setTimeout(150000);
   const pair = await makePair();
   try {
-    await runCatalog(pair, ['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','sudoku']);
+    await runCatalog(pair, ['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','sudoku','xiangqi','go9']);
     expect(pair.errors[0]).toEqual([]);
     expect(pair.errors[1]).toEqual([]);
   } finally {
