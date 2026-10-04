@@ -54,10 +54,14 @@ See `ONLINE_GAME_SOURCES.md` for the open-source projects inspected during the r
 
 ## Source-backed game engines
 
-NEXUS PLAY uses established open-source engines and source snapshots instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.0 (BSD-2-Clause), English Checkers by `rapid-draughts` 1.0.6 (MIT), Connect Four by vendored MIT source from `bryanbraun/connect-four`, Dots & Boxes by vendored MIT source, Gomoku by vendored MIT source, Carrom by vendored upstream source, and Backgammon by vendored `quasoft/backgammonjs` MIT source. `matter-js` remains available for vector/physics work. The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes.
+NEXUS PLAY uses established open-source engines and source snapshots instead of relying only on handwritten rule code. Chess is backed by `chess.js` 1.4.0 (BSD-2-Clause), English Checkers by `rapid-draughts` 1.0.6 (MIT), Connect Four by vendored MIT source from `bryanbraun/connect-four`, Dots & Boxes by vendored MIT source, Gomoku by vendored MIT source, Carrom by vendored upstream source, and Backgammon by vendored `quasoft/backgammonjs` MIT source. `matter-js` remains available for vector/physics work. The multiplayer server remains authoritative and only serializes deterministic game state to clients. See `ONLINE_GAME_SOURCES.md` for the complete source/reference list and license notes. Mancala uses the retained MIT-licensed upstream rule source from `halilayyildiz/mancala-game`.
 
 After extracting the project, run `npm install` before starting the server so the source-backed engines are installed.
 
+
+## Source-engine rule policy
+
+Games are only added when an identified upstream implementation is retained in `third_party/source-games/` with its license/notice and connected through a NEXUS adapter. The Liquid Glass UI is kept separate from the gameplay source so visual changes cannot silently alter the rule engine.
 
 ## Release verification
 Release hardening includes authoritative chess/checkers rules, realtime arcade state, separate room/global/friend chat channels, persisted profiles, and WebRTC media controls. GitHub Actions is the release gate; a production deployment should also provide a TURN service through `ICE_SERVERS_JSON` for networks where STUN alone cannot establish a peer connection.
