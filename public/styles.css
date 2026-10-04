@@ -264,3 +264,7 @@ body.game-active>.social .chat-form{flex:0 0 auto}
 body.game-active #gameModal .source-arcade-shell .game-canvas{max-width:100%;height:min(64dvh,720px)}
 body.game-active #gameModal .canvas-wrap{max-width:100%}
 body.game-active #gameModal .game-canvas{max-width:100%}
+
+/* Ensure the in-game social rail is always above the game overlay and clickable. */
+body.game-active>.social{z-index:300!important;pointer-events:auto!important;visibility:visible!important}
+body.game-active>.social *{pointer-events:auto}
