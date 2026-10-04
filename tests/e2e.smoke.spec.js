@@ -226,9 +226,13 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect.poll(async () => p2.locator('.move-item').count(),{timeout:10000}).toBeGreaterThan(0);
     console.log('[NEXUS-E2E] core: e4 received');
 
-    await p1.locator('#roomChatInput').fill('room works');
-    await p1.locator('#roomChatForm button').click();
-    await expect(p1.locator('#roomChat')).toContainText('room works');
+    console.log('[NEXUS-E2E] core: room chat fill');
+    await p1.locator('#roomChatInput').fill('room works',{timeout:10000});
+    console.log('[NEXUS-E2E] core: room chat click');
+    await p1.locator('#roomChatForm button').click({timeout:10000});
+    console.log('[NEXUS-E2E] core: room chat clicked');
+    await expect(p1.locator('#roomChat')).toContainText('room works',{timeout:10000});
+    console.log('[NEXUS-E2E] core: room chat received');
 
     await p1.locator('#socialGlobalTab').click();
     await p1.locator('#globalChatInput').fill('global works');
