@@ -178,7 +178,7 @@ function sourceChessMove(s,i,m){
   if(g.isInsufficientMaterial())return{draw:true,reason:'insufficient material'};
   return{move:mv.san};
 }
-GAMES.chess={name:'Chess',category:'Strategy',players:2,init:sourceChessInit,move:sourceChessMove};
+GAMES.chess={name:'Chess',category:'Strategy',players:2,sourceName:'jhlywa/chess.js',sourceLicense:'BSD-2-Clause',init:sourceChessInit,move:sourceChessMove};
 
 function checkerBoardFromGame(g){
   const out=Array.from({length:8},()=>Array(8).fill(null));
@@ -231,7 +231,7 @@ function sourceCheckersMove(s,i,m){
   if(g.status==='draw')return{draw:true,reason:'draw'};
   return;
 }
-GAMES.checkers={name:'Checkers',category:'Strategy',players:2,init:sourceCheckersInit,move:sourceCheckersMove};
+GAMES.checkers={name:'Checkers',category:'Strategy',players:2,sourceName:'loks0n/rapid-draughts',sourceLicense:'MIT',init:sourceCheckersInit,move:sourceCheckersMove};
 
 // Additional classic games adapted from the MIT-licensed LittleJS-AI collection:
 // https://github.com/rkendel1/ganes
