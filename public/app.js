@@ -510,7 +510,7 @@ async function ensureMedia(video){
   state.call.video=!!video;state.call.audio=true;
   $('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
   return state.call.stream;
- }catch{toast(video?'Allow microphone and camera permission to start video':'Allow microphone permission to start voice');return null}
+ }catch(err){const reason=err?.name||'MediaError';document.body.dataset.mediaError=reason;console.warn('[NEXUS MEDIA]',reason,err?.message||'');toast(video?'Allow microphone and camera permission to start video':'Allow microphone permission to start voice');return null}
 }
 function attachRemoteTrack(pc,id){
  pc.ontrack=e=>{
