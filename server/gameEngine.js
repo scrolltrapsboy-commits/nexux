@@ -269,6 +269,7 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* -------------------------------------------------------------------------- */
 const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceCarromExactInit,sourceCarromExactMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove}=require('./sourceGames');
 const {CLASSIC_SOURCE_GAMES}=require('./classicSourceGames');
+const {CANVAS_SOURCE_GAMES}=require('./sourceCanvasGames');
 GAMES.tictactoe=LAN_GAMES.tictactoe;
 GAMES.battleship=LAN_GAMES.battleship;
 GAMES.yahtzee=LAN_GAMES.yahtzee;
@@ -306,6 +307,7 @@ GAMES.minigolf=MINIGOLF_SOURCE;
 GAMES.racing=RACING_SOURCE;
 GAMES.reaction=REACTION_SOURCE;
 GAMES.hangman=HANGMAN_SOURCE;
+Object.assign(GAMES,CANVAS_SOURCE_GAMES);
 
 
 // Canonical upstream source manifest. Metadata is assigned after the final GAMES wiring so
@@ -327,7 +329,10 @@ const SOURCE_METADATA={
  risk:['kbennett2000/lan-games','MIT'],life:['kbennett2000/lan-games','MIT'],
  dotsboxes:['gmetzker/DotBox','MIT'],gomoku:['lunatikek/Gomoku','MIT'],
  backgammon:['quasoft/backgammonjs','MIT'],ludo:['chukwumaijem/ludo-game','MIT'],
- dominoes:['ppyne/dominoes','BSD-3-Clause'],hangman:['tmatth11/hangman','MIT']
+ dominoes:['ppyne/dominoes','BSD-3-Clause'],hangman:['tmatth11/hangman','MIT'],
+ breakout:['forinda/canvas-games','MIT'],spaceinvaders:['forinda/canvas-games','MIT'],
+ pacman:['forinda/canvas-games','MIT'],frogger:['forinda/canvas-games','MIT'],
+ flappy:['forinda/canvas-games','MIT'],sudoku:['forinda/canvas-games','MIT']
 };
 for(const [id,[sourceName,sourceLicense]] of Object.entries(SOURCE_METADATA)){
  const g=GAMES[id];if(g){if(!g.sourceName)g.sourceName=sourceName;if(!g.sourceLicense)g.sourceLicense=sourceLicense}
