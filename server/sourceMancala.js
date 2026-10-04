@@ -76,13 +76,12 @@ function sourceMancalaMove(s,i,m={}){
     syncState(s,game,mancala);
     s.phase='finished';
     if(winner===0)return{draw:true,reason:'source Mancala draw'};
-    const winnerIndex=winner===1?(s.turn===0?0:1):(s.turn===0?1:0);
+    const winnerIndex=winner-1;
     s.winner=winnerIndex;
     return{winner:winnerIndex,reason:'source Mancala game over'};
   }
 
   if(turnOver){
-    game.player=game.get_other_player();
     mancala.flip_board();
     s.turn=other(s.turn);
   }
