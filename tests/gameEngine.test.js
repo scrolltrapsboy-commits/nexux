@@ -215,6 +215,19 @@ test('source-backed Mancala preserves upstream sowing and extra-turn rules',()=>
   assert.equal(s.turn,1);
   assert.equal(s.stores[1],1);
 });
+test('source-backed Mancala maps the upstream winner to the correct player',()=>{
+  const players=[{id:'a',name:'A'},{id:'b',name:'B'}];
+  const p0=GAMES.mancala.init(players);
+  p0.pits=[[0,0,4,0,0,0],[0,0,0,0,0,0]];
+  const w0=GAMES.mancala.move(p0,0,{pit:2});
+  assert.deepEqual(w0,{winner:0,reason:'source Mancala game over'});
+
+  const p1=GAMES.mancala.init(players);
+  p1.pits=[[0,0,0,0,0,0],[0,0,4,0,0,0]];
+  p1.turn=1;
+  const w1=GAMES.mancala.move(p1,1,{pit:2});
+  assert.deepEqual(w1,{winner:1,reason:'source Mancala game over'});
+});
 test('source-backed Reaction Race uses upstream timer state',()=>{
  const s=GAMES.reaction.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
  assert.equal(s.players?.length,undefined);
