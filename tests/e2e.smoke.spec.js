@@ -264,7 +264,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect(p1.locator('#callEmpty')).toBeHidden();
     await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
     console.log('[NEXUS-E2E] core: local video');
-    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true);
+    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true).catch(async err=>{console.log('[NEXUS-E2E] remote probe '+await p1.evaluate(()=>JSON.stringify({rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null})));console.log('[NEXUS-E2E] remote probe p2 '+await p2.evaluate(()=>JSON.stringify({rtc:window.__nexusRtc||null,mediaError:document.body.dataset.mediaError||null,src:!!document.querySelector('#remoteVideo')?.srcObject,tracks:document.querySelector('#remoteVideo')?.srcObject?.getTracks?.().map(t=>t.kind)||[]})));throw err});
     console.log('[NEXUS-E2E] core: remote video');
     await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length), { timeout: 10000 }).toBe(true);
     console.log('[NEXUS-E2E] core: remote audio');
