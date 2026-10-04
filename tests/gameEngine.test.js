@@ -182,3 +182,13 @@ test('source-backed Dominoes deals five tiles each and honors highest double',()
  assert.notEqual(out,'Must start with the highest double');
  assert.equal(s.chain.length,1);
 });
+
+test('source-backed Reaction Race uses upstream timer state',()=>{
+ const s=GAMES.reaction.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
+ assert.equal(s.players?.length,undefined);
+ assert.equal(s.scores.length,2);
+ assert.ok(['waiting','ready','armed'].includes(s.phase));
+ const rt=s.__reactionRuntime;
+ assert.ok(rt?.room?.gameState);
+ require('../third_party/source-games/battlebox/utils').clearAllGameTimers(rt.room);
+});
