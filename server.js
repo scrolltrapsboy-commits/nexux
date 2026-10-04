@@ -78,6 +78,13 @@ function stopRace(r){const t=raceTimers.get(r.code);if(t){clearInterval(t);raceT
 function finish(r,out){if(r.status==='finished')return;stopRace(r);r.status='finished';r.result=out;for(const id of r.players){const u=q.userById.get(id);if(!u)continue;const won=out.winnerId===id;const loss=!!out.winnerId&&!won;db.prepare('UPDATE users SET played=played+1,wins=wins+?,losses=losses+?,draws=draws+? WHERE id=?').run(won?1:0,loss?1:0,out.draw?1:0,id);notify(id,'game',out.draw?'Match drawn':won?'You won the match':'You lost the match')}}
 function advanceRealtime(r){
  if(r.status!=='playing')return;
+ if(r.game==='racing'&&typeof GAMES.racing.tick==='function'){
+  const out=GAMES.racing.tick(r.state);
+  if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'race win'});
+  else if(out?.draw)finish(r,{draw:true,reason:out.reason||'race draw'});
+  broadcastRoom(r);
+  return;
+ }
  if(r.game==='pong'){
   const st=r.state,dt=1/30;
   for(let i=0;i<2;i++){const inp=st.inputs[i]||0;st.paddles[i]=Math.max(.12,Math.min(.88,st.paddles[i]+inp*1.05*dt));}
