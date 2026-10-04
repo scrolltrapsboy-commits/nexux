@@ -7,12 +7,14 @@ const launchOptions = {
     '--use-fake-device-for-media-stream',
     '--use-fake-ui-for-media-stream',
     '--allow-loopback-in-peer-connection',
+    '--allow-insecure-localhost',
+    '--unsafely-treat-insecure-origin-as-secure=http://127.0.0.1:3000',
     '--autoplay-policy=no-user-gesture-required'
   ]
 };
 
 async function enterAsGuest(page) {
-  await page.goto('http://localhost:3000/?e2eMedia=1', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:3000/?e2eMedia=1', { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
   await expect(page.locator('#app')).toBeVisible({timeout:15000});
 }
