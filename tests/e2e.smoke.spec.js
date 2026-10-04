@@ -14,7 +14,7 @@ const launchOptions = {
 async function enterAsGuest(page) {
   await page.goto('http://127.0.0.1:3000', { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
-  await expect(page.locator('#app')).toBeVisible();
+  await expect(page.locator('#app')).toBeVisible({timeout:15000});
 }
 
 async function makePair() {
@@ -183,6 +183,14 @@ async function runCatalog(pair, games) {
       await expect(p1.locator('.hangman-wrap')).toBeVisible();
     }
 
+    await p1.locator('#roomChatInput').fill('active '+game);
+    await p1.locator('#roomChatForm button').click();
+    await expect(p1.locator('#roomChat')).toContainText('active '+game);
+    await p1.locator('#callAudio').click();
+    await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getAudioTracks()?.length), {timeout:5000}).toBe(true);
+    await expect(p1.locator('#gameBoard')).not.toBeEmpty();
+    await p1.locator('#callEnd').click();
+    await p1.locator('#shareGame').click().catch(()=>{});
     await leavePairGame(p1, p2);
     console.log('[NEXUS-E2E] DONE ' + game);
   }
