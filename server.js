@@ -140,6 +140,17 @@ io.on('connection',socket=>{
  socket.on('resign',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());finish(r,{winnerId:r.players[other(i)],reason:'resign'});broadcastRoom(r);reply(cb,{ok:true})});
  socket.on('drawOffer',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const to=r.players.find(x=>x!==me());if(to){notify(to,'draw',q.userById.get(me()).name+' offered a draw',{room:r.code});io.to('u:'+to).emit('drawOffer',{from:publicUser(me())})}reply(cb,{ok:true})});
  socket.on('drawRespond',(d,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});if(d?.accept){finish(r,{draw:true,reason:'agreement'});broadcastRoom(r)}reply(cb,{ok:true})});
+ socket.on('callStart',(d,cb)=>{
+   const r=roomOf(me());const video=!!d?.video;
+   if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});
+   const peers=r.players.filter(id=>id!==me()&&(sockets.get(id)||0)>0);
+   for(const to of peers)io.to('u:'+to).emit('callInvite',{from:me(),room:r.code,video});
+   reply(cb,{ok:true,peers});
+ });
+ socket.on('callStop',()=>{
+   const r=roomOf(me());if(!r)return;
+   for(const to of r.players)if(to!==me())io.to('u:'+to).emit('callEnded',{from:me(),room:r.code});
+ });
  socket.on('webrtc',(d)=>{const to=String(d?.to||''),type=String(d?.type||'');if(!to||to===me()||!['offer','answer','ice','hangup'].includes(type))return;const mine=roomOf(me()),peer=roomOf(to);if(!areFriends(me(),to)&&(!mine||!peer||mine.code!==peer.code))return;io.to('u:'+to).emit('webrtc',{from:me(),type,data:d.data})});
  socket.on('disconnect',()=>{const id=me();if(!id)return;const n=(sockets.get(id)||1)-1;if(n>0)sockets.set(id,n);else sockets.delete(id);io.emit('online',[...sockets.values()].reduce((a,b)=>a+b,0));io.emit('presence',publicUser(id))});
 });
