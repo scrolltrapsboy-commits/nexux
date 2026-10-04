@@ -9,6 +9,7 @@ const { EnglishDraughts } = require('rapid-draughts/english');
 const { Vector } = require('matter-js');
 const { LAN_GAMES } = require('./lanSourceGames');
 const {LUDO_SOURCE,DOMINOES_SOURCE}=require('./sourceBoardGames');
+const {MANCALA_SOURCE}=require('./sourceMancala');
 const {REACTION_SOURCE}=require('./sourceReaction');
 
 const GAMES = {};
@@ -302,6 +303,7 @@ GAMES.tetris=TETRIS_SOURCE;
 GAMES.pong=PONG_SOURCE;
 GAMES.ludo=LUDO_SOURCE;
 GAMES.dominoes=DOMINOES_SOURCE;
+GAMES.mancala=MANCALA_SOURCE;
 GAMES.wordbattle={...CLASSIC_SOURCE_GAMES.wordchain,name:'Word Battle',category:'Word',sourceName:'assishmoncs/battlebox',sourceLicense:'MIT'};
 GAMES.minigolf=MINIGOLF_SOURCE;
 GAMES.racing=RACING_SOURCE;
@@ -329,7 +331,7 @@ const SOURCE_METADATA={
  risk:['kbennett2000/lan-games','MIT'],life:['kbennett2000/lan-games','MIT'],
  dotsboxes:['gmetzker/DotBox','MIT'],gomoku:['lunatikek/Gomoku','MIT'],
  backgammon:['quasoft/backgammonjs','MIT'],ludo:['chukwumaijem/ludo-game','MIT'],
- dominoes:['ppyne/dominoes','BSD-3-Clause'],hangman:['tmatth11/hangman','MIT'],
+ dominoes:['ppyne/dominoes','BSD-3-Clause'],mancala:['halilayyildiz/mancala-game','MIT'],hangman:['tmatth11/hangman','MIT'],
  breakout:['forinda/canvas-games','MIT'],spaceinvaders:['forinda/canvas-games','MIT'],
  pacman:['forinda/canvas-games','MIT'],frogger:['forinda/canvas-games','MIT'],
  flappy:['forinda/canvas-games','MIT'],sudoku:['forinda/canvas-games','MIT']
