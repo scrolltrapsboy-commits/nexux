@@ -138,6 +138,25 @@ async function runCatalog(pair, games) {
       await p1.mouse.move(100, 200);
       await p1.mouse.up();
       await expect(p1.locator('#pongCanvas')).toBeVisible();
+    } else if (game === 'breakout') {
+      await p1.locator('#breakoutCanvas').hover({position:{x:120,y:120}});
+      await expect(p1.locator('#breakoutCanvas')).toBeVisible();
+    } else if (game === 'spaceinvaders') {
+      await p1.locator('[data-inv="fire"]').click();
+      await expect(p1.locator('#invadersCanvas')).toBeVisible();
+    } else if (game === 'pacman') {
+      await p1.keyboard.press('ArrowLeft');
+      await expect(p1.locator('#pacCanvas')).toBeVisible();
+    } else if (game === 'frogger') {
+      await p1.locator('[data-frog="up"]').click();
+      await expect(p1.locator('#frogCanvas')).toBeVisible();
+    } else if (game === 'flappy') {
+      await p1.locator('#flapBtn').click();
+      await expect(p1.locator('#flappyCanvas')).toBeVisible();
+    } else if (game === 'sudoku') {
+      await p1.locator('[data-sudoku]').filter({ hasNot: p1.locator('.given') }).first().click();
+      await p1.locator('[data-snum="1"]').click();
+      await expect(p1.locator('.sudoku-grid')).toBeVisible();
     } else if (game === 'yahtzee') {
       await p1.locator('[data-src-action="rollDice"]').click();
       await expect(p1.locator('.dice-row')).toBeVisible();
@@ -175,7 +194,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
   try {
     const { p1, p2, errors } = pair;
     await p1.locator('.sidebar [data-view="games"]').click();
-    await expect(p1.locator('#view-games .play-btn')).toHaveCount(34);
+    await expect(p1.locator('#view-games .play-btn')).toHaveCount(40);
     await expect(p1.locator('#view-games')).toContainText('Hangman');
 
     await createAndJoin(p1, p2, 'chess');
@@ -218,7 +237,7 @@ test('NEXUS PLAY catalog A - board, word and arcade games', async () => {
   test.setTimeout(150000);
   const pair = await makePair();
   try {
-    await runCatalog(pair, ['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction']);
+    await runCatalog(pair, ['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','sudoku']);
     expect(pair.errors[0]).toEqual([]);
     expect(pair.errors[1]).toEqual([]);
   } finally {
@@ -230,7 +249,7 @@ test('NEXUS PLAY catalog B - source board and physical games', async () => {
   test.setTimeout(150000);
   const pair = await makePair();
   try {
-    await runCatalog(pair, ['uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake']);
+    await runCatalog(pair, ['uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','breakout','spaceinvaders']);
     expect(pair.errors[0]).toEqual([]);
     expect(pair.errors[1]).toEqual([]);
   } finally {
@@ -242,7 +261,7 @@ test('NEXUS PLAY catalog C - strategy and long-form games', async () => {
   test.setTimeout(150000);
   const pair = await makePair();
   try {
-    await runCatalog(pair, ['othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman']);
+    await runCatalog(pair, ['othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman','pacman','frogger','flappy']);
     expect(pair.errors[0]).toEqual([]);
     expect(pair.errors[1]).toEqual([]);
   } finally {
