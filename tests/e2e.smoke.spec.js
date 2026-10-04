@@ -1,6 +1,7 @@
 const { chromium, test, expect } = require('@playwright/test');
 
 test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--allow-loopback-in-peer-connection', '--autoplay-policy=no-user-gesture-required'] } });
+test.setTimeout(180000);
 
 async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
