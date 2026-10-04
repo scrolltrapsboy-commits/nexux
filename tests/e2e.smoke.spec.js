@@ -31,7 +31,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async () => {
   await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(31);
+  await expect(p1.locator('#view-games .play-btn')).toHaveCount(33);
 
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
@@ -158,6 +158,20 @@ test('NEXUS PLAY production UI and multiplayer smoke', async () => {
       await expect(p1.locator('.source-life')).toBeVisible();
       await expect(p2.locator('.source-life')).toBeVisible();
       await expect(p1.locator('[data-src-action="chooseBranch"]').first()).toBeVisible();
+    }
+    if(game==='ludo'){
+      await expect(p1.locator('.ludo-shell')).toBeVisible();
+      await expect(p2.locator('.ludo-shell')).toBeVisible();
+      await expect(p1.locator('#ludoRoll')).toBeVisible();
+      await p1.locator('#ludoRoll').click();
+      await expect.poll(async()=>p1.locator('.ludo-die').innerText()).not.toHaveText('—');
+    }
+    if(game==='dominoes'){
+      await expect(p1.locator('.domino-shell')).toBeVisible();
+      await expect(p2.locator('.domino-shell')).toBeVisible();
+      await expect(p1.locator('.domino-hand .domino-tile')).toHaveCount(5);
+      await expect(p2.locator('.domino-hand .domino-tile')).toHaveCount(5);
+      await expect(p1.locator('.domino-chain')).toContainText('Highest double starts');
     }
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p2.locator('body.game-active .social')).toBeVisible();
