@@ -603,14 +603,21 @@ async function startCall(video){
  const st=await ensureMedia(video);if(!st)return;
  state.call.started=true;
  let peers=callPeers();
- try{
-   const reply=await emit('callStart',{video:!!st.getVideoTracks().length});
-   if(Array.isArray(reply?.peers)&&reply.peers.length)peers=reply.peers;
- }catch{}
- window.__nexusCall={me:state.me?.id||null,room:state.room?.code||null,players:(state.room?.players||[]).map(p=>p.id),peers,video:!!st.getVideoTracks().length,audio:!!st.getAudioTracks().length};
+ window.__nexusCall={me:state.me?.id||null,room:state.room?.code||null,players:(state.room?.players||[]).map(p=>p.id),peers,video:!!st.getVideoTracks().length,audio:!!st.getAudioTracks().length,phase:'media-ready'};
+ peers=await new Promise(resolve=>{
+   let settled=false;
+   const timer=setTimeout(()=>{if(settled)return;settled=true;resolve(callPeers())},1400);
+   try{
+     state.socket.emit('callStart',{video:!!st.getVideoTracks().length},reply=>{
+       if(settled)return;settled=true;clearTimeout(timer);
+       resolve(Array.isArray(reply?.peers)&&reply.peers.length?reply.peers:callPeers());
+     });
+   }catch{clearTimeout(timer);settled=true;resolve(callPeers())}
+ });
+ window.__nexusCall.peers=peers;window.__nexusCall.phase='peers-ready';
  if(!peers.length)return toast('Your opponent is not connected to the call yet');
  for(const id of peers)try{await makePeer(id,true)}catch(err){console.warn('[NEXUS RTC] peer setup failed',id,err);document.body.dataset.rtcError=err?.message||'peer setup failed'}
- setCallUI();
+ window.__nexusCall.phase='offer-sent';setCallUI();
 }
 async function makePeer(id,offer){
  if(state.call.peers.has(id))return state.call.peers.get(id);
