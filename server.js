@@ -145,9 +145,12 @@ io.on('connection',socket=>{
    if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});
    const peers=r.players.filter(id=>id!==me()&&(sockets.get(id)||0)>0);
    const invite={from:me(),room:r.code,video};
-   // Emit through the authoritative game-room channel. Every active game
-   // participant is already joined to this Socket.IO room, so call discovery
-   // does not depend on a second per-user room membership path.
+   // Deliver directly to every socket for the opponent and also through the
+   // room channel. This makes call discovery independent of either adapter
+   // room path and still keeps it strictly scoped to the active game room.
+   for(const target of io.sockets.sockets.values()){
+     if(target.data?.id&&peers.includes(target.data.id))target.emit('callInvite',invite);
+   }
    io.to(r.code).emit('callInvite',invite);
    reply(cb,{ok:true,peers});
  });
