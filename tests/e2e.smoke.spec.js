@@ -95,7 +95,8 @@ async function runCatalog(pair, games) {
       await p2.locator('[data-rps="scissors"]').click();
       await expect(p1.locator('#gameBoard')).not.toBeEmpty();
     } else if (game === 'chess') {
-      await p1.locator('[data-chess="52"]').click();
+      console.log('[NEXUS-E2E] core: chess move');
+    await p1.locator('[data-chess="52"]').click();
       await p1.locator('[data-chess="36"]').click();
       await expect.poll(async () => p2.locator('.move-item').count()).toBeGreaterThan(0);
     } else if (game === 'battleship') {
@@ -189,13 +190,16 @@ async function runCatalog(pair, games) {
 
     await p1.locator('#roomChatInput').fill('active '+game);
     await p1.locator('#roomChatForm button').click();
+    console.log('[NEXUS-E2E] core: room chat');
     await expect(p1.locator('#roomChat')).toContainText('active '+game);
     await p1.locator('#callAudio').click();
     await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getAudioTracks()?.length), {timeout:5000}).toBe(true);
     await expect(p1.locator('#gameBoard')).not.toBeEmpty();
+    console.log('[NEXUS-E2E] core: end call');
     await p1.locator('#callEnd').click();
     await p1.locator('#shareGame').click().catch(()=>{});
     await leavePairGame(p1, p2);
+    console.log('[NEXUS-E2E] core: done');
     console.log('[NEXUS-E2E] DONE ' + game);
   }
 }
@@ -209,7 +213,9 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect(p1.locator('#view-games .play-btn')).toHaveCount(40);
     await expect(p1.locator('#view-games')).toContainText('Hangman');
 
+    console.log('[NEXUS-E2E] core: create/join');
     await createAndJoin(p1, p2, 'chess');
+    console.log('[NEXUS-E2E] core: room live');
     await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
 
     await p1.locator('[data-chess="52"]').click();
@@ -223,14 +229,20 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await p1.locator('#socialGlobalTab').click();
     await p1.locator('#globalChatInput').fill('global works');
     await p1.locator('#globalChatForm button').click();
+    console.log('[NEXUS-E2E] core: global chat');
     await expect(p1.locator('#globalChatList')).toContainText('global works');
 
+    console.log('[NEXUS-E2E] core: start video');
     await p1.locator('#callVideo').click();
     await expect(p1.locator('#callEmpty')).toBeHidden();
     await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
+    console.log('[NEXUS-E2E] core: local video');
     await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true);
+    console.log('[NEXUS-E2E] core: remote video');
     await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length), { timeout: 10000 }).toBe(true);
+    console.log('[NEXUS-E2E] core: remote audio');
 
+    console.log('[NEXUS-E2E] core: mobile');
     await p1.setViewportSize({ width: 390, height: 844 });
     await expect(p1.locator('body.game-active .social')).toBeVisible();
     await expect(p1.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).resolves.toBe(true);
