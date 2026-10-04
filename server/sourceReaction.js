@@ -12,6 +12,7 @@ function syncFromSource(s,room){
   s.goAt=Number(g.clickTime||0);
   s.clicked=!!g.clicked;
   s.scores=room.players.map(p=>Number(p.score)||0);
+  if(room.state==='lobby'&&s.round>=5)s.status='finished';
 }
 function makeRoom(s,players,context){
   const room={state:'playing',game:'reaction',players:players.map(p=>({name:p.name,score:0,ready:true})),gameState:{round:0,waiting:false,canClick:false,clicked:false},timers:{}};
