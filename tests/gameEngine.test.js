@@ -159,3 +159,26 @@ test('source-backed Anagram Sprint uses the upstream word list and scoring',()=>
 test('source-backed Number Hunt hides target from player view and scores both guesses',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.numberhunt.init(p);const target=s.gameState.target;const publicState=GAMES.numberhunt.getStateForPlayer(s,'a');assert.equal(publicState.target,undefined);GAMES.numberhunt.move(s,0,{guess:target});GAMES.numberhunt.move(s,1,{guess:target});assert.equal(s.players[0].score,4);assert.equal(s.players[1].score,2);});
 test('source-backed Speed Typing advances only after both players finish',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.speedtyping.init(p);const word=s.gameState.words[s.gameState.currentWordIndex];GAMES.speedtyping.move(s,0,{typed:word});assert.equal(s.gameState.currentWordIndex,0);GAMES.speedtyping.move(s,1,{typed:word});assert.equal(s.gameState.currentWordIndex,1);assert.ok(s.players.every(x=>x.score>0));});
 test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping'])assert.ok(GAMES[id],id);});
+
+test('source-backed Ludo uses upstream seed-path and six-start rule',()=>{
+ const s=GAMES.ludo.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
+ assert.equal(s.tokens.length,8);
+ assert.ok(s.paths[0].length>=2);
+ const token=s.tokens.find(t=>t.player===0);
+ assert.equal(GAMES.ludo.move(s,0,{action:'move',tokenId:token.id}),'Roll first');
+ s.dice=6;s.phase='move';
+ const out=GAMES.ludo.move(s,0,{action:'move',tokenId:token.id});
+ assert.equal(out.moved,token.id);
+ assert.notEqual(token.position,'still');
+});
+test('source-backed Dominoes deals five tiles each and honors highest double',()=>{
+ const s=GAMES.dominoes.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
+ assert.equal(s.hands[0].length,5);
+ assert.equal(s.hands[1].length,5);
+ assert.equal(s.boneyard.length,18);
+ const starter=s.hands[ s.turn ].find(t=>t.isDouble&&t.left===s.starterDouble);
+ assert.ok(starter);
+ const out=GAMES.dominoes.move(s,s.turn,{action:'place',tileId:starter.id,end:'left'});
+ assert.notEqual(out,'Must start with the highest double');
+ assert.equal(s.chain.length,1);
+});
