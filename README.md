@@ -77,7 +77,7 @@ NEXUS PLAY now vendors and executes unchanged MIT-licensed game logic from `kben
 
 ## Source-backed game policy
 
-The source-backed multiplayer set currently includes Tic Tac Toe, Connect Four, Chess, Checkers, Battleship, Yahtzee, Monopoly, Risk, The Game of Life, Dots & Boxes, Gomoku, Backgammon, Carrom and 8-Ball Pool. Their rule/controller source is vendored under `third_party/source-games` with the corresponding license/notice files, and NEXUS wraps that source for Socket.IO state synchronization and the Liquid Glass presentation layer.
+The source-backed multiplayer set currently includes Tic Tac Toe, Connect Four, Chess, Checkers, Battleship, Yahtzee, Monopoly, Risk, The Game of Life, Dots & Boxes, Gomoku, Backgammon, Carrom, 8-Ball Pool, Mini Golf, Neon Circuit Racing, Word Chain, UNO, 2048, Snake, Tetris, Othello, Pong, Anagram Sprint, Number Hunt, Speed Typing, Ludo, Dominoes, Reaction Race, and Hangman. Their rule/controller source is vendored under `third_party/source-games` with the corresponding license/notice files, and NEXUS wraps that source for Socket.IO state synchronization and the Liquid Glass presentation layer.
 
 The remaining arcade/physics games in the catalog retain NEXUS-specific realtime adapters. They are not described as verbatim upstream ports unless their source is actually executed by the adapter.
 
@@ -89,3 +89,8 @@ Every newly added game is required to retain its upstream source snapshot and li
 ## Source-backed Hangman
 
 NEXUS PLAY vendors the core source files from tmatth11/hangman (MIT): third_party/source-games/hangman/script.js, word-list.js, and LICENSE. The NEXUS shell adapts the source guessing rules for synchronized two-player play without changing the six-mistake rule or word selection source.
+
+
+## 3.5 source-backed expansion
+
+The catalog now contains 34 games. Mini Golf executes the vendored MIT `freegamestore-online/minigolf` physics/course source through `server/sourceMiniGolf.js`; Neon Circuit Racing executes the vendored MIT `Steve-IX/Speed_Racer_Game` Car and Track source through `server/sourceRacing.js`; Hangman vendors the MIT `tmatth11/hangman` rule and 37-word-list source through `server/sourceHangman.js`. NEXUS adds only the multiplayer transport, player isolation and Liquid Glass presentation shell around those engines.
