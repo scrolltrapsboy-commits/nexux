@@ -13,8 +13,7 @@ function loadSource(){
   const files=['mancala.js','move-stones.js','check-winner.js'];
   let src='';
   for(const file of files)src+=fs.readFileSync(path.join(ROOT,file),'utf8')+'\n';
-  vm.runInContext(src,ctx,{filename:'mancala-upstream.js'});
-  Runtime={Mancala:ctx.Mancala};
+  Runtime={Mancala:vm.runInContext('(function(){'+src+'\\nreturn Mancala;})()',ctx,{filename:'mancala-upstream.js'})};
   if(typeof Runtime.Mancala!=='function')throw new Error('Upstream Mancala class failed to load');
   return Runtime;
 }
