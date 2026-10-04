@@ -32,6 +32,7 @@ const q={userById:db.prepare('SELECT * FROM users WHERE id=?'),userByName:db.pre
 const sockets=new Map();
 const rooms=new Map();
 const raceTimers=new Map();
+const REALTIME_GAMES=new Set(['racing','pong','snake','tetris','breakout','spaceinvaders','pacman','frogger','flappy']);
 const clean=s=>String(s??'').replace(/[<>]/g,'').trim().slice(0,500);
 const uid=()=>crypto.randomBytes(9).toString('hex');
 const roomCode=()=>{let x;do{x=crypto.randomBytes(3).toString('hex').toUpperCase()}while(rooms.has(x));return x};
@@ -78,30 +79,12 @@ function stopRace(r){const t=raceTimers.get(r.code);if(t){clearInterval(t);raceT
 function finish(r,out){if(r.status==='finished')return;stopRace(r);r.status='finished';r.result=out;for(const id of r.players){const u=q.userById.get(id);if(!u)continue;const won=out.winnerId===id;const loss=!!out.winnerId&&!won;db.prepare('UPDATE users SET played=played+1,wins=wins+?,losses=losses+?,draws=draws+? WHERE id=?').run(won?1:0,loss?1:0,out.draw?1:0,id);notify(id,'game',out.draw?'Match drawn':won?'You won the match':'You lost the match')}}
 function advanceRealtime(r){
  if(r.status!=='playing')return;
- if(r.game==='racing'&&typeof GAMES.racing.tick==='function'){
-  const out=GAMES.racing.tick(r.state);
-  if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'race win'});
-  else if(out?.draw)finish(r,{draw:true,reason:out.reason||'race draw'});
+ const eng=GAMES[r.game];
+ if(eng&&typeof eng.tick==='function'){
+  const out=eng.tick(r.state);
+  if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});
+  else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});
   broadcastRoom(r);
-  return;
- }
- if(r.game==='pong'&&typeof GAMES.pong.tick==='function'){
-  const out=GAMES.pong.tick(r.state);
-  if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'pong win'});
-  else if(out?.draw)finish(r,{draw:true,reason:out.reason||'pong draw'});
-  broadcastRoom(r);
-  return;
- }
- if(r.game==='racing'){
-  const st=r.state,dt=1/30,track={cx:.5,cy:.5,rx:.34,ry:.34};
-  for(let i=0;i<2;i++){const c=st.players[i],inp=st.inputs[i];c.speed=Math.max(0,Math.min(5.4,c.speed+((inp.up?3.2:0)-(inp.brake?4.5:0))*dt));if(inp.left)c.angle-=2.5*dt;if(inp.right)c.angle+=2.5*dt;c.x+=Math.cos(c.angle)*c.speed*dt;c.y+=Math.sin(c.angle)*c.speed*dt;const nx=(c.x-track.cx)/track.rx,ny=(c.y-track.cy)/track.ry,d=nx*nx+ny*ny;if(d>1){c.x=track.cx+(c.x-track.cx)/Math.sqrt(d)*track.rx;c.y=track.cy+(c.y-track.cy)/Math.sqrt(d)*track.ry;c.speed*=.82}let a=Math.atan2(c.y-track.cy,c.x-track.cx);if(a<0)a+=Math.PI*2;const prog=a/(Math.PI*2);if(c.progress>.85&&prog<.15)c.lap++;c.progress=prog}
-  const w=st.players.findIndex(c=>c.lap>=3);if(w>=0){finish(r,{winnerId:r.players[w],reason:'finish'});broadcastRoom(r);return}broadcastRoom(r);return;
- }
- if(r.game==='snake'){
-  const out=GAMES.snake.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
- }
- if(r.game==='tetris'){
-  const out=GAMES.tetris.tick(r.state);if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);return;
  }
 }
 function startRoom(r){
@@ -117,7 +100,7 @@ function startRoom(r){
  r.status='playing';r.result=null;r.rematch=new Set();
  r.state=GAMES[r.game].init(roomPlayers,sourceContext);
  broadcastRoom(r);
- if(['racing','pong','snake','tetris'].includes(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}
+ if(REALTIME_GAMES.has(r.game)){stopRace(r);raceTimers.set(r.code,setInterval(()=>advanceRealtime(r),33))}
 }
 function leaveRoom(id,reason='leave'){const r=roomOf(id);if(!r)return;if(r.status==='playing'&&r.players.length===2){const o=r.players.find(x=>x!==id);if(o)finish(r,{winnerId:o,reason})}else stopRace(r);r.players=r.players.filter(x=>x!==id);if(!r.players.length){stopRace(r);rooms.delete(r.code);return}if(r.host===id)r.host=r.players[0];broadcastRoom(r)}
 
@@ -148,8 +131,8 @@ io.on('connection',socket=>{
  socket.on('join',(d,cb)=>{const r=rooms.get(String(d?.code||'').toUpperCase());if(!r)return reply(cb,{error:'Room not found'});if(r.status!=='lobby'||r.players.length>=GAMES[r.game].players)return reply(cb,{error:'Room is full or already started'});leaveRoom(me());r.players.push(me());socket.join(r.code);reply(cb,{ok:true,code:r.code,game:r.game,room:roomView(r,me())});if(r.players.length===GAMES[r.game].players)startRoom(r);else broadcastRoom(r)});
  socket.on('quick',(d,cb)=>{const game=String(d?.game||'');if(!GAMES[game])return reply(cb,{error:'Unknown game'});leaveRoom(me());let r=[...rooms.values()].find(x=>x.game===game&&!x.private&&x.status==='lobby'&&x.players.length<GAMES[game].players);if(!r){r={code:roomCode(),game,private:false,host:me(),players:[],status:'lobby',state:null,result:null,rematch:new Set(),chat:[],created:Date.now()};rooms.set(r.code,r)}r.players.push(me());socket.join(r.code);if(r.players.length===GAMES[game].players)startRoom(r);else broadcastRoom(r);reply(cb,{ok:true,code:r.code,room:roomView(r,me())})});
  socket.on('start',(d,cb)=>{const r=roomOf(me());if(!r||r.host!==me()||r.status!=='lobby'||r.players.length<GAMES[r.game].players)return reply(cb,{error:'Room is not ready to start'});startRoom(r);reply(cb,{ok:true})});
- socket.on('move',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());if(['racing','pong','snake','tetris'].includes(r.game))return reply(cb,{ok:true});const out=GAMES[r.game].move(r.state,i,m||{});if(typeof out==='string')return reply(cb,{error:out});if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);if(r.game==='memory'&&out?.mismatch){const delay=Math.max(400,Math.min(1600,Number(out.delayMs)||900));setTimeout(()=>{if(r.status!=='playing'||!r.state.pendingMismatch)return;const p=r.state.pendingMismatch;r.state.cards[p.a].up=false;r.state.cards[p.b].up=false;r.state.pick=[];r.state.pendingMismatch=null;r.state.turn=other(p.player);broadcastRoom(r)},delay)}reply(cb,{ok:true,state:roomView(r,me()).state,result:r.result})});
- socket.on('drive',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing'||!['racing','pong','snake','tetris'].includes(r.game))return reply(cb,{error:'No active realtime game'});const i=r.players.indexOf(me());if(r.game==='racing')r.state.inputs[i]={up:!!m?.up,left:!!m?.left,right:!!m?.right,brake:!!m?.brake};else if(r.game==='pong')r.state.inputs[i]=Math.max(-1,Math.min(1,Number(m?.axis)||0));else if(r.game==='snake'){const out=GAMES.snake.move(r.state,i,{dir:m?.dir});if(typeof out==='string')return reply(cb,{error:out})}else if(r.game==='tetris'){const out=GAMES.tetris.move(r.state,i,{action:m?.action});if(typeof out==='string')return reply(cb,{error:out});broadcastRoom(r)}reply(cb,{ok:true})});
+ socket.on('move',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});const i=r.players.indexOf(me());if(REALTIME_GAMES.has(r.game))return reply(cb,{error:'Realtime game uses live controls'});const out=GAMES[r.game].move(r.state,i,m||{});if(typeof out==='string')return reply(cb,{error:out});if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);if(r.game==='memory'&&out?.mismatch){const delay=Math.max(400,Math.min(1600,Number(out.delayMs)||900));setTimeout(()=>{if(r.status!=='playing'||!r.state.pendingMismatch)return;const p=r.state.pendingMismatch;r.state.cards[p.a].up=false;r.state.cards[p.b].up=false;r.state.pick=[];r.state.pendingMismatch=null;r.state.turn=other(p.player);broadcastRoom(r)},delay)}reply(cb,{ok:true,state:roomView(r,me()).state,result:r.result})});
+ socket.on('drive',(m,cb)=>{const r=roomOf(me());if(!r||r.status!=='playing'||!REALTIME_GAMES.has(r.game))return reply(cb,{error:'No active realtime game'});const i=r.players.indexOf(me());const out=GAMES[r.game].move(r.state,i,m||{});if(typeof out==='string')return reply(cb,{error:out});if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'win'});else if(out?.draw)finish(r,{draw:true,reason:out.reason||'draw'});broadcastRoom(r);reply(cb,{ok:true})});
  socket.on('roomChat',(d,cb)=>{const r=roomOf(me()),text=clean(d?.text).slice(0,400);if(!r||!text)return reply(cb,{error:'No active room'});const msg={id:uid(),from:me(),name:q.userById.get(me()).name,text,time:Date.now()};r.chat.push(msg);r.chat=r.chat.slice(-60);io.to(r.code).emit('roomChat',msg);reply(cb,{ok:true})});
  socket.on('rematch',()=>{const r=roomOf(me());if(!r||r.status!=='finished')return;r.rematch.add(me());if(r.rematch.size===r.players.length)startRoom(r);else broadcastRoom(r)});
  socket.on('leave',()=>leaveRoom(me()));
