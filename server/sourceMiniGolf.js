@@ -53,7 +53,7 @@ function miniInit(players=[]){
     players:ps.map((p,i)=>({id:p.id,name:p.name,strokes:0,totalStrokes:0,finished:false})),
     holeIndex:0,holeCount:holes.holes.length,turn:0,phase:'playing',winner:null,
     balls,animation:[],lastPenalty:[false,false],par:hole.par,holeName:hole.name,
-    holeScores:ps.map(()=>[])
+    course:JSON.parse(JSON.stringify(hole)),holeScores:ps.map(()=>[])
   };
   Object.defineProperty(state,'__mini',{value:{physics,holes,elapsed:0},enumerable:false,writable:true});
   return state;
@@ -63,6 +63,7 @@ function resetHole(s){
   const hole=s.__mini.holes.holes[s.holeIndex];
   s.balls=[s.__mini.physics.createBall(hole),s.__mini.physics.createBall(hole)];
   s.turn=0;s.phase='playing';s.par=hole.par;s.holeName=hole.name;
+  s.course=JSON.parse(JSON.stringify(hole));
   s.animation=[];s.lastPenalty=[false,false];
 }
 
