@@ -57,6 +57,8 @@ async function createAndJoin(p1, p2, game) {
   await expect(p2.locator('#gameModal')).toBeVisible();
   await expect(p1.locator('#gameBoard')).not.toBeEmpty();
   await expect(p2.locator('#gameBoard')).not.toBeEmpty();
+  await expect(p1.locator('#gameBoard .lobby-panel')).toHaveCount(0,{timeout:10000});
+  await expect(p2.locator('#gameBoard .lobby-panel')).toHaveCount(0,{timeout:10000});
   await expect(p1.locator('#shareGame')).toBeVisible();
   await expect(p1.locator('body.game-active .social')).toBeVisible();
   await expect(p2.locator('body.game-active .social')).toBeVisible();
