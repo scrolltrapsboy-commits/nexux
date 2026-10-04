@@ -70,3 +70,11 @@ New games are not accepted as button-only placeholders. A new game must point to
 - Upstream rule/path snapshots retained under: `third_party/source-games/ludo/`
 - NEXUS adapter: `server/sourceBoardGames.js`
 - The NEXUS presentation layer is separate from the retained upstream rule/path source.
+
+
+### Hangman — tmatth11/hangman
+- Repository: https://github.com/tmatth11/hangman
+- License: MIT
+- Snapshots: third_party/source-games/hangman/script.js, word-list.js, LICENSE
+- NEXUS integration: server/sourceHangman.js
+- Source behavior retained: 37-word list, one-letter guessing, six maximum wrong guesses, reveal-all-matching-letters, victory/loss scoring.
