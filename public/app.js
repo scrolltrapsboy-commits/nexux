@@ -1,6 +1,6 @@
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={socket:null,token:localStorage.getItem('nexus_token'),me:null,games:{},room:null,view:'home',authMode:'login',selectedChess:null,chessLegal:[],activeDM:null,rtcConfig:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]},call:{peers:new Map(),stream:null,video:false,audio:false,pendingIce:new Map(),started:false},mobileChatTarget:'room',mobileFriend:null,typingTimer:null,socialMode:'room',desktopFriend:null,globalChatRevision:0,friendChatRevision:0,globalPending:new Map(),friendPending:new Map()};
+const state={socket:null,token:localStorage.getItem('nexus_token'),me:null,games:{},room:null,view:'home',authMode:'login',selectedChess:null,chessLegal:[],activeDM:null,rtcConfig:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]},call:{peers:new Map(),stream:null,video:false,audio:false,pendingIce:new Map(),started:false,syntheticCleanup:null},mobileChatTarget:'room',mobileFriend:null,typingTimer:null,socialMode:'room',desktopFriend:null,globalChatRevision:0,friendChatRevision:0,globalPending:new Map(),friendPending:new Map()};
 const toast=(msg)=>{const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2200)};
 const escapeHtml=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const icons={hangman:'⌁',tictactoe:'✕',connect4:'●',rps:'✋',chess:'♞',checkers:'●',battleship:'▦',memory:'◫',minesweeper:'✦',wordbattle:'Aa',wordchain:'↪',anagram:'Aa',numberhunt:'#',speedtyping:'⌨',reaction:'⚡',uno:'▣',pool:'◉',carrom:'◉',minigolf:'⛳',racing:'⌁',othello:'◉',pong:'↔',game2048:'2048',tetris:'▦',snake:'⌁',dotsboxes:'⊞',gomoku:'五',backgammon:'⚂',ludo:'♟',dominoes:'▥',mancala:'●',yahtzee:'🎲',monopoly:'▤',risk:'◈',life:'♙',breakout:'▤',spaceinvaders:'✦',pacman:'◉',frogger:'⌁',flappy:'◌',sudoku:'▦'}
@@ -487,11 +487,34 @@ function renderProfile(){const u=state.me;$('#view-profile').innerHTML=`<div cla
 async function loadRTCConfig(){try{const r=await fetch('/api/config');const c=await r.json();if(Array.isArray(c.iceServers)&&c.iceServers.length)state.rtcConfig={iceServers:c.iceServers}}catch{}}
 function callPeers(){return state.room?.players.filter(p=>p.id!==state.me.id).map(p=>p.id)||[]}
 function rtcDebug(id,pc){try{window.__nexusRtc=window.__nexusRtc||{};window.__nexusRtc[id]={connectionState:pc.connectionState,iceConnectionState:pc.iceConnectionState,signalingState:pc.signalingState,senders:pc.getSenders().map(s=>s.track?.kind).filter(Boolean),receivers:pc.getReceivers().map(r=>r.track?.kind).filter(Boolean)}}catch{}}
+function isE2EMedia(){return new URLSearchParams(location.search).get('e2eMedia')==='1'}
+function makeSyntheticMedia(video){
+  const tracks=[];let stopped=false;
+  const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;
+  const ctx=canvas.getContext('2d');const started=performance.now();
+  const paint=()=>{if(stopped)return;const t=(performance.now()-started)/1000;ctx.fillStyle='#050505';ctx.fillRect(0,0,640,360);ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(18,18,604,324);ctx.fillStyle='#fff';ctx.font='700 28px system-ui';ctx.fillText('NEXUS PLAY TEST MEDIA',42,68);ctx.font='500 20px system-ui';ctx.fillText('VIDEO '+t.toFixed(1)+'s',42,103);ctx.beginPath();ctx.arc(320+Math.cos(t)*110,205+Math.sin(t*1.2)*70,34,0,Math.PI*2);ctx.stroke();requestAnimationFrame(paint)};
+  paint();
+  if(video){const vs=canvas.captureStream(15);tracks.push(...vs.getVideoTracks())}
+  let osc=null,audioContext=null;
+  try{
+    audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    const dest=audioContext.createMediaStreamDestination();osc=audioContext.createOscillator();const gain=audioContext.createGain();gain.gain.value=0;osc.connect(gain).connect(dest);osc.start();tracks.push(...dest.stream.getAudioTracks());
+    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+  }catch{}
+  const stream=new MediaStream(tracks);
+  state.call.syntheticCleanup=()=>{stopped=true;tracks.forEach(t=>t.stop());try{osc?.stop()}catch{};audioContext?.close().catch(()=>{})};
+  return stream;
+}
+async function getUserMediaForCall(constraints){
+  const get=()=>navigator.mediaDevices.getUserMedia(constraints);
+  if(!isE2EMedia())return get();
+  return Promise.race([get(),new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(new Error('E2E media timeout'),{name:'E2EMediaTimeout'})),2200))]);
+}
 async function ensureMedia(video){
  if(state.call.stream){
   if(video&&!state.call.stream.getVideoTracks().length){
    try{
-    const extra=await navigator.mediaDevices.getUserMedia({video:true});
+    const extra=await getUserMediaForCall({video:true});
     for(const t of extra.getVideoTracks()){
       state.call.stream.addTrack(t);
       for(const [id,pc] of state.call.peers){
@@ -500,17 +523,25 @@ async function ensureMedia(video){
         renegotiatePeer(id,pc);
       }
     }
-    state.call.video=true;$('#localVideo').srcObject=state.call.stream;
-   }catch{toast('Camera permission is required for video')}
+    state.call.video=!!state.call.stream.getVideoTracks().length;$('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
+   }catch(err){
+    if(isE2EMedia()){
+      const extra=makeSyntheticMedia(true);extra.getVideoTracks().forEach(t=>{state.call.stream.addTrack(t);for(const pc of state.call.peers.values())pc.addTrack(t,state.call.stream)});state.call.video=true;$('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
+    }else{document.body.dataset.mediaError=err?.name||'MediaError';console.warn('[NEXUS MEDIA]',err?.name||'MediaError',err?.message||'');toast('Camera permission is required for video')}
+   }
   }
   return state.call.stream;
  }
  try{
-  state.call.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:!!video});
-  state.call.video=!!video;state.call.audio=true;
-  $('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
-  return state.call.stream;
- }catch(err){const reason=err?.name||'MediaError';document.body.dataset.mediaError=reason;console.warn('[NEXUS MEDIA]',reason,err?.message||'');toast(video?'Allow microphone and camera permission to start video':'Allow microphone permission to start voice');return null}
+  state.call.stream=await getUserMediaForCall({audio:true,video:!!video});
+ }catch(err){
+  if(isE2EMedia())state.call.stream=makeSyntheticMedia(!!video);
+  else{document.body.dataset.mediaError=err?.name||'MediaError';console.warn('[NEXUS MEDIA]',err?.name||'MediaError',err?.message||'');toast(video?'Allow microphone and camera permission to start video':'Allow microphone permission to start voice');return null}
+ }
+ state.call.video=!!state.call.stream.getVideoTracks().length;
+ state.call.audio=!!state.call.stream.getAudioTracks().length;
+ $('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
+ return state.call.stream;
 }
 function attachRemoteTrack(pc,id){
  pc.ontrack=e=>{
@@ -585,6 +616,14 @@ async function handleRTC(msg){
   if(pc)pc.close();state.call.peers.delete(id);state.call.pendingIce.delete(id);
   if(!state.call.peers.size){state.call.started=false;$('#socialState').textContent='Live';$('#callEmpty').style.display='block';$('#remoteVideo').srcObject=null}
  }
+}
+function stopCall(){
+  for(const id of state.call.peers.keys())state.socket?.emit('webrtc',{to:id,type:'hangup'});
+  for(const pc of state.call.peers.values())pc.close();
+  state.call.peers.clear();state.call.pendingIce.clear();
+  state.call.stream?.getTracks().forEach(t=>t.stop());state.call.syntheticCleanup?.();state.call.syntheticCleanup=null;state.call.stream=null;
+  state.call.started=false;state.call.video=false;state.call.audio=false;
+  $('#localVideo').srcObject=null;$('#remoteVideo').srcObject=null;$('#callEmpty').style.display='block';$('#socialState').textContent='Live';setCallUI();
 }
 function bindCallButtons(){const a=[['callVideo',()=>startCall(true)],['callAudio',()=>startCall(false)],['callMute',()=>{state.call.stream?.getAudioTracks().forEach(t=>t.enabled=!t.enabled);setCallUI()}],['callCamera',()=>{state.call.stream?.getVideoTracks().forEach(t=>t.enabled=!t.enabled);setCallUI()}],['callEnd',stopCall],['mobileCallVideo',()=>startCall(true)],['mobileCallAudio',()=>startCall(false)],['mobileCallMute',()=>{state.call.stream?.getAudioTracks().forEach(t=>t.enabled=!t.enabled);setCallUI()}],['mobileCallCamera',()=>{state.call.stream?.getVideoTracks().forEach(t=>t.enabled=!t.enabled);setCallUI()}],['mobileCallEnd',stopCall]];a.forEach(([id,fn])=>{const b=$('#'+id);if(b)b.onclick=fn})}
 function connect(){state.socket=io();state.socket.on('connect',async()=>{loadRTCConfig();const r=await emit('hello',{token:state.token,name:'Guest'});if(r?.token){state.token=r.token;localStorage.setItem('nexus_token',r.token)}state.me=r.me;state.games=r.games;$('#auth').classList.add('hidden');$('#app').classList.remove('hidden');$('#profileBtn').textContent=(state.me.name||'N')[0].toUpperCase();renderHome();setView('home');bindCallButtons();loadSocialFriends();bindSocialTabs();bindSocialDelegation();bindDirectSocialSendButtons();showSocialMode('room');const linkRoom=new URL(location.href).searchParams.get('room')?.trim().toUpperCase();if(linkRoom&&r.room?.code!==linkRoom){openGameModal();$('#gameTitle').textContent='Joining room';$('#gameBoard').innerHTML='<div class="lobby-panel"><div class="lobby-icon">◈</div><span class="eyebrow">INVITE LINK</span><h3>Joining room…</h3><p>Connecting you to room <b>'+escapeHtml(linkRoom)+'</b>.</p></div>';const joined=await emit('join',{code:linkRoom});if(!joined?.ok){toast(joined?.error||'Invite link expired');$('#gameModal').classList.add('hidden');document.body.classList.remove('game-active');document.body.style.overflow=''}else{state.room=joined.room||{code:linkRoom,game:'',private:false,host:null,players:[],status:'lobby',state:null,result:null,rematch:[],chat:[]};openGameModal();if(state.room.game){renderGame();renderRoomChat();renderMobileSocial()}history.replaceState({},'',location.pathname+location.hash)}}else if(r.room){state.room=r.room;openGameModal();renderGame();renderMobileSocial()}});state.socket.on('room',r=>{const isRealtime=['racing','pong','snake','tetris'].includes(r.game),isPhysical=['pool','carrom','minigolf'].includes(r.game),wasActive=(isRealtime||isPhysical)&&state.room?.game===r.game&&$('#gameModal')&&!$('#gameModal').classList.contains('hidden');if(!acceptRoomUpdate(r))return;if(wasActive&&isPhysical&&state.realtimeAnimate&&Array.isArray(r.state?.animation)){state.realtimeAnimate(r.state.animation);renderMobileSocial();return}if(wasActive&&state.realtimeDraw){state.realtimeDraw();const me=state.room.players.findIndex(p=>p.id===state.me.id);$('#turnPill').textContent=r.status==='finished'?(r.result?.draw?'Draw':r.result?.winnerId===state.me.id?'You won':'Match over'):(r.game==='racing'?'Race live':r.state?.turn===me?'Your turn':'Live');renderMobileSocial();return}openGameModal();renderGame();renderRoomChat();renderMobileSocial()});state.socket.on('roomPresence',p=>{if(!state.room?.code||state.room.status==='finished'||!Array.isArray(p?.players))return;const byId=new Map(p.players.map(x=>[x.id,x]));state.room.players=(state.room.players||[]).map(x=>byId.get(x.id)?{...x,...byId.get(x.id)}:x)});state.socket.on('online',n=>$('#online').textContent='● '+n+' online');state.socket.on('presence',()=>loadSocialFriends());state.socket.on('chat',m=>{if(m.to==='global'){state.globalChatRevision++;const pending=state.globalPending.get(m.text)||0;if(pending>0&&m.from===state.me.id){if(pending>1)state.globalPending.set(m.text,pending-1);else state.globalPending.delete(m.text)}else{if(state.view==='chat'&&!state.activeDM)loadChat('global');if(state.mobileChatTarget==='global')loadMobileChat('global');if(state.socialMode==='global'){const box=$('#globalChatList');if(box){box.insertAdjacentHTML('beforeend','<div class="msg"><b>'+escapeHtml(m.from===state.me.id?'You':(m.fromName||m.from))+'</b>'+escapeHtml(m.text)+'</div>');box.scrollTop=box.scrollHeight}}}}else{if(state.view==='chat'&&(state.activeDM===m.from||state.activeDM===m.to))loadChat(state.activeDM);if(state.mobileChatTarget==='friend'&&state.mobileFriend&&(m.from===state.mobileFriend||m.to===state.mobileFriend))loadMobileChat(state.mobileFriend);if(state.socialMode==='friends'&&state.desktopFriend&&(m.from===state.desktopFriend||m.to===state.desktopFriend))loadDesktopFriendChat(state.desktopFriend);}});state.socket.on('typing',n=>{if($('#typing')){ $('#typing').textContent=n.name+' is typing…';clearTimeout(state.typingTimer);state.typingTimer=setTimeout(()=>$('#typing').textContent='',1400)}});state.socket.on('notification',n=>toast(n.text));state.socket.on('gameInvite',async n=>{if(!confirm(n.from.name+' invited you to '+n.game+' in room '+n.room+'. Join now?'))return;const ok=await resolveJoinedRoom(n.room);if(!ok)toast('Invite room could not be loaded')});state.socket.on('drawOffer',n=>{if(confirm(n.from.name+' offered a draw'))state.socket.emit('drawRespond',{accept:true})});state.socket.on('webrtc',async m=>{try{await handleRTC(m)}catch{toast('Call negotiation failed')}});state.socket.on('roomChat',m=>{if(!state.room)return;state.room.chat=[...(state.room.chat||[]),m].slice(-60);renderRoomChat();if(state.mobileChatTarget==='room')loadMobileChat('room')});state.socket.on('connect_error',()=>toast('Connection error'))}
