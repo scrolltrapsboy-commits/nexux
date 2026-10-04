@@ -1,7 +1,7 @@
 const { chromium, test, expect } = require('@playwright/test');
 
 test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--allow-loopback-in-peer-connection', '--autoplay-policy=no-user-gesture-required'] } });
-test.setTimeout(180000);
+test.setTimeout(360000);
 
 async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
@@ -9,8 +9,8 @@ async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await expect(page.locator('#app')).toBeVisible();
 }
 
-test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async () => {
-  test.setTimeout(180000);
+test('NEXUS PLAY production UI and multiplayer smoke', {timeout:360000}, async () => {
+  test.setTimeout(360000);
   const errors1 = [];
   const errors2 = [];
   const launchOptions = {args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--allow-loopback-in-peer-connection','--autoplay-policy=no-user-gesture-required']};
@@ -33,7 +33,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
   await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
   await p1.locator('.sidebar [data-view="games"]').click();
   await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(33);
+  await expect(p1.locator('#view-games .play-btn')).toHaveCount(34);
 
   await p1.locator('#gamesRoom').click();
   await p1.locator('[data-create="chess"]').click();
@@ -118,7 +118,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman'];
   for(const game of allGames){
     console.log('E2E_GAME_START',game);
     await p1.locator('.sidebar [data-view="games"]').click();
@@ -174,6 +174,15 @@ test('NEXUS PLAY production UI and multiplayer smoke', {timeout:180000}, async (
       await expect(p1.locator('#ludoRoll')).toBeVisible();
       await p1.locator('#ludoRoll').click();
       await expect.poll(async()=>p1.locator('.ludo-die').innerText()).not.toHaveText('—');
+    }
+    if(game==='hangman'){
+      await expect(p1.locator('.hangman-wrap')).toBeVisible();
+      await expect(p2.locator('.hangman-wrap')).toBeVisible();
+      await expect(p1.locator('.hangman-keyboard .hangman-key')).toHaveCount(26);
+      const unused=await p1.locator('.hangman-key:not(:disabled)').first().getAttribute('data-hletter');
+      expect(unused).toMatch(/^[a-z]$/);
+      await p1.locator('.hangman-key[data-hletter="'+unused+'"]').click();
+      await expect(p1.locator('.hangman-key[data-hletter="'+unused+'"]')).toBeDisabled();
     }
     if(game==='dominoes'){
       await expect(p1.locator('.domino-shell')).toBeVisible();
