@@ -52,3 +52,21 @@ New games are not accepted as button-only placeholders. A new game must point to
 - Snapshots: `src/scripts/elements/ball.es6.js`, `actor.es6.js`, `pong.es6.js`
 - License: MIT
 - NEXUS integration: the upstream Ball/Actor/Pong collision methods are loaded by a thin server adapter; the NEXUS social/game shell does not replace the game rules.
+
+
+## Newly added source engines
+
+### Dominoes — ppyne/dominoes
+- Repository: https://github.com/ppyne/dominoes
+- License: BSD-3-Clause
+- Exact upstream browser snapshot retained at: `third_party/source-games/dominoes/index.html`
+- License retained at: `third_party/source-games/dominoes/LICENSE`
+- NEXUS adapter: `server/sourceBoardGames.js`
+- Rule basis: double-six, 28 tiles, five-tile hands, 18-tile boneyard, highest-double start, matching open ends, draw-until-playable, and blocked-game lower-pip win.
+
+### Ludo — chukwumaijem/ludo-game
+- Repository: https://github.com/chukwumaijem/ludo-game
+- License: MIT
+- Upstream rule/path snapshots retained under: `third_party/source-games/ludo/`
+- NEXUS adapter: `server/sourceBoardGames.js`
+- The NEXUS presentation layer is separate from the retained upstream rule/path source.
