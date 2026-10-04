@@ -250,6 +250,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
 
     console.log('[NEXUS-E2E] core: start video');
     await p1.locator('#callVideo').click({force:true});
+    console.log('[NEXUS-E2E] media probe '+await p1.evaluate(()=>JSON.stringify({secure:isSecureContext,media:!!navigator.mediaDevices?.getUserMedia,error:document.body.dataset.mediaError||null,permission:undefined})));
     await expect.poll(async () => p1.evaluate(() => ({
       media: !!navigator.mediaDevices?.getUserMedia,
       secure: window.isSecureContext,
