@@ -80,3 +80,7 @@ NEXUS PLAY now vendors and executes unchanged MIT-licensed game logic from `kben
 The source-backed multiplayer set currently includes Tic Tac Toe, Connect Four, Chess, Checkers, Battleship, Yahtzee, Monopoly, Risk, The Game of Life, Dots & Boxes, Gomoku, Backgammon, Carrom and 8-Ball Pool. Their rule/controller source is vendored under `third_party/source-games` with the corresponding license/notice files, and NEXUS wraps that source for Socket.IO state synchronization and the Liquid Glass presentation layer.
 
 The remaining arcade/physics games in the catalog retain NEXUS-specific realtime adapters. They are not described as verbatim upstream ports unless their source is actually executed by the adapter.
+
+
+### Source-engine rule policy
+Every newly added game is required to retain its upstream source snapshot and license/notice inside `third_party/source-games/`. The NEXUS Liquid Glass UI is a presentation shell; it does not replace the retained game rules. Ludo and Dominoes were added from verified MIT/BSD upstream sources and are integrated through thin server adapters.
