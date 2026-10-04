@@ -183,11 +183,17 @@ async function runCatalog(pair, games) {
     } else if (game === 'dominoes') {
       await expect(p1.locator('.domino-shell')).toBeVisible();
       await expect(p1.locator('.domino-hand .domino-tile')).toHaveCount(5);
+    } else if (game === 'mancala') {
+      await expect(p1.locator('.mancala-shell')).toBeVisible();
+      await p1.locator('.mancala-pit.playable').first().click();
+      await expect(p2.locator('.mancala-shell')).toBeVisible();
     } else if (game === 'hangman') {
       await p1.locator('.hangman-key').filter({ hasText: 'A' }).click();
       await expect(p1.locator('.hangman-wrap')).toBeVisible();
     }
 
+    await expect(p1.locator('body.game-active>.social')).toBeVisible({timeout:10000});
+    await expect(p1.locator('#roomChatInput')).toBeEditable({timeout:10000});
     await p1.locator('#roomChatInput').fill('active '+game);
     await p1.locator('#roomChatForm button').click();
     console.log('[NEXUS-E2E] core: room chat');
@@ -210,7 +216,7 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
   try {
     const { p1, p2, errors } = pair;
     await p1.locator('.sidebar [data-view="games"]').click();
-    await expect(p1.locator('#view-games .play-btn')).toHaveCount(40);
+    await expect(p1.locator('#view-games .play-btn')).toHaveCount(41);
     await expect(p1.locator('#view-games')).toContainText('Hangman');
 
     console.log('[NEXUS-E2E] core: create/join');
@@ -293,7 +299,7 @@ test('NEXUS PLAY catalog C - strategy and long-form games', async () => {
   test.setTimeout(150000);
   const pair = await makePair();
   try {
-    await runCatalog(pair, ['othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman','pacman','frogger','flappy']);
+    await runCatalog(pair, ['othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','mancala','hangman','pacman','frogger','flappy']);
     expect(pair.errors[0]).toEqual([]);
     expect(pair.errors[1]).toEqual([]);
   } finally {
