@@ -57,6 +57,10 @@ async function createAndJoin(p1, p2, game) {
   await expect(p2.locator('#gameModal')).toBeVisible();
   await expect(p1.locator('#gameBoard')).not.toBeEmpty();
   await expect(p2.locator('#gameBoard')).not.toBeEmpty();
+  await p1.waitForTimeout(500);
+  if(await p1.locator('#gameBoard .lobby-panel').count()){
+    console.log('NEXUS DEBUG p1 after join',await p1.evaluate(()=>({bodyClass:document.body.className,roomText:document.querySelector('#gameBoard')?.innerText,gameTitle:document.querySelector('#gameTitle')?.textContent,turn:document.querySelector('#turnPill')?.textContent,modalClass:document.querySelector('#gameModal')?.className})),errors1);
+  }
   await expect(p1.locator('#gameBoard .lobby-panel')).toHaveCount(0,{timeout:10000});
   await expect(p2.locator('#gameBoard .lobby-panel')).toHaveCount(0,{timeout:10000});
   await expect(p1.locator('#shareGame')).toBeVisible();
