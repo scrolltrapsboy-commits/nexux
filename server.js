@@ -69,6 +69,7 @@ function sanitizeState(r,viewer){
   if(Array.isArray(s.revealed))s.revealed=s.revealed.map((arr,idx)=>idx===me?arr:[]);
  }
  if(r.game==='memory'&&Array.isArray(s.cards)){s.cards=s.cards.map(c=>c.done||c.up?c:{v:null,up:false,done:false});delete s.pendingMismatch}
+ if(r.game==='dominoes'&&Array.isArray(s.hands)){const me=r.players.indexOf(viewer),opp=other(me);s.hands[opp]=(s.hands[opp]||[]).map(()=>({hidden:true}))}
  if(r.game==='chess'&&s.fen){try{s.legalMoves=new Chess(s.fen).moves({verbose:true}).map(m=>({from:m.from,to:m.to,flags:m.flags}))}catch{s.legalMoves=[]}}
  return s}
 function roomView(r,viewer){let actions=[];const eng=GAMES[r.game];if(eng?.getActionDescriptors&&r.state){try{actions=eng.getActionDescriptors(r.state,viewer)||[]}catch{actions=[]}}else if(eng?.getValidActions&&r.state){try{actions=(eng.getValidActions(r.state,viewer)||[]).map(a=>({action:String(a).split(':')[0],label:String(a),enabled:true}))}catch{actions=[]}}return{code:r.code,game:r.game,private:r.private,status:r.status,host:r.host,players:r.players.map((id,slot)=>({...publicUser(id),slot,connected:(sockets.get(id)||0)>0})),state:sanitizeState(r,viewer),actions,result:r.result,rematch:[...r.rematch],chat:r.chat.slice(-50),created:r.created}}
