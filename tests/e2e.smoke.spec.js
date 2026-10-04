@@ -218,9 +218,13 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     console.log('[NEXUS-E2E] core: room live');
     await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
 
-    await p1.locator('[data-chess="52"]').click();
-    await p1.locator('[data-chess="36"]').click();
-    await expect.poll(async () => p2.locator('.move-item').count()).toBeGreaterThan(0);
+    console.log('[NEXUS-E2E] core: click e2');
+    await p1.locator('[data-chess="52"]').click({timeout:10000});
+    console.log('[NEXUS-E2E] core: e2 selected');
+    await p1.locator('[data-chess="36"]').click({timeout:10000});
+    console.log('[NEXUS-E2E] core: e4 sent');
+    await expect.poll(async () => p2.locator('.move-item').count(),{timeout:10000}).toBeGreaterThan(0);
+    console.log('[NEXUS-E2E] core: e4 received');
 
     await p1.locator('#roomChatInput').fill('room works');
     await p1.locator('#roomChatForm button').click();
