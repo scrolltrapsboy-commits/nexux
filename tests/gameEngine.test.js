@@ -164,8 +164,19 @@ test('source-backed Mini Golf uses upstream physics and course rules',()=>{const
 test('source-backed Racing uses upstream Car and Track methods',()=>{const s=GAMES.racing.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(s.totalLaps,3);const beforeX=s.players[0].x,beforeY=s.players[0].y;GAMES.racing.move(s,0,{up:true,left:false,right:false,brake:false});assert.equal(s.inputs[0].up,true);let out;for(let n=0;n<10;n++)out=GAMES.racing.tick(s);assert.ok(out===undefined||out.winner!==undefined||out.draw);assert.ok(s.players[0].x!==beforeX||s.players[0].y!==beforeY)});
 test('source-backed Hangman uses upstream word list and six-guess rule',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.hangman.init(p);assert.equal(s.players.length,2);assert.ok(s.players.every(x=>x.currentWord.length>0));const me=s.players[0];const candidates=['q','x','j','z','v','k'];for(const ch of candidates){if(me.currentWord.includes(ch))continue;const out=GAMES.hangman.move(s,0,{letter:ch});assert.ok(out===undefined||out.progress);if(me.lost)break}assert.ok(me.wrongGuessCount<=6);const view=GAMES.hangman.getStateForPlayer(s,'a');assert.equal(view.players[0].currentWord,undefined);assert.equal(view.players[0].hint,me.hint);});
 
-test('all 34 published games declare verified upstream source metadata',()=>{for(const [id,g] of Object.entries(GAMES)){assert.ok(g.sourceName,id+' sourceName');assert.ok(g.sourceLicense,id+' sourceLicense')}});
-test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping','minigolf','racing','hangman'])assert.ok(GAMES[id],id);});
+test('all 40 published games declare verified upstream source metadata',()=>{for(const [id,g] of Object.entries(GAMES)){assert.ok(g.sourceName,id+' sourceName');assert.ok(g.sourceLicense,id+' sourceLicense')}});
+test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping','minigolf','racing','hangman','breakout','spaceinvaders','pacman','frogger','flappy','sudoku'])assert.ok(GAMES[id],id);});
+
+test('source-backed Canvas Games arcade integrations expose source rules',()=>{
+ const players=[{id:'a',name:'A'},{id:'b',name:'B'}];
+ for(const id of ['breakout','spaceinvaders','pacman','frogger','flappy','sudoku']){const s=GAMES[id].init(players);assert.equal(s.players.length,2,id+' players');assert.equal(GAMES[id].sourceName,'forinda/canvas-games');assert.equal(GAMES[id].sourceLicense,'MIT');}
+ const b=GAMES.breakout.init(players);const before=b.players[0].mouseX;GAMES.breakout.move(b,0,{x:.8});assert.notEqual(b.players[0].mouseX,before);
+ const si=GAMES.spaceinvaders.init(players);GAMES.spaceinvaders.move(si,0,{left:true});assert.equal(si.players[0].input.left,true);GAMES.spaceinvaders.tick(si);assert.ok(si.players[0].score>=0);
+ const pm=GAMES.pacman.init(players);GAMES.pacman.move(pm,0,{dir:'left'});assert.equal(pm.players[0].pacman.nextDir,'left');GAMES.pacman.tick(pm);assert.equal(pm.players[0].source,undefined);
+ const fr=GAMES.frogger.init(players);GAMES.frogger.move(fr,0,{dir:'up'});assert.equal(fr.players[0].frog.row,fr.players[0].lanes.length-2);
+ const fl=GAMES.flappy.init(players);GAMES.flappy.move(fl,0,{flap:true});assert.equal(fl.players[0].bird.velocity,-.42);GAMES.flappy.tick(fl);
+ const su=GAMES.sudoku.init(players);assert.equal(su.players[0].board.length,9);const cell=su.players[0].board.findIndex(row=>row.some(c=>!c.given));const rr=Math.floor(cell/9),cc=cell%9;const valid=su.players[0].solution[rr][cc];GAMES.sudoku.move(su,0,{row:rr,col:cc,num:valid});assert.equal(su.players[0].board[rr][cc].value,valid);
+});
 
 test('source-backed Ludo uses upstream seed-path and six-start rule',()=>{
  const s=GAMES.ludo.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
