@@ -12,7 +12,7 @@ const launchOptions = {
 };
 
 async function enterAsGuest(page) {
-  await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:3000/?e2eMedia=1', { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
   await expect(page.locator('#app')).toBeVisible({timeout:15000});
 }
