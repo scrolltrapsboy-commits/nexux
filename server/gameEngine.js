@@ -292,10 +292,15 @@ GAMES.numberhunt=CLASSIC_SOURCE_GAMES.numberhunt;
 GAMES.speedtyping=CLASSIC_SOURCE_GAMES.speedtyping;
 const {TETRIS_SOURCE}=require('./sourceTetris');
 const {PONG_SOURCE}=require('./sourcePong');
+const {MINIGOLF_SOURCE}=require('./sourceMiniGolf');
+const {RACING_SOURCE}=require('./sourceRacing');
 GAMES.tetris=TETRIS_SOURCE;
 GAMES.pong=PONG_SOURCE;
 GAMES.ludo=LUDO_SOURCE;
 GAMES.dominoes=DOMINOES_SOURCE;
+GAMES.wordbattle={...CLASSIC_SOURCE_GAMES.wordchain,name:'Word Battle',category:'Word',sourceName:'assishmoncs/battlebox',sourceLicense:'MIT'};
+GAMES.minigolf=MINIGOLF_SOURCE;
+GAMES.racing=RACING_SOURCE;
 GAMES.reaction=REACTION_SOURCE;
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
