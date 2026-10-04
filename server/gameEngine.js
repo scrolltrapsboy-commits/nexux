@@ -9,6 +9,7 @@ const { EnglishDraughts } = require('rapid-draughts/english');
 const { Vector } = require('matter-js');
 const { LAN_GAMES } = require('./lanSourceGames');
 const {LUDO_SOURCE,DOMINOES_SOURCE}=require('./sourceBoardGames');
+const {Xiangqi_SOURCE,Go9_SOURCE}=require('./sourceGameNestExtras');
 const {MANCALA_SOURCE}=require('./sourceMancala');
 const {REACTION_SOURCE}=require('./sourceReaction');
 
@@ -302,6 +303,8 @@ const {HANGMAN_SOURCE}=require('./sourceHangman');
 GAMES.tetris=TETRIS_SOURCE;
 GAMES.pong=PONG_SOURCE;
 GAMES.ludo=LUDO_SOURCE;
+GAMES.xiangqi=Xiangqi_SOURCE;
+GAMES.go9=Go9_SOURCE;
 GAMES.dominoes=DOMINOES_SOURCE;
 GAMES.mancala=MANCALA_SOURCE;
 GAMES.wordbattle={...CLASSIC_SOURCE_GAMES.wordchain,name:'Word Battle',category:'Word',sourceName:'assishmoncs/battlebox',sourceLicense:'MIT'};
@@ -315,7 +318,7 @@ Object.assign(GAMES,CANVAS_SOURCE_GAMES);
 // Canonical upstream source manifest. Metadata is assigned after the final GAMES wiring so
 // every published catalog entry is traceable to a retained, licensed upstream implementation.
 const SOURCE_METADATA={
- tictactoe:['kbennett2000/lan-games','MIT'],connect4:['bryanbraun/connect-four','MIT'],
+ tictactoe:['kbennett2000/lan-games','MIT'],connect4:['bryanbraun/connect-four','MIT'],xiangqi:['absswds/GameNest','Apache-2.0'],go9:['absswds/GameNest','Apache-2.0'],
  rps:['assishmoncs/battlebox','MIT'],chess:['jhlywa/chess.js','BSD-2-Clause'],
  checkers:['loks0n/rapid-draughts','MIT'],battleship:['kbennett2000/lan-games','MIT'],
  memory:['assishmoncs/battlebox','MIT'],minesweeper:['absswds/GameNest','Apache-2.0'],
