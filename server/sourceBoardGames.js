@@ -90,7 +90,7 @@ function sourceLudoMove(s,i,m={}){
     s.dice=1+Math.floor(Math.random()*6);
     s.phase='move';s.sixStreak=s.dice===6?s.sixStreak+1:0;
     if(s.sixStreak>=3){s.dice=null;s.phase='roll';s.sixStreak=0;s.turn=other(i);return{rolled:6,skipped:true,reason:'three consecutive sixes'}}
-    if(!legalLudoMoves(s,i).length){const again=s.dice===6;s.dice=null;s.phase='roll';if(!again)s.turn=other(i);return{rolled:s.dice||6,pass:true}}
+    if(!legalLudoMoves(s,i).length){const rolled=s.dice;s.dice=null;s.phase='roll';if(rolled!==6)s.turn=other(i);return{rolled,pass:true}}
     return{rolled:s.dice};
   }
   if(m.action!=='move')return'Use roll or move';
