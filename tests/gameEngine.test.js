@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {GAMES}=require('../server/gameEngine');
 
 test('all game engines expose two-player lifecycle',()=>{
-  assert.equal(Object.keys(GAMES).length,40);
+  assert.equal(Object.keys(GAMES).length,41);
   for(const [id,g] of Object.entries(GAMES)){assert.equal(g.players,2,`${id} players`);assert.ok(g.init);assert.ok(g.move)}
 });
 test('source-backed tic tac toe detects a row',()=>{const s=GAMES.tictactoe.init([{id:'a',name:'A'},{id:'b',name:'B'}]);GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:0}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:0}});GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:1}});GAMES.tictactoe.move(s,1,{action:'markCell',payload:{row:1,col:1}});const out=GAMES.tictactoe.move(s,0,{action:'markCell',payload:{row:0,col:2}});assert.equal(out.winner,0)});
@@ -164,8 +164,8 @@ test('source-backed Mini Golf uses upstream physics and course rules',()=>{const
 test('source-backed Racing uses upstream Car and Track methods',()=>{const s=GAMES.racing.init([{id:'a',name:'A'},{id:'b',name:'B'}]);assert.equal(s.totalLaps,3);const beforeX=s.players[0].x,beforeY=s.players[0].y;GAMES.racing.move(s,0,{up:true,left:false,right:false,brake:false});assert.equal(s.inputs[0].up,true);let out;for(let n=0;n<10;n++)out=GAMES.racing.tick(s);assert.ok(out===undefined||out.winner!==undefined||out.draw);assert.ok(s.players[0].x!==beforeX||s.players[0].y!==beforeY)});
 test('source-backed Hangman uses upstream word list and six-guess rule',()=>{const p=[{id:'a',name:'A'},{id:'b',name:'B'}];const s=GAMES.hangman.init(p);assert.equal(s.players.length,2);assert.ok(s.players.every(x=>x.currentWord.length>0));const me=s.players[0];const candidates=['q','x','j','z','v','k'];for(const ch of candidates){if(me.currentWord.includes(ch))continue;const out=GAMES.hangman.move(s,0,{letter:ch});assert.ok(out===undefined||out.progress);if(me.lost)break}assert.ok(me.wrongGuessCount<=6);const view=GAMES.hangman.getStateForPlayer(s,'a');assert.equal(view.players[0].currentWord,undefined);assert.equal(view.players[0].hint,me.hint);});
 
-test('all 40 published games declare verified upstream source metadata',()=>{for(const [id,g] of Object.entries(GAMES)){assert.ok(g.sourceName,id+' sourceName');assert.ok(g.sourceLicense,id+' sourceLicense')}});
-test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping','minigolf','racing','hangman','breakout','spaceinvaders','pacman','frogger','flappy','sudoku'])assert.ok(GAMES[id],id);});
+test('all 41 published games declare verified upstream source metadata',()=>{for(const [id,g] of Object.entries(GAMES)){assert.ok(g.sourceName,id+' sourceName');assert.ok(g.sourceLicense,id+' sourceLicense')}});
+test('source-backed source-game catalog remains available',()=>{for(const id of ['tictactoe','connect4','battleship','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','carrom','pool','rps','memory','minesweeper','game2048','snake','othello','uno','wordchain','anagram','numberhunt','speedtyping','minigolf','racing','hangman','breakout','spaceinvaders','pacman','frogger','flappy','sudoku','mancala'])assert.ok(GAMES[id],id);});
 
 test('source-backed Canvas Games arcade integrations expose source rules',()=>{
  const players=[{id:'a',name:'A'},{id:'b',name:'B'}];
@@ -201,6 +201,20 @@ test('source-backed Dominoes deals five tiles each and honors highest double',()
  assert.equal(s.chain.length,1);
 });
 
+test('source-backed Mancala preserves upstream sowing and extra-turn rules',()=>{
+  const players=[{id:'a',name:'A'},{id:'b',name:'B'}];
+  const s=GAMES.mancala.init(players);
+  assert.deepEqual(s.pits[0],[4,4,4,4,4,4]);
+  assert.deepEqual(s.pits[1],[4,4,4,4,4,4]);
+  const normal=GAMES.mancala.move(s,0,{pit:0});
+  assert.equal(normal.extraTurn,false);
+  assert.equal(s.turn,1);
+  assert.deepEqual(s.pits[0],[0,5,5,5,5,4]);
+  const extra=GAMES.mancala.move(s,1,{pit:2});
+  assert.equal(extra.extraTurn,true);
+  assert.equal(s.turn,1);
+  assert.equal(s.stores[1],1);
+});
 test('source-backed Reaction Race uses upstream timer state',()=>{
  const s=GAMES.reaction.init([{id:'a',name:'A'},{id:'b',name:'B'}]);
  assert.equal(s.players?.length,undefined);
