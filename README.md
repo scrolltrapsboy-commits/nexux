@@ -84,3 +84,8 @@ The remaining arcade/physics games in the catalog retain NEXUS-specific realtime
 
 ### Source-engine rule policy
 Every newly added game is required to retain its upstream source snapshot and license/notice inside `third_party/source-games/`. The NEXUS Liquid Glass UI is a presentation shell; it does not replace the retained game rules. Ludo and Dominoes were added from verified MIT/BSD upstream sources and are integrated through thin server adapters.
+
+
+## Source-backed Hangman
+
+NEXUS PLAY vendors the core source files from tmatth11/hangman (MIT): third_party/source-games/hangman/script.js, word-list.js, and LICENSE. The NEXUS shell adapts the source guessing rules for synchronized two-player play without changing the six-mistake rule or word selection source.
