@@ -85,17 +85,12 @@ function advanceRealtime(r){
   broadcastRoom(r);
   return;
  }
- if(r.game==='pong'){
-  const st=r.state,dt=1/30;
-  for(let i=0;i<2;i++){const inp=st.inputs[i]||0;st.paddles[i]=Math.max(.12,Math.min(.88,st.paddles[i]+inp*1.05*dt));}
-  st.ball.x+=st.ball.vx*dt;st.ball.y+=st.ball.vy*dt;
-  if(st.ball.y<.03||st.ball.y>.97){st.ball.y=Math.max(.03,Math.min(.97,st.ball.y));st.ball.vy*=-1;}
-  const near=[.055,.945];
-  for(let i=0;i<2;i++)if(Math.abs(st.ball.x-near[i])<.035&&Math.abs(st.ball.y-st.paddles[i])<.14&&((i===0&&st.ball.vx<0)||(i===1&&st.ball.vx>0))){st.ball.vx=-st.ball.vx*1.03;st.ball.vy+=(st.ball.y-st.paddles[i])*1.8;st.ball.x=i===0?.09:.91;}
-  if(st.ball.x<-.02){st.scores[1]++;st.ball={x:.5,y:.5,vx:.42,vy:.18*(Math.random()>.5?1:-1)}}
-  else if(st.ball.x>1.02){st.scores[0]++;st.ball={x:.5,y:.5,vx:-.42,vy:.18*(Math.random()>.5?1:-1)}}
-  const w=st.scores.findIndex(v=>v>=7);if(w>=0){finish(r,{winnerId:r.players[w],reason:'7 points'});broadcastRoom(r);return}
-  broadcastRoom(r);return;
+ if(r.game==='pong'&&typeof GAMES.pong.tick==='function'){
+  const out=GAMES.pong.tick(r.state);
+  if(out?.winner!==undefined)finish(r,{winnerId:r.players[out.winner],reason:out.reason||'pong win'});
+  else if(out?.draw)finish(r,{draw:true,reason:out.reason||'pong draw'});
+  broadcastRoom(r);
+  return;
  }
  if(r.game==='racing'){
   const st=r.state,dt=1/30,track={cx:.5,cy:.5,rx:.34,ry:.34};
