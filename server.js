@@ -144,7 +144,11 @@ io.on('connection',socket=>{
    const r=roomOf(me());const video=!!d?.video;
    if(!r||r.status!=='playing')return reply(cb,{error:'No active game'});
    const peers=r.players.filter(id=>id!==me()&&(sockets.get(id)||0)>0);
-   for(const to of peers)io.to('u:'+to).emit('callInvite',{from:me(),room:r.code,video});
+   const invite={from:me(),room:r.code,video};
+   // Emit through the authoritative game-room channel. Every active game
+   // participant is already joined to this Socket.IO room, so call discovery
+   // does not depend on a second per-user room membership path.
+   io.to(r.code).emit('callInvite',invite);
    reply(cb,{ok:true,peers});
  });
  socket.on('callStop',()=>{
