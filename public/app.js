@@ -102,7 +102,8 @@ function renderBoard(r){const el=$('#gameBoard');const s=r.state;if(r.status!=='
  if(r.game==='wordbattle')return el.innerHTML=`<div style="text-align:center;width:min(480px,100%)"><div class="status-pill" style="display:inline-block">Target letter <b style="font-size:24px;color:#fff">${s.target.toUpperCase()}</b></div><h2>${s.score[0]} — ${s.score[1]}</h2><form id="wordForm"><input class="word-input" id="wordInput" placeholder="Type a word"><button class="primary" style="margin-top:8px">Submit word</button></form><p style="color:#666">Round ${s.round}/12</p></div>`,$('#wordForm').onsubmit=e=>{e.preventDefault();sendMove({word:$('#wordInput').value});$('#wordInput').value=''};
  if(r.game==='uno')return renderUno(el,s);
  if(r.game==='reaction'){const ready=s.phase==='armed';const waiting=s.phase==='waiting';return el.innerHTML=`<div class="source-board-shell reaction-shell"><div class="source-game-kicker">SOURCE ENGINE · BATTLEBOX REACTION</div><div class="reaction-orb ${ready?'go':''}">${ready?'GO!':waiting?'WAIT':'NEXT ROUND'}</div><div class="scoreline">You ${s.scores[meIndex()]??0} — Opponent ${s.scores[1-meIndex()]??0}</div><button class="primary" id="reactionBtn" ${ready?'':'disabled'}>${ready?'CLICK NOW':'WAITING FOR SIGNAL'}</button><p class="game-note">First valid click after GO wins the round.</p></div>`;$('#reactionBtn').onclick=()=>sendMove({});}
- if(['pool','carrom','minigolf'].includes(r.game))return renderCanvasGame(el,r);
+ if(['pool','carrom'].includes(r.game))return renderCanvasGame(el,r);
+ if(r.game==='minigolf')return renderMiniGolfSource(el,r);
  if(r.game==='racing')return renderRace(el,r);
  if(r.game==='pong')return renderPong(el,r);
  if(r.game==='othello')return renderOthello(el,r);
@@ -310,6 +311,35 @@ function renderDotsBoxes(el,s){
   $('[data-db]').forEach(b=>b.onclick=()=>{const [kind,x,y]=b.dataset.db.split(',').map((v,i)=>i?Number(v):v);sendMove(kind==='h'?{x1:x,y1:y,x2:x+1,y2:y}:{x1:x,y1:y,x2:x,y2:y+1})});
 }
 function renderBattle(el,s){const me=state.room.players.findIndex(p=>p.id===state.me.id),myShots=s.shots[me]||[];el.innerHTML=`<div><p style="color:#777;text-align:center">Your fleet is hidden from opponent. Fire on their grid.</p><div class="grid10">${Array.from({length:100},(_,i)=>{const x=i%10,y=Math.floor(i/10),shot=myShots.find(p=>p[0]===x&&p[1]===y);return`<button class="${shot?.[2]==='hit'?'hit':''}" data-shot="${x},${y}">${shot?shot[2]==='hit'?'×':'·':''}</button>`}).join('')}</div></div>`;$$('[data-shot]').forEach(b=>b.onclick=()=>{const[x,y]=b.dataset.shot.split(',').map(Number);sendMove({x,y})})}
+function renderMiniGolfSource(el,r){
+  const s=r.state;
+  el.innerHTML='<div class="canvas-wrap physical-game source-minigolf"><canvas id="miniGolfCanvas" class="game-canvas"></canvas><div class="pool-help">Drag backward from your ball and release to putt</div><div class="physics-hud"><span id="miniGolfHud"></span></div></div>';
+  const c=$('#miniGolfCanvas'),ctx=c.getContext('2d');let down=null;
+  const stateNow=()=>state.room?.state||r.state;
+  const mapPoint=(p,w,h)=>({x:p.x/1000*w,y:p.y/650*h});
+  const drawShape=(shape,w,h)=>{if(!shape)return;ctx.beginPath();if(shape.kind==='circle'){const q=mapPoint(shape.center,w,h),rr=shape.radius/1000*w;ctx.arc(q.x,q.y,rr,0,Math.PI*2)}else{shape.points.forEach((p,n)=>{const q=mapPoint(p,w,h);n?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.closePath()}};
+  const drawState=(frame=null)=>{
+    const st=stateNow(),course=st.course;if(!course)return;
+    const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;const d=devicePixelRatio||1;c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+    ctx.clearRect(0,0,w,h);ctx.fillStyle='#090909';ctx.fillRect(0,0,w,h);
+    ctx.save();ctx.lineJoin='round';ctx.lineWidth=5;ctx.strokeStyle='#666';ctx.fillStyle='#151515';drawShape({kind:'polygon',points:course.boundary},w,h);ctx.fill();ctx.stroke();
+    ctx.lineWidth=3;ctx.strokeStyle='#3a3a3a';ctx.fillStyle='#0d0d0d';for(const wall of course.walls){drawShape({kind:'polygon',points:wall},w,h);ctx.fill();ctx.stroke()}
+    for(const hz of course.hazards||[]){ctx.fillStyle=hz.type==='water'?'#181818':'#232323';ctx.strokeStyle='#444';drawShape(hz.shape,w,h);ctx.fill();ctx.stroke()}
+    const cup=mapPoint(course.cup,w,h);ctx.fillStyle='#000';ctx.strokeStyle='#999';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cup.x,cup.y,Math.max(7,Math.min(w,h)*.018),0,Math.PI*2);ctx.fill();ctx.stroke();
+    const balls=st.balls||[];const me=r.players.findIndex(p=>p.id===state.me.id);
+    balls.forEach((b,idx)=>{let pos=b.position;if(frame&&idx===me&&frame.position)pos=frame.position;const q=mapPoint(pos,w,h),rad=Math.max(6,Math.min(w,h)*.017);ctx.beginPath();ctx.fillStyle=idx===0?'#f4f4f4':'#777';ctx.arc(q.x,q.y,rad,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#050505';ctx.stroke();if(idx===me&&!b.captured&&st.turn===me){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(q.x,q.y,rad+7,0,Math.PI*2);ctx.stroke()}});
+    ctx.restore();
+    const totals=(st.players||[]).map(p=>p.totalStrokes).join(' — ');$('#miniGolfHud').textContent='Hole '+(st.holeIndex+1)+'/'+st.holeCount+' · '+st.holeName+' · Par '+st.par+' · Strokes '+totals;
+  };
+  const resize=()=>drawState();const point=e=>{const rect=c.getBoundingClientRect();return{x:(e.clientX-rect.left)/rect.width,y:(e.clientY-rect.top)/rect.height}};
+  const downF=e=>{if(stateNow().turn!==r.players.findIndex(p=>p.id===state.me.id))return;e.preventDefault();down=point(e)};
+  const up=e=>{if(!down)return;e.preventDefault();const p=point(e),dx=down.x-p.x,dy=down.y-p.y,dist=Math.hypot(dx,dy);down=null;if(dist<.02)return;sendMove({dx,dy,power:Math.min(1,dist*2.2)})};
+  c.onpointerdown=downF;c.onpointerup=up;c.onpointercancel=()=>down=null;window.addEventListener('resize',resize);
+  state.realtimeDraw=()=>drawState();
+  state.realtimeAnimate=(frames)=>{if(Array.isArray(frames)&&frames.length>1)animateFrames(frames,frame=>drawState(frame),Math.min(1600,Math.max(700,frames.length*7)))};
+  state.gameCleanup=()=>{window.removeEventListener('resize',resize);c.onpointerdown=null;c.onpointerup=null;c.onpointercancel=null;state.realtimeDraw=null;state.realtimeAnimate=null};
+  resize();
+}
 function renderCanvasGame(el,r){
   const labels={pool:'Drag backward from the cue ball to aim and choose power',carrom:'Drag from the striker to shoot. Tap a new baseline position before shooting.',minigolf:'Drag backward from your ball. Release to hit the ball.'};
   el.innerHTML='<div class="canvas-wrap physical-game"><canvas id="gameCanvas" class="game-canvas"></canvas><div class="pool-help">'+labels[r.game]+'</div><div class="physics-hud"><span>'+ (r.game==='pool'?(r.state.ballInHand?'BALL IN HAND':'Aim • power follows drag'):r.game==='carrom'?'Score '+r.state.scores[0]+' — '+r.state.scores[1]:'Strokes '+r.state.strokes[0]+' — '+r.state.strokes[1]) +'</span></div></div>';
