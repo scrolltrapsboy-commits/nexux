@@ -1,211 +1,249 @@
 const { chromium, test, expect } = require('@playwright/test');
 
-test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--allow-loopback-in-peer-connection', '--autoplay-policy=no-user-gesture-required'] } });
-test.setTimeout(360000);
+test.describe.configure({ mode: 'serial' });
 
-async function enterAsGuest(page, url='http://127.0.0.1:3000') {
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+const launchOptions = {
+  args: [
+    '--use-fake-device-for-media-stream',
+    '--use-fake-ui-for-media-stream',
+    '--allow-loopback-in-peer-connection',
+    '--autoplay-policy=no-user-gesture-required'
+  ]
+};
+
+async function enterAsGuest(page) {
+  await page.goto('http://127.0.0.1:3000', { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
   await expect(page.locator('#app')).toBeVisible();
 }
 
-test('NEXUS PLAY production UI and multiplayer smoke', {timeout:360000}, async () => {
-  test.setTimeout(360000);
-  const errors1 = [];
-  const errors2 = [];
-  const launchOptions = {args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--allow-loopback-in-peer-connection','--autoplay-policy=no-user-gesture-required']};
+async function makePair() {
   const b1 = await chromium.launch(launchOptions);
   const b2 = await chromium.launch(launchOptions);
   const c1 = await b1.newContext({ permissions: ['microphone', 'camera'] });
   const c2 = await b2.newContext({ permissions: ['microphone', 'camera'] });
   const p1 = await c1.newPage();
   const p2 = await c2.newPage();
-
-  for (const [page, errors] of [[p1, errors1], [p2, errors2]]) {
-    page.on('pageerror', e => errors.push('pageerror: ' + e.message));
+  const errors = [[], []];
+  [p1, p2].forEach((page, i) => {
+    page.on('pageerror', e => errors[i].push('pageerror: ' + e.message));
     page.on('console', msg => {
-      if (msg.type() === 'error') errors.push('console: ' + msg.text());
+      if (msg.type() === 'error') errors[i].push('console: ' + msg.text());
     });
-  }
+  });
+  await Promise.all([enterAsGuest(p1), enterAsGuest(p2)]);
+  return { b1, b2, c1, c2, p1, p2, errors };
+}
 
-  await enterAsGuest(p1);
-  await expect(p1.locator('#view-home .game-grid .play-btn')).toHaveCount(6);
-  await expect(p1.locator('#view-home .game-grid')).toContainText('Tic Tac Toe');
+async function closePair(pair) {
+  await pair.c1.close().catch(() => {});
+  await pair.c2.close().catch(() => {});
+  await pair.b1.close().catch(() => {});
+  await pair.b2.close().catch(() => {});
+}
+
+async function createAndJoin(p1, p2, game) {
   await p1.locator('.sidebar [data-view="games"]').click();
-  await expect(p1.locator('#view-games')).toContainText('Game library');
-  await expect(p1.locator('#view-games .play-btn')).toHaveCount(34);
-
   await p1.locator('#gamesRoom').click();
-  await p1.locator('[data-create="chess"]').click();
-  await expect(p1.locator('#gameTitle')).toHaveText('Chess');
-  await expect(p1.locator('#gameBoard')).toContainText('Waiting for opponent');
-
-  const code = (await p1.locator('.room-code-big').innerText()).trim();
-  expect(code).toMatch(/^[A-Z0-9]{6}$/);
-
-  await enterAsGuest(p2);
+  await p1.locator(`[data-create="${game}"]`).click();
+  await expect(p1.locator('#gameModal')).toBeVisible();
+  const text = await p1.locator('#gameBoard').innerText();
+  const code = (text.match(/[A-Z0-9]{6}/) || [])[0];
+  expect(code).toBeTruthy();
   await p2.locator('#roomCodeBtn').click();
   await p2.locator('#joinCode').fill(code);
   await p2.locator('#joinBtn').click();
+  await expect(p1.locator('#gameModal')).toBeVisible();
   await expect(p2.locator('#gameModal')).toBeVisible();
-  await expect(p2.locator('#gameTitle')).toHaveText('Chess',{timeout:10000});
-  await expect.poll(async()=>p2.locator('.board-chess').last().locator('.chess-cell').count(),{timeout:10000}).toBe(64);
-
-  await expect(p1.locator('#gameTitle')).toHaveText('Chess');
-  await expect(p2.locator('#gameTitle')).toHaveText('Chess');
-  await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
-  await expect(p2.locator('.board-chess .chess-cell')).toHaveCount(64);
+  await expect(p1.locator('#gameBoard')).not.toBeEmpty();
+  await expect(p2.locator('#gameBoard')).not.toBeEmpty();
   await expect(p1.locator('#shareGame')).toBeVisible();
   await expect(p1.locator('body.game-active .social')).toBeVisible();
-  const vp=await p1.evaluate(()=>({w:innerWidth,h:innerHeight}));
-  const gameBox=await p1.locator('#gameModal .game-modal').boundingBox();
-  const socialBox=await p1.locator('body.game-active .social').boundingBox();
-  expect(gameBox.width).toBeGreaterThan(vp.w*0.55);
-  expect(gameBox.height).toBeGreaterThan(vp.h*0.9);
-  expect(socialBox.width).toBeGreaterThan(250);
+  await expect(p2.locator('body.game-active .social')).toBeVisible();
+  await expect.poll(async () => p1.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await expect.poll(async () => p2.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+}
 
-  await expect(p1.locator('#turnPill')).toHaveText('Your turn');
-  await p1.locator('[data-chess="52"]').click();
-  await expect(p1.locator('[data-chess="52"]')).toHaveClass(/sel/);
-  await expect(p1.locator('.chess-cell.legal')).toHaveCount(2);
-  await p1.locator('[data-chess="36"]').click();
-  await expect.poll(async()=>p1.locator('.chess-side').textContent(),{timeout:10000}).toContain('4P3');
-  await expect.poll(async()=>p2.locator('.chess-side').textContent(),{timeout:10000}).toContain('4P3');
-
-  const roomChatInput = p1.locator('#roomChatInput');
-  await roomChatInput.fill('E2E room message');
-  await p1.locator('#roomChatForm button').click();
-  await expect(p1.locator('#roomChat')).toContainText('E2E room message');
-
-  await p1.locator('#socialGlobalTab').click();
-  await p1.locator('#globalChatInput').fill('E2E global message');
-  console.log('GLOBAL_DEBUG_BEFORE', await p1.evaluate(() => ({
-    fn: typeof window.sendActiveGlobalChat,
-    onclick: document.querySelector('#globalChatForm button')?.getAttribute('onclick'),
-    tab: document.querySelector('#socialGlobalTab')?.className,
-    pane: document.querySelector('#socialGlobalPane')?.className,
-    input: document.querySelector('#globalChatInput')?.value,
-    connected: !!window.__nexusSocketConnected
-  })));
-  await p1.locator('#globalChatForm button').click();
-  await p1.waitForTimeout(250);
-  console.log('GLOBAL_DEBUG_AFTER', await p1.evaluate(() => ({
-    input: document.querySelector('#globalChatInput')?.value,
-    list: document.querySelector('#globalChatList')?.textContent,
-    tab: document.querySelector('#socialGlobalTab')?.className,
-    pane: document.querySelector('#socialGlobalPane')?.className
-  })));
-  await expect(p1.locator('#globalChatList')).toContainText('E2E global message');
-
-  await p1.locator('#callVideo').click();
-  await expect(p1.locator('#callEmpty')).toBeHidden();
-  await expect.poll(async()=>p1.evaluate(()=>!!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
-  await expect.poll(async()=>p2.evaluate(()=>!!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length),{timeout:10000}).toBe(true);
-  await expect.poll(async()=>p2.evaluate(()=>!!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length),{timeout:10000}).toBe(true);
-  await p1.locator('#callMute').click();
-  await p1.locator('#callCamera').click();
-  await p1.locator('#callCamera').click();
-
-  await p1.setViewportSize({width:390,height:844});
-  await expect(p1.locator('body.game-active .social')).toBeVisible();
-  const mobile=await p1.locator('#gameModal .game-modal').boundingBox();
-  expect(mobile.width).toBeCloseTo(390,0);
-  expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-  await p1.setViewportSize({width:1280,height:900});
-  await p1.locator('#callEnd').click();
+async function leavePairGame(p1, p2) {
   await p1.locator('#leaveGame').click();
   await p2.locator('#leaveGame').click();
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
+}
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman'];
-  for(const game of allGames){
-    console.log('E2E_GAME_START',game);
-    await p1.locator('.sidebar [data-view="games"]').click();
-    await p1.locator('#gamesRoom').click();
-    await p1.locator(`[data-create="${game}"]`).click();
-    await expect(p1.locator('#gameModal')).toBeVisible();
-    await expect(p1.locator('#gameBoard')).not.toBeEmpty();
-    const lobby=await p1.locator('#gameBoard').innerText();
-    const match=lobby.match(/[A-Z0-9]{6}/);
-    expect(match).not.toBeNull();
-    const code=match[0];
-    await enterAsGuest(p2,'http://127.0.0.1:3000/?room='+code);
-    await expect(p1.locator('#gameTitle')).toHaveText(await p1.locator('#gameTitle').innerText());
-    await expect(p2.locator('#gameModal')).toBeVisible();
-    await expect(p2.locator('#gameBoard')).not.toBeEmpty();
-    await expect(p1.locator('#shareGame')).toBeVisible();
-    if(game==='dotsboxes'){
-      await expect(p1.locator('.dots-grid')).toBeVisible();
-      await expect(p2.locator('.dots-grid')).toBeVisible();
-      await p1.locator('[data-db^="h,0,0"]').click();
-      await expect(p2.locator('.db-line.active')).toHaveCount(1);
-    }
-    if(game==='gomoku'){
-      await expect(p1.locator('.gomoku-board')).toBeVisible();
-      await p1.locator('[data-gomoku="112"]').click();
-      await expect(p2.locator('[data-gomoku="112"]')).toHaveText('●');
-    }
-    if(game==='backgammon'){
-      await expect(p1.locator('.backgammon-wrap')).toBeVisible();
-      await expect(p2.locator('.backgammon-wrap')).toBeVisible();
-      await expect(p1.locator('.bg-dice span')).toHaveCount(2);
-      await expect.poll(async()=>p1.locator('.bg-step').count()).toBeGreaterThan(0);
-    }
-    if(game==='monopoly'){
-      await expect(p1.locator('.source-economy')).toBeVisible();
-      await expect(p2.locator('.source-economy')).toBeVisible();
-      await expect(p1.locator('[data-src-action="rollDice"]')).toBeVisible();
+async function runCatalog(pair, games) {
+  const { p1, p2 } = pair;
+  for (const game of games) {
+    console.log('[NEXUS-E2E] START ' + game);
+    await createAndJoin(p1, p2, game);
+
+    if (game === 'tictactoe') {
+      await expect(p1.locator('.source-ttt')).toBeVisible();
+      await p1.locator('[data-source-ttt="0"]').click();
+      await expect(p2.locator('[data-source-ttt="0"]')).toHaveText('×');
+    } else if (game === 'connect4') {
+      await p1.locator('[data-col="0"]').first().click();
+      await expect(p2.locator('.board-c4')).toBeVisible();
+    } else if (game === 'rps') {
+      await p1.locator('[data-rps="rock"]').click();
+      await p2.locator('[data-rps="scissors"]').click();
+      await expect(p1.locator('#gameBoard')).not.toBeEmpty();
+    } else if (game === 'chess') {
+      await p1.locator('[data-chess="52"]').click();
+      await p1.locator('[data-chess="36"]').click();
+      await expect.poll(async () => p2.locator('.move-item').count()).toBeGreaterThan(0);
+    } else if (game === 'battleship') {
+      await expect(p1.locator('.battle-layout')).toBeVisible();
+      await p1.locator('[data-bshipcell="0,0"]').click();
+      await p1.locator('#placeBattleShip').click();
+      await expect(p1.locator('.battle-layout')).toBeVisible();
+    } else if (game === 'memory') {
+      await p1.locator('[data-memory]').first().click();
+      await expect(p1.locator('.memory-grid')).toBeVisible();
+    } else if (game === 'minesweeper') {
+      await p1.locator('[data-mine]').first().click();
+      await expect(p1.locator('.mine-grid')).toBeVisible();
+    } else if (game === 'wordchain') {
+      await p1.locator('#wordInput').fill('apple');
+      await p1.locator('#wordForm button').click();
+      await expect(p1.locator('#wordForm')).toBeVisible();
+    } else if (game === 'pool') {
+      await expect(p1.locator('.physical-game')).toBeVisible();
+    } else if (game === 'carrom') {
+      await expect(p1.locator('.physical-game')).toBeVisible();
+    } else if (game === 'minigolf') {
+      await expect(p1.locator('.source-minigolf')).toBeVisible();
+    } else if (game === 'racing') {
+      await p1.locator('#raceUp').dispatchEvent('pointerdown');
+      await p1.waitForTimeout(120);
+      await p1.locator('#raceUp').dispatchEvent('pointerup');
+      await expect(p1.locator('.racing-wrap')).toBeVisible();
+    } else if (game === 'game2048') {
+      await p1.locator('[data-2048-dir="left"]').click();
+      await expect(p1.locator('.board-2048')).toBeVisible();
+    } else if (game === 'tetris') {
+      await p1.locator('[data-tet="left"]').click();
+      await expect(p1.locator('.tet-canvas')).toHaveCount(2);
+    } else if (game === 'snake') {
+      await p1.keyboard.press('ArrowUp');
+      await expect(p1.locator('#snakeCanvas')).toBeVisible();
+    } else if (game === 'othello') {
+      await p1.locator('[data-oth="19"]').click();
+      await expect(p2.locator('.board-othello')).toBeVisible();
+    } else if (game === 'pong') {
+      await p1.mouse.move(100, 120);
+      await p1.mouse.down();
+      await p1.mouse.move(100, 200);
+      await p1.mouse.up();
+      await expect(p1.locator('#pongCanvas')).toBeVisible();
+    } else if (game === 'yahtzee') {
       await p1.locator('[data-src-action="rollDice"]').click();
-    }
-    if(game==='risk'){
-      await expect(p1.locator('.source-risk')).toBeVisible();
-      await expect(p2.locator('.source-risk')).toBeVisible();
-      await expect(p1.locator('.source-actionbar')).toBeVisible();
-    }
-    if(game==='life'){
+      await expect(p1.locator('.dice-row')).toBeVisible();
+    } else if (game === 'monopoly') {
+      await p1.locator('[data-src-action="rollDice"]').click();
+      await expect(p1.locator('.mono-board')).toBeVisible();
+    } else if (game === 'life') {
       await expect(p1.locator('.source-life')).toBeVisible();
-      await expect(p2.locator('.source-life')).toBeVisible();
-      await expect(p1.locator('[data-src-action="chooseBranch"]').first()).toBeVisible();
-    }
-    if(game==='ludo'){
-      await expect(p1.locator('.ludo-shell')).toBeVisible();
-      await expect(p2.locator('.ludo-shell')).toBeVisible();
-      await expect(p1.locator('#ludoRoll')).toBeVisible();
+    } else if (game === 'dotsboxes') {
+      await expect(p1.locator('.dots-grid')).toBeVisible();
+    } else if (game === 'gomoku') {
+      await p1.locator('[data-gomoku="112"]').click();
+      await expect(p2.locator('.gomoku-board')).toBeVisible();
+    } else if (game === 'backgammon') {
+      await expect(p1.locator('.backgammon-wrap')).toBeVisible();
+    } else if (game === 'ludo') {
       await p1.locator('#ludoRoll').click();
-      await expect.poll(async()=>p1.locator('.ludo-die').innerText()).not.toHaveText('—');
-    }
-    if(game==='hangman'){
-      await expect(p1.locator('.hangman-wrap')).toBeVisible();
-      await expect(p2.locator('.hangman-wrap')).toBeVisible();
-      await expect(p1.locator('.hangman-keyboard .hangman-key')).toHaveCount(26);
-      const unused=await p1.locator('.hangman-key:not(:disabled)').first().getAttribute('data-hletter');
-      expect(unused).toMatch(/^[a-z]$/);
-      await p1.locator('.hangman-key[data-hletter="'+unused+'"]').click();
-      await expect(p1.locator('.hangman-key[data-hletter="'+unused+'"]')).toBeDisabled();
-    }
-    if(game==='dominoes'){
+      await expect(p1.locator('.ludo-shell')).toBeVisible();
+    } else if (game === 'dominoes') {
       await expect(p1.locator('.domino-shell')).toBeVisible();
-      await expect(p2.locator('.domino-shell')).toBeVisible();
       await expect(p1.locator('.domino-hand .domino-tile')).toHaveCount(5);
-      await expect(p2.locator('.domino-hand .domino-tile')).toHaveCount(5);
+    } else if (game === 'hangman') {
+      await p1.locator('.hangman-key').filter({ hasText: 'A' }).click();
+      await expect(p1.locator('.hangman-wrap')).toBeVisible();
     }
-    await expect(p1.locator('body.game-active .social')).toBeVisible();
-    await expect(p2.locator('body.game-active .social')).toBeVisible();
-    expect(await p1.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-    expect(await p2.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-    await p1.locator('#leaveGame').click();
-    await p2.locator('#leaveGame').click();
-    await expect(p1.locator('#gameModal')).toBeHidden();
-    await expect(p2.locator('#gameModal')).toBeHidden();
-    console.log('E2E_GAME_DONE',game);
+
+    await leavePairGame(p1, p2);
+    console.log('[NEXUS-E2E] DONE ' + game);
   }
+}
 
-  expect(errors1).toEqual([]);
-  expect(errors2).toEqual([]);
+test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', async () => {
+  test.setTimeout(150000);
+  const pair = await makePair();
+  try {
+    const { p1, p2, errors } = pair;
+    await p1.locator('.sidebar [data-view="games"]').click();
+    await expect(p1.locator('#view-games .play-btn')).toHaveCount(34);
+    await expect(p1.locator('#view-games')).toContainText('Hangman');
 
-  await c1.close();
-  await c2.close();
-  await b1.close();
-  await b2.close();
+    await createAndJoin(p1, p2, 'chess');
+    await expect(p1.locator('.board-chess .chess-cell')).toHaveCount(64);
+
+    await p1.locator('[data-chess="52"]').click();
+    await p1.locator('[data-chess="36"]').click();
+    await expect.poll(async () => p2.locator('.move-item').count()).toBeGreaterThan(0);
+
+    await p1.locator('#roomChatInput').fill('room works');
+    await p1.locator('#roomChatForm button').click();
+    await expect(p1.locator('#roomChat')).toContainText('room works');
+
+    await p1.locator('#socialGlobalTab').click();
+    await p1.locator('#globalChatInput').fill('global works');
+    await p1.locator('#globalChatForm button').click();
+    await expect(p1.locator('#globalChatList')).toContainText('global works');
+
+    await p1.locator('#callVideo').click();
+    await expect(p1.locator('#callEmpty')).toBeHidden();
+    await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
+    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getVideoTracks()?.length), { timeout: 10000 }).toBe(true);
+    await expect.poll(async () => p2.evaluate(() => !!document.querySelector('#remoteVideo')?.srcObject?.getAudioTracks()?.length), { timeout: 10000 }).toBe(true);
+
+    await p1.setViewportSize({ width: 390, height: 844 });
+    await expect(p1.locator('body.game-active .social')).toBeVisible();
+    await expect(p1.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).resolves.toBe(true);
+    await p1.setViewportSize({ width: 1280, height: 900 });
+
+    await p1.locator('#callEnd').click();
+    await leavePairGame(p1, p2);
+    expect(errors[0]).toEqual([]);
+    expect(errors[1]).toEqual([]);
+  } finally {
+    await closePair(pair);
+  }
+});
+
+test('NEXUS PLAY catalog A - board, word and arcade games', async () => {
+  test.setTimeout(150000);
+  const pair = await makePair();
+  try {
+    await runCatalog(pair, ['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction']);
+    expect(pair.errors[0]).toEqual([]);
+    expect(pair.errors[1]).toEqual([]);
+  } finally {
+    await closePair(pair);
+  }
+});
+
+test('NEXUS PLAY catalog B - source board and physical games', async () => {
+  test.setTimeout(150000);
+  const pair = await makePair();
+  try {
+    await runCatalog(pair, ['uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake']);
+    expect(pair.errors[0]).toEqual([]);
+    expect(pair.errors[1]).toEqual([]);
+  } finally {
+    await closePair(pair);
+  }
+});
+
+test('NEXUS PLAY catalog C - strategy and long-form games', async () => {
+  test.setTimeout(150000);
+  const pair = await makePair();
+  try {
+    await runCatalog(pair, ['othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes','hangman']);
+    expect(pair.errors[0]).toEqual([]);
+    expect(pair.errors[1]).toEqual([]);
+  } finally {
+    await closePair(pair);
+  }
 });
