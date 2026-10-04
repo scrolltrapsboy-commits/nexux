@@ -47,6 +47,7 @@ async function createAndJoin(p1, p2, game) {
   await p1.locator('#gamesRoom').click();
   await p1.locator(`[data-create="${game}"]`).click();
   await expect(p1.locator('#gameModal')).toBeVisible();
+  await expect(p1.locator('#gameBoard .room-code-big')).toBeVisible({timeout:10000});
   const text = await p1.locator('#gameBoard').innerText();
   const code = (text.match(/[A-Z0-9]{6}/) || [])[0];
   expect(code).toBeTruthy();
