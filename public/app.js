@@ -581,7 +581,9 @@ function setCallUI(){['callVideo','mobileCallVideo'].forEach(id=>$('#'+id)?.clas
 async function startCall(video){
  const st=await ensureMedia(video);if(!st)return;
  state.call.started=true;
- const peers=callPeers();if(!peers.length)return toast('Your opponent is not connected to the call yet');
+ const peers=callPeers();
+ window.__nexusCall={me:state.me?.id||null,room:state.room?.code||null,players:(state.room?.players||[]).map(p=>p.id),peers,video:!!st.getVideoTracks().length,audio:!!st.getAudioTracks().length};
+ if(!peers.length)return toast('Your opponent is not connected to the call yet');
  for(const id of peers)await makePeer(id,true);
  setCallUI();
 }
