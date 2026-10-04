@@ -76,7 +76,7 @@ function sourceMancalaMove(s,i,m={}){
     syncState(s,game,mancala);
     s.phase='finished';
     if(winner===0)return{draw:true,reason:'source Mancala draw'};
-    const winnerIndex=winner===1?s.turn:other(s.turn);
+    const winnerIndex=winner===1?(s.turn===0?0:1):(s.turn===0?1:0);
     s.winner=winnerIndex;
     return{winner:winnerIndex,reason:'source Mancala game over'};
   }
