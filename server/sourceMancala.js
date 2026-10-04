@@ -27,7 +27,8 @@ function runtimeFromState(s){
     draw_stones(){},
     draw_all_stones(){}
   };
-  const m=new Runtime.Mancala(game);
+  const source=loadSource();
+  const m=new source.Mancala(game);
   m.current_pits=s.pits[s.turn].slice();
   m.other_pits=s.pits[other(s.turn)].slice();
   m.current_store=Number(s.stores[s.turn]||0);
