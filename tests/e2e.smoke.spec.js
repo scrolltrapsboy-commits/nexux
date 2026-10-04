@@ -12,7 +12,7 @@ const launchOptions = {
 };
 
 async function enterAsGuest(page) {
-  await page.goto('http://127.0.0.1:3000', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded' });
   await page.locator('#guest').click();
   await expect(page.locator('#app')).toBeVisible({timeout:15000});
 }
@@ -249,7 +249,17 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect(p1.locator('#globalChatList')).toContainText('global works');
 
     console.log('[NEXUS-E2E] core: start video');
-    await p1.locator('#callVideo').click();
+    await p1.locator('#callVideo').click({force:true});
+    await expect.poll(async () => p1.evaluate(() => ({
+      media: !!navigator.mediaDevices?.getUserMedia,
+      secure: window.isSecureContext,
+      hasStream: !!document.querySelector('#localVideo')?.srcObject,
+      tracks: document.querySelector('#localVideo')?.srcObject ? {
+        audio: document.querySelector('#localVideo').srcObject.getAudioTracks().length,
+        video: document.querySelector('#localVideo').srcObject.getVideoTracks().length
+      } : null,
+      empty: getComputedStyle(document.querySelector('#callEmpty')).display
+    })),{timeout:5000}).toMatchObject({media:true,secure:true,hasStream:true});
     await expect(p1.locator('#callEmpty')).toBeHidden();
     await expect.poll(async () => p1.evaluate(() => !!document.querySelector('#localVideo')?.srcObject?.getVideoTracks()?.length)).toBe(true);
     console.log('[NEXUS-E2E] core: local video');
