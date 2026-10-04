@@ -78,3 +78,18 @@ New games are not accepted as button-only placeholders. A new game must point to
 - Snapshots: third_party/source-games/hangman/script.js, word-list.js, LICENSE
 - NEXUS integration: server/sourceHangman.js
 - Source behavior retained: 37-word list, one-letter guessing, six maximum wrong guesses, reveal-all-matching-letters, victory/loss scoring.
+
+
+### Mini Golf — freegamestore-online/minigolf
+- Repository: https://github.com/freegamestore-online/minigolf
+- License: MIT
+- Snapshots: third_party/source-games/minigolf/types.ts, geometry.ts, physics.ts, holes.ts, LICENSE
+- NEXUS integration: server/sourceMiniGolf.js
+- Upstream functions executed: createBall, launchBall, stepBall, and the source course definitions.
+
+### Neon Circuit Racing — Steve-IX/Speed_Racer_Game
+- Repository: https://github.com/Steve-IX/Speed_Racer_Game
+- License: MIT
+- Snapshots: third_party/source-games/racing/car.js, track.js, LICENSE
+- NEXUS integration: server/sourceRacing.js
+- Upstream classes executed: Car and Track including checkpoints and lap progression.
