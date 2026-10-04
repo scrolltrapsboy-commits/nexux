@@ -154,7 +154,7 @@ async function runCatalog(pair, games) {
       await p1.locator('#flapBtn').click();
       await expect(p1.locator('#flappyCanvas')).toBeVisible();
     } else if (game === 'sudoku') {
-      await p1.locator('[data-sudoku]').filter({ hasNot: p1.locator('.given') }).first().click();
+      await p1.locator('button.sudoku-cell:not(.given)').first().click();
       await p1.locator('[data-snum="1"]').click();
       await expect(p1.locator('.sudoku-grid')).toBeVisible();
     } else if (game === 'yahtzee') {
