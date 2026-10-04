@@ -307,4 +307,30 @@ GAMES.racing=RACING_SOURCE;
 GAMES.reaction=REACTION_SOURCE;
 GAMES.hangman=HANGMAN_SOURCE;
 
+
+// Canonical upstream source manifest. Metadata is assigned after the final GAMES wiring so
+// every published catalog entry is traceable to a retained, licensed upstream implementation.
+const SOURCE_METADATA={
+ tictactoe:['kbennett2000/lan-games','MIT'],connect4:['bryanbraun/connect-four','MIT'],
+ rps:['assishmoncs/battlebox','MIT'],chess:['jhlywa/chess.js','BSD-2-Clause'],
+ checkers:['loks0n/rapid-draughts','MIT'],battleship:['kbennett2000/lan-games','MIT'],
+ memory:['assishmoncs/battlebox','MIT'],minesweeper:['absswds/GameNest','Apache-2.0'],
+ wordbattle:['assishmoncs/battlebox','MIT'],wordchain:['assishmoncs/battlebox','MIT'],
+ reaction:['assishmoncs/battlebox','MIT'],uno:['assishmoncs/battlebox','MIT'],
+ anagram:['assishmoncs/battlebox','MIT'],numberhunt:['assishmoncs/battlebox','MIT'],
+ speedtyping:['assishmoncs/battlebox','MIT'],pool:['henshmi/Classic-Pool-Game','MIT'],
+ carrom:['sasidharreddy-janke/Carrom-Game-','MIT'],minigolf:['freegamestore-online/minigolf','MIT'],
+ racing:['Steve-IX/Speed_Racer_Game','MIT'],game2048:['absswds/GameNest','Apache-2.0'],
+ tetris:['paulfxyz/tetris','MIT'],snake:['absswds/GameNest','Apache-2.0'],
+ othello:['rkendel1/ganes','MIT'],pong:['enricolucia/pong','MIT'],
+ yahtzee:['kbennett2000/lan-games','MIT'],monopoly:['kbennett2000/lan-games','MIT'],
+ risk:['kbennett2000/lan-games','MIT'],life:['kbennett2000/lan-games','MIT'],
+ dotsboxes:['gmetzker/DotBox','MIT'],gomoku:['lunatikek/Gomoku','MIT'],
+ backgammon:['quasoft/backgammonjs','MIT'],ludo:['chukwumaijem/ludo-game','MIT'],
+ dominoes:['ppyne/dominoes','BSD-3-Clause'],hangman:['tmatth11/hangman','MIT']
+};
+for(const [id,[sourceName,sourceLicense]] of Object.entries(SOURCE_METADATA)){
+ const g=GAMES[id];if(g){if(!g.sourceName)g.sourceName=sourceName;if(!g.sourceLicense)g.sourceLicense=sourceLicense}
+}
+
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
