@@ -8,6 +8,7 @@ const { Chess } = require('chess.js');
 const { EnglishDraughts } = require('rapid-draughts/english');
 const { Vector } = require('matter-js');
 const { LAN_GAMES } = require('./lanSourceGames');
+const {LUDO_SOURCE,DOMINOES_SOURCE}=require('./sourceBoardGames');
 
 const GAMES = {};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -292,5 +293,7 @@ const {TETRIS_SOURCE}=require('./sourceTetris');
 const {PONG_SOURCE}=require('./sourcePong');
 GAMES.tetris=TETRIS_SOURCE;
 GAMES.pong=PONG_SOURCE;
+GAMES.ludo=LUDO_SOURCE;
+GAMES.dominoes=DOMINOES_SOURCE;
 
 module.exports={GAMES,poolInit,poolShot,golfInit,golfMove,racingInit,sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove};
