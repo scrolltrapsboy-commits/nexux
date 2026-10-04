@@ -225,3 +225,42 @@ body.game-active .bottom-nav{display:none!important}
   .sudoku-grid,.sudoku-pad{width:min(94vw,620px)}
   .sudoku-pad{grid-template-columns:repeat(5,1fr)}
 }
+
+
+/* In-game social rail: never render the top-level rail outside a live game. */
+body>.social{display:none}
+body.game-active>.social{display:flex;overflow:hidden;min-height:0;pointer-events:auto}
+body.game-active>.social>*,body.game-active>.social #socialRoomPane,body.game-active>.social #socialGlobalPane,body.game-active>.social #socialFriendsPane{min-height:0}
+body.game-active>.social .chat-list{min-height:0;flex:1 1 auto;overflow:auto}
+body.game-active>.social .call-card{flex:0 0 auto}
+body.game-active>.social .social-tabs{flex:0 0 auto}
+body.game-active>.social .chat-form{flex:0 0 auto}
+
+/* Mancala — NEXUS Liquid Glass presentation; source rules stay in server/sourceMancala.js. */
+.mancala-shell{width:min(980px,100%);display:grid;gap:14px;margin:auto}
+.mancala-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015))}
+.mancala-head b{display:block;font-size:15px}.mancala-head span{display:block;color:#777;font-size:11px;margin-top:4px}
+.mancala-board{display:grid;grid-template-columns:110px minmax(0,1fr) 110px;gap:10px;align-items:stretch;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:28px;background:radial-gradient(circle at 50% 0,rgba(255,255,255,.07),transparent 42%),linear-gradient(145deg,#171717,#080808);box-shadow:0 30px 80px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+.mancala-rows{display:grid;grid-template-rows:1fr 1fr;gap:10px;padding:10px;border:1px solid rgba(255,255,255,.06);border-radius:22px;background:#070707}
+.mancala-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:stretch}
+.mancala-pit,.mancala-view-pit{min-width:0;min-height:110px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:radial-gradient(circle at 35% 30%,#222,#0c0c0c 68%);display:grid;place-items:center;align-content:center;gap:5px;color:#fff}
+.mancala-pit b,.mancala-view-pit b{font-size:28px;line-height:1}.mancala-pit span,.mancala-view-pit span{font-size:9px;color:#666;letter-spacing:.12em}
+.mancala-pit.playable{cursor:pointer;border-color:rgba(255,255,255,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 0 1px rgba(255,255,255,.04)}.mancala-pit.playable:hover{transform:translateY(-2px);border-color:#fff}
+.mancala-store{min-height:230px;border-radius:24px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,#141414,#080808);display:grid;place-items:center;align-content:center;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.mancala-store span{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.18em}.mancala-store b{font-size:42px}
+.mancala-rule{color:#666;font-size:11px;text-align:center;line-height:1.55;max-width:760px;margin:auto}
+@media(max-width:760px){
+ .mancala-board{grid-template-columns:64px minmax(0,1fr) 64px;gap:5px;padding:8px;border-radius:20px}
+ .mancala-rows{gap:5px;padding:5px;border-radius:16px}.mancala-row{gap:4px}
+ .mancala-pit,.mancala-view-pit{min-height:82px;border-radius:11px}.mancala-pit b,.mancala-view-pit b{font-size:20px}.mancala-pit span,.mancala-view-pit span{font-size:7px}
+ .mancala-store{min-height:168px;border-radius:16px}.mancala-store b{font-size:28px}
+ .mancala-rule{font-size:10px}
+}
+@media(max-width:390px){
+ .mancala-board{grid-template-columns:52px minmax(0,1fr) 52px}.mancala-pit,.mancala-view-pit{min-height:68px;border-radius:9px}.mancala-pit b,.mancala-view-pit b{font-size:17px}.mancala-store{min-height:140px}
+}
+
+/* Keep source canvases inside the game viewport on compact screens. */
+body.game-active #gameModal .source-arcade-shell .game-canvas{max-width:100%;height:min(64dvh,720px)}
+body.game-active #gameModal .canvas-wrap{max-width:100%}
+body.game-active #gameModal .game-canvas{max-width:100%}
