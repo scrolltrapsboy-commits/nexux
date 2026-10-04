@@ -240,7 +240,9 @@ test('NEXUS PLAY core full-screen shell, chat, calls and responsive layout', asy
     await expect(p1.locator('#roomChat')).toContainText('room works',{timeout:10000});
     console.log('[NEXUS-E2E] core: room chat received');
 
-    await p1.locator('#socialGlobalTab').click();
+    await expect(p1.locator('body.game-active>.social #socialGlobalTab')).toBeVisible({timeout:10000});
+    await p1.locator('body.game-active>.social #socialGlobalTab').click({force:true});
+    await expect(p1.locator('#socialGlobalPane')).toBeVisible({timeout:10000});
     await p1.locator('#globalChatInput').fill('global works');
     await p1.locator('#globalChatForm button').click();
     console.log('[NEXUS-E2E] core: global chat');
