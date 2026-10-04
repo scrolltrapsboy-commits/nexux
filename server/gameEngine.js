@@ -269,6 +269,8 @@ GAMES.pong={name:'Pong',category:'Arcade',players:2,init:pongInit,move:(s,i,m)=>
 /* -------------------------------------------------------------------------- */
 const {sourceConnectFourInit,sourceConnectFourMove,sourceDotsBoxesInit,sourceDotsBoxesMove,sourceCarromInit,sourceCarromMove,sourceCarromExactInit,sourceCarromExactMove,sourceGomokuInit,sourceGomokuMove,sourceBackgammonInit,sourceBackgammonMove,sourcePoolInit,sourcePoolMove}=require('./sourceGames');
 const {CLASSIC_SOURCE_GAMES}=require('./classicSourceGames');
+GAMES.tictactoe=LAN_GAMES.tictactoe;
+GAMES.battleship=LAN_GAMES.battleship;
 GAMES.yahtzee=LAN_GAMES.yahtzee;
 GAMES.monopoly=LAN_GAMES.monopoly;
 GAMES.risk=LAN_GAMES.risk;
