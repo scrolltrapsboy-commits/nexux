@@ -510,36 +510,49 @@ async function getUserMediaForCall(constraints){
   if(!isE2EMedia())return get();
   return Promise.race([get(),new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(new Error('E2E media timeout'),{name:'E2EMediaTimeout'})),2200))]);
 }
+function isE2EMedia(){return new URLSearchParams(location.search).get('e2eMedia')==='1'}
+function syntheticMedia(video){
+ const tracks=[];let stopped=false;
+ const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;const ctx=canvas.getContext('2d');const t0=performance.now();
+ const draw=()=>{if(stopped)return;const t=(performance.now()-t0)/1000;ctx.fillStyle='#050505';ctx.fillRect(0,0,640,360);ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.strokeRect(16,16,608,328);ctx.fillStyle='#fff';ctx.font='700 28px system-ui';ctx.fillText('NEXUS PLAY',34,66);ctx.font='500 20px system-ui';ctx.fillText('E2E MEDIA '+t.toFixed(1)+'s',34,102);ctx.beginPath();ctx.arc(320+Math.cos(t)*120,205+Math.sin(t*1.1)*70,34,0,Math.PI*2);ctx.stroke();requestAnimationFrame(draw)};draw();
+ if(video){const vs=canvas.captureStream(15);tracks.push(...vs.getVideoTracks())}
+ let audioContext=null,osc=null;
+ try{audioContext=new (window.AudioContext||window.webkitAudioContext)();const dest=audioContext.createMediaStreamDestination();const gain=audioContext.createGain();gain.gain.value=0;osc=audioContext.createOscillator();osc.connect(gain).connect(dest);osc.start();tracks.push(...dest.stream.getAudioTracks());audioContext.resume().catch(()=>{})}catch{}
+ const stream=new MediaStream(tracks);
+ state.call.syntheticCleanup=()=>{stopped=true;tracks.forEach(t=>t.stop());try{osc?.stop()}catch{};audioContext?.close().catch(()=>{})};
+ return stream;
+}
+async function getCallMedia(constraints){
+ if(!isE2EMedia())return navigator.mediaDevices.getUserMedia(constraints);
+ return Promise.race([navigator.mediaDevices.getUserMedia(constraints),new Promise((_,reject)=>setTimeout(()=>reject(new DOMException('Test media timeout','AbortError')),2200))]);
+}
 async function ensureMedia(video){
  if(state.call.stream){
   if(video&&!state.call.stream.getVideoTracks().length){
    try{
-    const extra=await getUserMediaForCall({video:true});
+    const extra=await getCallMedia({video:true});
     for(const t of extra.getVideoTracks()){
       state.call.stream.addTrack(t);
       for(const [id,pc] of state.call.peers){
         const sender=pc.getSenders().find(s=>s.track?.kind==='video');
-        if(sender) await sender.replaceTrack(t); else pc.addTrack(t,state.call.stream);
+        if(sender)await sender.replaceTrack(t);else pc.addTrack(t,state.call.stream);
         renegotiatePeer(id,pc);
       }
     }
     state.call.video=!!state.call.stream.getVideoTracks().length;$('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
    }catch(err){
-    if(isE2EMedia()){
-      const extra=makeSyntheticMedia(true);extra.getVideoTracks().forEach(t=>{state.call.stream.addTrack(t);for(const pc of state.call.peers.values())pc.addTrack(t,state.call.stream)});state.call.video=true;$('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
-    }else{document.body.dataset.mediaError=err?.name||'MediaError';console.warn('[NEXUS MEDIA]',err?.name||'MediaError',err?.message||'');toast('Camera permission is required for video')}
+    if(isE2EMedia()){const extra=syntheticMedia(true);for(const t of extra.getVideoTracks()){state.call.stream.addTrack(t);for(const pc of state.call.peers.values())pc.addTrack(t,state.call.stream)}state.call.video=true;$('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none'}
+    else{document.body.dataset.mediaError=err?.name||'MediaError';console.warn('[NEXUS MEDIA]',err?.name||'MediaError',err?.message||'');toast('Camera permission is required for video')}
    }
   }
   return state.call.stream;
  }
- try{
-  state.call.stream=await getUserMediaForCall({audio:true,video:!!video});
- }catch(err){
-  if(isE2EMedia())state.call.stream=makeSyntheticMedia(!!video);
+ try{state.call.stream=await getCallMedia({audio:true,video:!!video})}
+ catch(err){
+  if(isE2EMedia())state.call.stream=syntheticMedia(!!video);
   else{document.body.dataset.mediaError=err?.name||'MediaError';console.warn('[NEXUS MEDIA]',err?.name||'MediaError',err?.message||'');toast(video?'Allow microphone and camera permission to start video':'Allow microphone permission to start voice');return null}
  }
- state.call.video=!!state.call.stream.getVideoTracks().length;
- state.call.audio=!!state.call.stream.getAudioTracks().length;
+ state.call.video=!!state.call.stream.getVideoTracks().length;state.call.audio=!!state.call.stream.getAudioTracks().length;
  $('#localVideo').srcObject=state.call.stream;$('#callEmpty').style.display='none';
  return state.call.stream;
 }
