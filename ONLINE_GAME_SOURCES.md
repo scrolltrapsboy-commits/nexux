@@ -119,3 +119,9 @@ Note: the upstream source is a single-player Canvas arcade collection. NEXUS wra
 - Exact rule snapshots retained at: `third_party/source-games/mancala/mancala.js`, `move-stones.js`, `check-winner.js`
 - NEXUS adapter: `server/sourceMancala.js`
 - The upstream sowing, extra-turn, capture, and end-of-game rule methods execute unchanged inside an isolated server runtime; NEXUS only supplies the multiplayer state bridge and presentation.
+
+
+## GameNest direct source additions
+
+- Chinese Chess: `https://github.com/absswds/GameNest/blob/master/games/chinesechess.js` — Apache-2.0; exact upstream source retained at `third_party/source-games/gamenest/chinesechess.js` and executed by `server/sourceGameNestExtras.js`.
+- Go 9×9: `https://github.com/absswds/GameNest/blob/master/games/go9.js` — Apache-2.0; exact upstream source retained at `third_party/source-games/gamenest/go9.js` and executed by `server/sourceGameNestExtras.js`.
