@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { chromium, test, expect } = require('@playwright/test');
 
 test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--allow-loopback-in-peer-connection', '--autoplay-policy=no-user-gesture-required'] } });
 
@@ -8,11 +8,14 @@ async function enterAsGuest(page, url='http://127.0.0.1:3000') {
   await expect(page.locator('#app')).toBeVisible();
 }
 
-test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
+test('NEXUS PLAY production UI and multiplayer smoke', async () => {
   const errors1 = [];
   const errors2 = [];
-  const c1 = await browser.newContext({ permissions: ['microphone', 'camera'] });
-  const c2 = await browser.newContext({ permissions: ['microphone', 'camera'] });
+  const launchOptions = {args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--allow-loopback-in-peer-connection','--autoplay-policy=no-user-gesture-required']};
+  const b1 = await chromium.launch(launchOptions);
+  const b2 = await chromium.launch(launchOptions);
+  const c1 = await b1.newContext({ permissions: ['microphone', 'camera'] });
+  const c2 = await b2.newContext({ permissions: ['microphone', 'camera'] });
   const p1 = await c1.newPage();
   const p2 = await c2.newPage();
 
@@ -113,7 +116,7 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
   await expect(p1.locator('#gameModal')).toBeHidden();
   await expect(p2.locator('#gameModal')).toBeHidden();
 
-  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon'];
+  const allGames=['tictactoe','connect4','rps','chess','checkers','battleship','memory','minesweeper','wordbattle','wordchain','reaction','uno','anagram','numberhunt','speedtyping','pool','carrom','minigolf','racing','game2048','tetris','snake','othello','pong','yahtzee','monopoly','risk','life','dotsboxes','gomoku','backgammon','ludo','dominoes'];
   for(const game of allGames){
     await p1.locator('.sidebar [data-view="games"]').click();
     await p1.locator(`.play-btn[data-game="${game}"]`).click();
@@ -172,4 +175,6 @@ test('NEXUS PLAY production UI and multiplayer smoke', async ({ browser }) => {
 
   await c1.close();
   await c2.close();
+  await b1.close();
+  await b2.close();
 });
