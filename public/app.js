@@ -101,7 +101,7 @@ function renderBoard(r){const el=$('#gameBoard');const s=r.state;if(r.status!=='
  if(r.game==='wordchain'){return renderWordChain(el,s);}
  if(r.game==='wordbattle')return el.innerHTML=`<div style="text-align:center;width:min(480px,100%)"><div class="status-pill" style="display:inline-block">Target letter <b style="font-size:24px;color:#fff">${s.target.toUpperCase()}</b></div><h2>${s.score[0]} — ${s.score[1]}</h2><form id="wordForm"><input class="word-input" id="wordInput" placeholder="Type a word"><button class="primary" style="margin-top:8px">Submit word</button></form><p style="color:#666">Round ${s.round}/12</p></div>`,$('#wordForm').onsubmit=e=>{e.preventDefault();sendMove({word:$('#wordInput').value});$('#wordInput').value=''};
  if(r.game==='uno')return renderUno(el,s);
- if(r.game==='reaction')return el.innerHTML=`<div style="text-align:center"><div style="width:180px;height:180px;border-radius:50%;background:${s.phase==='armed'?'#fff':'#151515'};display:grid;place-items:center;color:${s.phase==='armed'?'#000':'#777'};font-size:16px;margin:auto">${s.phase==='armed'?'GO':'ARM'}</div><h2>${s.scores[0]} — ${s.scores[1]}</h2><button class="primary" id="reactionBtn">${s.phase==='armed'?'CLICK NOW':'ARM SIGNAL'}</button></div>`,$('#reactionBtn').onclick=()=>sendMove({});
+ if(r.game==='reaction'){const ready=s.phase==='armed';const waiting=s.phase==='waiting';return el.innerHTML=`<div class="source-board-shell reaction-shell"><div class="source-game-kicker">SOURCE ENGINE · BATTLEBOX REACTION</div><div class="reaction-orb ${ready?'go':''}">${ready?'GO!':waiting?'WAIT':'NEXT ROUND'}</div><div class="scoreline">You ${s.scores[meIndex()]??0} — Opponent ${s.scores[1-meIndex()]??0}</div><button class="primary" id="reactionBtn" ${ready?'':'disabled'}>${ready?'CLICK NOW':'WAITING FOR SIGNAL'}</button><p class="game-note">First valid click after GO wins the round.</p></div>`;$('#reactionBtn').onclick=()=>sendMove({});}
  if(['pool','carrom','minigolf'].includes(r.game))return renderCanvasGame(el,r);
  if(r.game==='racing')return renderRace(el,r);
  if(r.game==='pong')return renderPong(el,r);
@@ -271,6 +271,7 @@ function renderChess(el,s){
  });
  $('#offerDraw').onclick=()=>state.socket.emit('drawOffer');$('#resignChess').onclick=()=>state.socket.emit('resign');
 }
+function meIndex(){return state.room?state.room.players.findIndex(p=>p.id===state.me.id):0}
 function toSquare(i){return 'abcdefgh'[i%8]+(8-Math.floor(i/8))}
 function squareIndex(sq){return (8-Number(sq[1]))*8+'abcdefgh'.indexOf(sq[0])}
 function renderCheckers(el,s){
