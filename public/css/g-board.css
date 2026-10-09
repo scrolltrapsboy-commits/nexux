@@ -304,7 +304,7 @@
 }
 /* Match actual Reversi/Gomoku state classes emitted by their game clients. */
 .rg-board .rc.fl .dk { animation: gb-disc-flip .34s ease-in-out both; }
-.rg-board .rc.last .dk { animation: gb-disc-place .24s cubic-bezier(.2,.8,.2,1) both; }
+/* New discs animate once; .last is only a persistent move marker. */
 .mg-board .gc.new .st { animation: gb-stone-place .24s cubic-bezier(.2,.8,.2,1) both; }
 .mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) {
