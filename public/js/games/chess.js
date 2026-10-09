@@ -129,7 +129,7 @@ export default {
           const had = e._p; e._p = p; e.querySelectorAll('svg').forEach(x => x.remove());
           if (p) { e.insertAdjacentHTML('afterbegin', svgOf(p)); }
           e.setAttribute('aria-label', sqName(i) + (p ? ', ' + (isWhite(p) ? 'white ' : 'black ') + NAMES[p.toLowerCase()] : ', empty'));
-          if (had !== undefined && last[1] === i) { e.classList.add('pop'); setTimeout(() => e.classList.remove('pop'), 260); }
+          if (had !== undefined && last[1] === i) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
         }
         const t = tg.has(i);
         e.classList.toggle('last', last.includes(i)); e.classList.toggle('chk', i === king); e.classList.toggle('sel', i === sel);

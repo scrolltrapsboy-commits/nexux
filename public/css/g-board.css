@@ -163,3 +163,188 @@
 @container (max-height:420px) and (max-aspect-ratio:5/4){
   .bs-battle .bsb.big{--s:min(calc(100cqw - 4px),calc(100cqh - var(--m) - var(--cap)*2 - 14px))}
 }
+
+
+/* Game-specific board motion: chess and checkers. */
+.cg-board .sq, .kg-board .kc {
+  transition: background-color .16s ease, box-shadow .16s ease;
+}
+.cg-board .sq svg, .kg-board .kc .pc {
+  transform-origin: center;
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), opacity .14s ease,
+              filter .18s ease;
+}
+.cg-board .sq.pop svg, .kg-board .kc .pc.can {
+  animation: gb-piece-arrive .2s cubic-bezier(.2,.8,.2,1) both;
+}
+.cg-board .sq.sel, .kg-board .kc.sel {
+  animation: gb-square-select .22s ease-out both;
+}
+.cg-board .sq.tg.cap::after, .kg-board .kc.tg.cap::after {
+  animation: gb-capture-ring .55s ease-in-out infinite alternate;
+}
+.cg-board .sq.chk {
+  animation: gb-check-alert .7s ease-in-out infinite alternate;
+}
+.kg-board .kc .pc.k {
+  animation: gb-king-crown .38s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes gb-piece-arrive {
+  0% { opacity: .55; transform: scale(.72); }
+  75% { opacity: 1; transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes gb-square-select {
+  from { box-shadow: inset 0 0 0 0 transparent; }
+  to { box-shadow: inset 0 0 0 3px rgba(255,255,255,.55); }
+}
+@keyframes gb-capture-ring {
+  from { transform: scale(.94); opacity: .65; }
+  to { transform: scale(1.03); opacity: 1; }
+}
+@keyframes gb-check-alert {
+  from { filter: brightness(.85); }
+  to { filter: brightness(1.3); }
+}
+@keyframes gb-king-crown {
+  0% { transform: scale(.6) rotate(-8deg); }
+  70% { transform: scale(1.16) rotate(3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cg-board .sq, .kg-board .kc, .cg-board .sq svg, .kg-board .kc .pc {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* Reversi and Gomoku: animate newly placed stones and flips. */
+.rg-board .rc {
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.rg-board .rc .dk {
+  display: block;
+  transform-origin: center;
+  transition: transform .24s cubic-bezier(.2,.8,.2,1), background-color .24s ease,
+              box-shadow .24s ease;
+}
+.rg-board .rc.fresh .dk { animation: gb-disc-place .26s cubic-bezier(.2,.8,.2,1) both; }
+.rg-board .rc.flip .dk { animation: gb-disc-flip .34s ease-in-out both; }
+.rg-board .rc.lg { box-shadow: inset 0 0 0 2px rgba(255,255,255,.24); }
+.mg-board .gc {
+  transition: background-color .14s ease, box-shadow .14s ease;
+}
+.mg-board .gc .st {
+  transform-origin: center;
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), opacity .16s ease;
+}
+.mg-board .gc.fresh .st { animation: gb-stone-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
+@keyframes gb-disc-place {
+  0% { opacity: .35; transform: scale(.4); }
+  75% { opacity: 1; transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes gb-disc-flip {
+  0% { transform: rotateY(0) scale(1); }
+  50% { transform: rotateY(90deg) scale(.78); }
+  100% { transform: rotateY(180deg) scale(1); }
+}
+@keyframes gb-stone-place {
+  0% { opacity: .2; transform: scale(.25); }
+  72% { opacity: 1; transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+@keyframes gb-stone-win {
+  from { filter: brightness(1); transform: scale(1); }
+  to { filter: brightness(1.45); transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rg-board .rc, .rg-board .rc .dk, .mg-board .gc, .mg-board .gc .st {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* Battleship: fire feedback, impact markers, and ship placement polish. */
+.bs-grid .bc {
+  transition: background-color .16s ease, box-shadow .16s ease, filter .16s ease,
+              transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.bs-grid .bc.fire:not(:disabled):hover { transform: scale(.96); filter: brightness(1.18); }
+.bs-grid .bc.ship.ship-pop { animation: gb-ship-place .22s cubic-bezier(.2,.8,.2,1) both; }
+.bs-grid .bc.hit .mk { animation: gb-shot-hit .38s ease-out both; }
+.bs-grid .bc.miss .mk { animation: gb-shot-miss .3s ease-out both; }
+.bs-grid .bc.lastshot.shot-pop { animation: gb-last-shot .45s ease-out both; }
+.bs-ship.on { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.16); }
+.bs-ship.done::after { animation: gb-ready-mark .22s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes gb-ship-place {
+  0% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+@keyframes gb-shot-hit {
+  0% { opacity: .25; transform: scale(.4) rotate(-15deg); }
+  65% { opacity: 1; transform: scale(1.2) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes gb-shot-miss {
+  0% { opacity: .2; transform: scale(.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes gb-last-shot {
+  0% { box-shadow: inset 0 0 0 0 transparent; }
+  55% { box-shadow: inset 0 0 0 3px rgba(255,255,255,.85); }
+  100% { box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 3.5px #fff; }
+}
+@keyframes gb-ready-mark {
+  from { opacity: 0; transform: scale(.3); }
+  to { opacity: .8; transform: scale(1); }
+}
+/* Match actual Reversi/Gomoku state classes emitted by their game clients. */
+.rg-board .rc.fl .dk { animation: gb-disc-flip .34s ease-in-out both; }
+/* New discs animate once; .last is only a persistent move marker. */
+.mg-board .gc.new .st { animation: gb-stone-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .bs-grid .bc, .bs-grid .bc.ship, .bs-grid .bc.hit .mk, .bs-grid .bc.miss .mk,
+  .bs-grid .bc.lastshot, .bs-grid .bc.ship-pop, .bs-grid .bc.shot-pop, .bs-ship.on, .bs-ship.done::after,
+  .rg-board .rc.fl .dk, .rg-board .rc.last .dk, .mg-board .gc.new .st,
+  .mg-board .gc.win .st {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* Checkers: animate a piece only when the board state changes its square. */
+.kg-board .kc .pc.pop{animation:gb-checker-move .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes gb-checker-move{
+  0%{opacity:.55;transform:translateY(-7px) scale(.72)}
+  72%{opacity:1;transform:translateY(1px) scale(1.1)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@media (prefers-reduced-motion:reduce){.kg-board .kc .pc.pop{animation:none!important}}
+
+
+/* Gomoku: briefly draw attention to the latest move without changing the stone. */
+.mg-board .gc.last i.st::after {
+  animation: gb-gomoku-last-ring .48s cubic-bezier(.16,.75,.3,1) both;
+}
+@keyframes gb-gomoku-last-ring {
+  0% { transform: scale(.45); opacity: .25; }
+  55% { transform: scale(1.22); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-board .gc.last i.st::after { animation: none; }
+}
+
+
+/* Battleship: animate only the newly reported impact, not every old shot on rerender. */
+.bs-grid .bc.impact.hit .mk { animation: gb-shot-hit .38s ease-out both; }
+.bs-grid .bc.impact.miss .mk { animation: gb-shot-miss .3s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .bs-grid .bc.impact.hit .mk, .bs-grid .bc.impact.miss .mk { animation: none; }
+}

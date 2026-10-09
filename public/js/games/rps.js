@@ -11,16 +11,19 @@ export default {
     const btns = ['rock', 'paper', 'scissors'].map(k => h('button', { class: 'rps-b', 'aria-label': k, onclick: () => api.move({ pick: k }) }, hand(k), h('span', null, k)));
     const info = h('div', { class: 'rps-info' });
     el.append(h('div', { class: 'rps' }, info, reveal, h('div', { class: 'rps-btns' }, btns)));
-    let lastRound = 0;
+    let lastRound = 0, lastReveal = '';
     return {
       update(R) {
         const s = R.state, me = R.youIdx, mine = me >= 0 ? s.picks[me] : null;
         info.textContent = 'Round ' + s.round + (s.last ? (s.last.w < 0 ? ' · last round tied' : ' · ' + api.name(s.last.w) + ' took the last round') : '');
         btns.forEach(b => { b.disabled = me < 0 || !!mine || R.status !== 'playing'; b.classList.toggle('sel', mine === b.getAttribute('aria-label')); });
-        reveal.replaceChildren();
-        if (s.last && !mine && s.round !== lastRound) { /* show previous round briefly */ }
-        if (s.last) reveal.append(h('div', { class: 'rps-pair' }, ...s.last.picks.map((k, i) => h('div', { class: 'rps-slot' + (s.last.w === i ? ' w' : '') }, hand(k), h('small', null, api.name(i))))));
-        else reveal.append(h('div', { class: 'muted' }, 'Both players lock in at the same time.'));
+        const revealKey = s.last ? (s.round - 1) + ':' + s.last.picks.join(':') + ':' + s.last.w : 'empty';
+        if (revealKey !== lastReveal) {
+          reveal.replaceChildren();
+          if (s.last) reveal.append(h('div', { class: 'rps-pair' }, ...s.last.picks.map((k, i) => h('div', { class: 'rps-slot' + (s.last.w === i ? ' w' : '') }, hand(k), h('small', null, api.name(i))))));
+          else reveal.append(h('div', { class: 'muted' }, 'Both players lock in at the same time.'));
+          lastReveal = revealKey;
+        }
         if (s.round !== lastRound) { if (lastRound) api.sfx('move'); lastRound = s.round; }
       }, destroy() {},
     };

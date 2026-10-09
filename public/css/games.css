@@ -39,3 +39,86 @@ button[disabled].keep{opacity:1}
 .rps-b.sel{background:var(--solid);color:var(--on-solid)}
 .rps-b:disabled:not(.sel){opacity:.5}
 .rps-b .rps-h{width:clamp(36px,8cqh,64px);height:clamp(36px,8cqh,64px)}
+
+
+/* Game-specific interaction polish: Tic-Tac-Toe and Connect Four. */
+.ttt-c {
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), background-color .18s ease,
+              box-shadow .18s ease, color .18s ease;
+}
+.ttt-c:not(.f):not(:disabled):active { transform: scale(.92); }
+.ttt-c.f svg { transform-origin: center; animation: nx-mark-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.ttt-c.win { animation: nx-ttt-win .7s ease-in-out infinite alternate; }
+.c4-cell { transition: filter .18s ease, box-shadow .18s ease; }
+.c4-cell.drop { animation: nx-c4-drop .42s cubic-bezier(.4,.1,.5,1.1) both; }
+.c4-cell.win { animation: nx-c4-win .65s ease-in-out infinite alternate; }
+.c4-col:not(:disabled):hover .c4-cell:not(.d0):not(.d1) { filter: brightness(1.35); }
+@keyframes nx-mark-place {
+  0% { opacity: 0; transform: scale(.35) rotate(-12deg); }
+  72% { opacity: 1; transform: scale(1.12) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes nx-ttt-win {
+  from { box-shadow: inset 0 1px 0 var(--hi); filter: brightness(1); }
+  to { box-shadow: inset 0 0 0 2px var(--hi), 0 0 18px rgba(255,255,255,.18); filter: brightness(1.12); }
+}
+@keyframes nx-c4-drop {
+  0% { transform: translateY(-420%); }
+  78% { transform: translateY(5%); }
+  100% { transform: translateY(0); }
+}
+@keyframes nx-c4-win {
+  from { filter: brightness(1); transform: scale(1); }
+  to { filter: brightness(1.35); transform: scale(.92); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ttt-c, .ttt-c.f svg, .ttt-c.win, .c4-cell, .c4-cell.drop, .c4-cell.win {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* Rock Paper Scissors: animate each round reveal and selection. */
+.rps-slot { animation: nx-rps-reveal .32s cubic-bezier(.2,.8,.2,1) both; }
+.rps-slot:nth-child(2) { animation-delay: .06s; }
+.rps-slot.w { animation: nx-rps-win .55s ease-in-out infinite alternate; }
+.rps-h svg { transform-origin: center; animation: nx-rps-hand .3s cubic-bezier(.2,.8,.2,1) both; }
+.rps-b { transition: transform .16s cubic-bezier(.2,.8,.2,1), background-color .16s ease, box-shadow .16s ease; }
+.rps-b:not(:disabled):active { transform: scale(.94); }
+.rps-b.sel { box-shadow: inset 0 0 0 2px var(--hi), 0 0 16px rgba(255,255,255,.12); }
+@keyframes nx-rps-reveal {
+  from { opacity: 0; transform: translateY(10px) scale(.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes nx-rps-win {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.18); }
+}
+@keyframes nx-rps-hand {
+  0% { opacity: 0; transform: scale(.7) rotate(-8deg); }
+  75% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rps-slot, .rps-slot:nth-child(2), .rps-slot.w, .rps-h svg, .rps-b {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* Tic-Tac-Toe: the placed marker animates once when its square changes, not on every redraw. */
+.ttt-c.placed svg{animation:nx-ttt-place-once .28s cubic-bezier(.2,.8,.2,1) both}
+.ttt-c.placed{animation:nx-ttt-cell-place .24s ease-out both}
+@keyframes nx-ttt-place-once{
+  0%{opacity:0;transform:scale(.35) rotate(-12deg)}
+  72%{opacity:1;transform:scale(1.12) rotate(2deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes nx-ttt-cell-place{
+  0%{box-shadow:inset 0 0 0 0 var(--hi)}
+  60%{box-shadow:inset 0 0 0 2px var(--hi)}
+  100%{box-shadow:inset 0 1px 0 var(--hi)}
+}
+@media (prefers-reduced-motion:reduce){.ttt-c.placed,.ttt-c.placed svg{animation:none!important}}

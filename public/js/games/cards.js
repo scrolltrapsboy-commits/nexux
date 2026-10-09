@@ -27,7 +27,7 @@ export default {
     const opp = h('div', { class: 'nc-opp' }), mid = h('div', { class: 'nc-mid' }), note = h('div', { class: 'nc-note', 'aria-live': 'polite' }), hand = h('div', { class: 'nc-hand', role: 'group', 'aria-label': 'Your hand' }), acts = h('div', { class: 'nc-acts' });
     const root = h('div', { class: 'nc' }, opp, mid, note, h('div', { style: { display: 'grid' } }, hand, acts));
     el.append(root);
-    let lastSeq = -1, pick = null;
+    let lastSeq = null, pick = null;
     const choose = idx => new Promise(res => {
       pick = h('div', { class: 'nc-pick', role: 'dialog', 'aria-label': 'Choose a mark' }, h('div', { class: 'glass' }, h('b', null, 'Choose the next mark'), h('div', { class: 'row4' }, [0, 1, 2, 3].map(m => h('button', { class: 'mkb', 'aria-label': MKN[m], onclick: () => { pick.remove(); pick = null; res(m); } }, mk(m)))), h('button', { class: 'btn sm', onclick: () => { pick.remove(); pick = null; res(-1); } }, 'Cancel')));
       el.append(pick);
@@ -39,8 +39,8 @@ export default {
           h('div', { class: 'nc-fan', 'aria-label': p.name + ' has ' + s.counts[i] + ' cards' }, ...Array.from({ length: Math.min(s.counts[i], 12) }, () => h('i'))), h('span', { class: 'nc-n' }, s.counts[i])), ).filter(Boolean));
         const canDraw = mine && s.drew < 0;
         const pile = h('button', { class: 'nc-c nc-back nc-pile' + (canDraw ? ' can' : ''), 'aria-label': 'Draw a card, ' + s.pile + ' left in the deck', disabled: !canDraw, onclick: () => api.move({ draw: true }) }, h('span', { class: 'cnt' }, s.pile));
-        const top = face(s.top, 'nc-top'); top.disabled = true; top.classList.add('pop');
-        if (lastSeq === s.seq && mid.querySelector('.nc-top')) top.classList.remove('pop');
+        const top = face(s.top, 'nc-top'); top.disabled = true;
+        if (lastSeq !== null && s.seq !== lastSeq) top.classList.add('pop');
         const cur = h('div', { class: 'nc-cur' }, h('span', null, 'Mark'), h('span', { class: 'chip', 'aria-label': 'Current mark: ' + MKN[s.mark], html: '<svg viewBox="0 0 24 24">' + MK[s.mark] + '</svg>' }), h('span', { class: 'nc-dir' }, h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(' + s.dir + ')"><path d="M4 12h16M14 6l6 6-6 6"/></svg>' }).firstChild, s.dir > 0 ? 'clockwise' : 'reverse'));
         mid.replaceChildren(pile, top, cur);
         const L = s.last; let txt = '';
