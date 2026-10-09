@@ -35,11 +35,12 @@ export default {
     });
     const tick = () => { if (!R) return; const left = R.state.endsAt - api.now(); time.textContent = R.status === 'playing' ? mmss(left) : '0:00'; time.classList.toggle('low', R.status === 'playing' && left < 15000); };
     const iv = setInterval(tick, 250);
-    let prevOpen = 0, prevBoom = 0, gen = null;
+    let prevOpen = 0, prevBoom = 0, gen = null, initialized = false;
     return {
       update(r) {
         R = r; const s = r.state, ok = r.status === 'playing' && r.youIdx >= 0;
-        if (gen !== s.gen) { gen = s.gen; prevOpen = 0; prevBoom = 0; }
+        if (gen !== s.gen) { gen = s.gen; prevOpen = 0; prevBoom = 0; initialized = false; }
+        const animateChanges = initialized;
         let open = 0, boom = 0;
         cell.forEach((b, k) => {
           const v = s.cells[k], f = s.flag[k], o = s.boom[k], key = v + '|' + f + '|' + o;
@@ -50,7 +51,7 @@ export default {
             if (v === 9) { cls += ' open boom o' + o; html = MINE; lab = 'mine exploded by ' + api.name(o); }
             else if (v >= 0) { cls += ' open' + (v ? ' n' + v : ''); html = v ? String(v) : ''; lab = v ? v + ' adjacent' : 'empty'; }
             else if (f >= 0) { cls += ' o' + f; html = FLAG; lab = 'flagged by ' + api.name(f); }
-            if (v >= 0 && wasClosed && prevOpen > 0) cls += ' fresh';
+            if (v >= 0 && wasClosed && animateChanges) cls += ' fresh';
             b.className = cls; b.innerHTML = html; b.setAttribute('aria-label', 'Cell ' + (((k / W) | 0) + 1) + ',' + (k % W + 1) + ', ' + lab);
           }
           b.disabled = !ok;
@@ -58,7 +59,7 @@ export default {
         k0.textContent = api.name(0); k1.textContent = api.name(1);
         safe.textContent = s.safeLeft; mines.textContent = s.total; dig.disabled = flg.disabled = !ok; tick();
         if (boom > prevBoom) api.sfx('err'); else if (open > prevOpen && prevOpen >= 0 && gen === s.gen && open - prevOpen > 0) api.sfx('tick');
-        prevOpen = open; prevBoom = boom;
+        prevOpen = open; prevBoom = boom; initialized = true;
       }, destroy() { clearInterval(iv); },
     };
   },
