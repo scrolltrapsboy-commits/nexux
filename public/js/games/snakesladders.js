@@ -17,7 +17,7 @@ export default {
     const roll = h('button', { class: 'btn primary sl-roll', onclick: () => api.move({ action: 'roll' }) }, 'Roll die');
     const status = h('div', { class: 'sl-status', 'aria-live': 'polite' });
     const cells = Array.from({ length: 100 }, (_, idx) => {
-      const n = 100 - Math.floor(idx / 10) * 10 + (Math.floor(idx / 10) % 2 ? idx % 10 : 9 - idx % 10);
+      const band = 9 - Math.floor(idx / 10);\n      const n = band * 10 + (band % 2 === 0 ? idx % 10 + 1 : 10 - idx % 10);
       return h('div', { class: 'sl-cell' + (SNAKES.has(n) ? ' snake' : '') + (LADDERS.has(n) ? ' ladder' : '') + (n === 100 ? ' goal' : ''), dataset: { square: n } }, h('small', null, String(n)), h('div', { class: 'sl-tokens' }));
     });
     board.append(...cells);
