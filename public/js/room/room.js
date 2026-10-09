@@ -22,7 +22,7 @@ export default function room(root, { code }) {
     h('aside', { class: 'dock' }, dock.vids, dock.bar, dock.chat.el), scrim);
   root.append(el);
   const layout = () => { const mobile = matchMedia('(max-width: 860px)').matches; el.classList.toggle('nodock', !S.prefs.dock && !mobile); el.classList.toggle('mobile-room', mobile); dockBtn.classList.toggle('on', !!S.prefs.dock); stage.dispatchEvent(new Event('resize')); requestAnimationFrame(() => { stage.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('resize')); }); };
-  function setChat(v) { chatOpen = v; dock.chat.el.classList.toggle('open', v); scrim.classList.toggle('on', v); if (v) { unread = 0; setTimeout(() => dock.chat.focus(), 250); const m = dock.chat.el.querySelector('.msgs'); m.scrollTop = m.scrollHeight; } dock.refresh(); }
+  function setChat(v) { chatOpen = !!v; el.classList.toggle('chat-open', chatOpen && matchMedia('(max-width: 860px)').matches); dock.chat.el.classList.toggle('open', chatOpen); scrim.classList.toggle('on', chatOpen && !matchMedia('(max-width: 860px)').matches); if (chatOpen) { unread = 0; requestAnimationFrame(() => { const m = dock.chat.el.querySelector('.msgs'); if (m) m.scrollTop = m.scrollHeight; dock.chat.focus(); stage.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('resize')); }); } dock.refresh(); }
   if (window.visualViewport) { const vv = window.visualViewport, f = () => el.style.setProperty('--kb', Math.max(0, innerHeight - vv.height - vv.offsetTop) + 'px'); vv.addEventListener('resize', f); vv.addEventListener('scroll', f); offs.push(() => { vv.removeEventListener('resize', f); vv.removeEventListener('scroll', f); }); }
 
   async function leave() {
