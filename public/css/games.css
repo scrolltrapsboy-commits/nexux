@@ -106,3 +106,19 @@ button[disabled].keep{opacity:1}
     transition: none !important;
   }
 }
+
+
+/* Tic-Tac-Toe: the placed marker animates once when its square changes, not on every redraw. */
+.ttt-c.placed svg{animation:nx-ttt-place-once .28s cubic-bezier(.2,.8,.2,1) both}
+.ttt-c.placed{animation:nx-ttt-cell-place .24s ease-out both}
+@keyframes nx-ttt-place-once{
+  0%{opacity:0;transform:scale(.35) rotate(-12deg)}
+  72%{opacity:1;transform:scale(1.12) rotate(2deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes nx-ttt-cell-place{
+  0%{box-shadow:inset 0 0 0 0 var(--hi)}
+  60%{box-shadow:inset 0 0 0 2px var(--hi)}
+  100%{box-shadow:inset 0 1px 0 var(--hi)}
+}
+@media (prefers-reduced-motion:reduce){.ttt-c.placed,.ttt-c.placed svg{animation:none!important}}
