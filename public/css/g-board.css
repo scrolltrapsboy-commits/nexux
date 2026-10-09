@@ -340,3 +340,11 @@
 @media (prefers-reduced-motion: reduce) {
   .mg-board .gc.last i.st::after { animation: none; }
 }
+
+
+/* Battleship: animate only the newly reported impact, not every old shot on rerender. */
+.bs-grid .bc.impact.hit .mk { animation: gb-shot-hit .38s ease-out both; }
+.bs-grid .bc.impact.miss .mk { animation: gb-shot-miss .3s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .bs-grid .bc.impact.hit .mk, .bs-grid .bc.impact.miss .mk { animation: none; }
+}
