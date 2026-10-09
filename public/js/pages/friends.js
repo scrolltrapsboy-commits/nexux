@@ -2,10 +2,11 @@ import { h, icon, avatar, S, sock, ask, toast, menu, modal, confirmBox, clear, g
 import { art } from '../art.js';
 
 export function inviteModal(peer) {
-  const two = S.catalog.filter(g => g.min <= 2 && g.max >= 2);
+  // Invites can fill a seat in 3+ player lobbies too; don't hide those games here.
+  const multiplayer = S.catalog.filter(g => g.max >= 2);
   modal((b, close) => {
     b.append(h('h2', null, 'Invite ' + peer.name), h('p', { class: 'small muted', style: { marginBottom: '12px' } }, 'Pick a game. They get a notification and can join in one tap.'),
-      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: '8px' } }, two.map(g => h('button', { class: 'btn', style: { flexDirection: 'column', height: 'auto', padding: '12px 8px', borderRadius: '16px', whiteSpace: 'normal' }, onclick: async () => { const r = await ask('invite', { id: peer.id, game: g.id }); if (r.error) toast(r.error); else { toast('Invitation sent to ' + peer.name); close(); } } }, art(g.id, 40), g.title))),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: '8px' } }, multiplayer.map(g => h('button', { class: 'btn', style: { flexDirection: 'column', height: 'auto', padding: '12px 8px', borderRadius: '16px', whiteSpace: 'normal' }, onclick: async () => { const r = await ask('invite', { id: peer.id, game: g.id }); if (r.error) toast(r.error); else { toast('Invitation sent to ' + peer.name); close(); } } }, art(g.id, 40), g.title))),
       h('div', { class: 'acts' }, h('button', { class: 'btn', onclick: close }, 'Close')));
   });
 }
