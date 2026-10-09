@@ -351,3 +351,38 @@ button:disabled { cursor: default; }
     transition: none !important;
   }
 }
+
+
+/* Second pass: animate state changes in the individual game families too. */
+.kc, .mk, .pc, .sq, .ttt-c, .c4-cell, .rv-c, .gm-c, .bs-cell,
+.mem-c, .mem-i, .mem-k, .mem-f, .ms-c, .wb-chip, .nc-c,
+.rc-b, .mg-hole, .mg-ball, .ar-cell, .sl-cell, .ludo-cell, .ludo-pawn {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease,
+              box-shadow .18s ease, opacity .18s ease, filter .18s ease,
+              transform .18s cubic-bezier(.2,.8,.2,1);
+}
+.kc .pc, .sq svg, .rv-c, .gm-c, .bs-cell, .ms-c.open, .mem-c.fresh,
+.wb-chip, .nc-c.ok, .mg-ball, .sl-token, .ludo-pawn {
+  will-change: transform, opacity;
+}
+.kc.sel, .sq.sel, .rv-c.sel, .gm-c.sel, .bs-cell.hit, .ms-c.fresh,
+.mem-c.fresh, .nc-c.ok {
+  animation: nx-soft-pulse .9s ease-in-out 1;
+}
+.kc .pc, .pc, .mk, .ludo-pawn, .sl-token {
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
+}
+.mem-c .mem-i { transition: transform .42s cubic-bezier(.2,.75,.2,1); transform-style: preserve-3d; }
+.mem-c.fresh .mem-i { transform: rotateY(180deg); }
+.ms-c.open { animation: nx-piece-enter .2s ease-out both; }
+.wb-chip, .nc-c.ok { transition: transform .16s ease, box-shadow .16s ease, filter .16s ease; }
+.wb-chip:hover, .nc-c.ok:hover { transform: translateY(-2px) scale(1.02); }
+.rc-b.on { animation: nx-piece-enter .16s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .kc, .mk, .pc, .sq, .ttt-c, .c4-cell, .rv-c, .gm-c, .bs-cell,
+  .mem-c, .mem-i, .mem-k, .mem-f, .ms-c, .wb-chip, .nc-c,
+  .rc-b, .mg-hole, .mg-ball, .ar-cell, .sl-cell, .ludo-cell, .ludo-pawn {
+    transition: none !important;
+    animation: none !important;
+  }
+}
