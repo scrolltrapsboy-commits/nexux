@@ -207,3 +207,49 @@
     transition: none !important;
   }
 }
+
+
+/* Game-specific motion: Reaction Race and Word Battle. */
+.rx-big { animation: nx-reaction-text .24s cubic-bezier(.2,.8,.2,1) both; }
+.rx.go .rx-big { animation: nx-reaction-go .32s cubic-bezier(.2,.8,.2,1) both; }
+.rx.wait { animation: nx-reaction-wait .28s ease-out both; }
+.wb-t { transition: transform .16s cubic-bezier(.2,.8,.2,1), background-color .16s ease, box-shadow .16s ease; }
+.wb-t:not(:disabled):not(.used):hover { transform: translateY(-3px) scale(1.04); }
+.wb-t:not(:disabled):active { transform: scale(.92); }
+.wb-t.used { animation: nx-word-tile-used .18s ease-out both; }
+.wb-word { animation: nx-word-build .18s cubic-bezier(.2,.8,.2,1) both; }
+.wb-chip { animation: nx-word-chip-in .24s cubic-bezier(.2,.8,.2,1) both; }
+.wb-go:not(:disabled) { transition: transform .16s ease, filter .16s ease, box-shadow .16s ease; }
+.wb-go:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.12); }
+@keyframes nx-reaction-text {
+  from { opacity: .5; transform: scale(.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes nx-reaction-go {
+  0% { opacity: .4; transform: scale(.72); }
+  75% { opacity: 1; transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes nx-reaction-wait {
+  from { opacity: .7; }
+  to { opacity: 1; }
+}
+@keyframes nx-word-tile-used {
+  0% { transform: scale(.9); }
+  70% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes nx-word-build {
+  from { opacity: .55; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nx-word-chip-in {
+  from { opacity: 0; transform: translateY(5px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rx-big, .rx.go .rx-big, .rx.wait, .wb-t, .wb-t.used, .wb-word, .wb-chip, .wb-go {
+    animation: none !important;
+    transition: none !important;
+  }
+}
