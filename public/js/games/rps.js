@@ -17,7 +17,7 @@ export default {
         const s = R.state, me = R.youIdx, mine = me >= 0 ? s.picks[me] : null;
         info.textContent = 'Round ' + s.round + (s.last ? (s.last.w < 0 ? ' · last round tied' : ' · ' + api.name(s.last.w) + ' took the last round') : '');
         btns.forEach(b => { b.disabled = me < 0 || !!mine || R.status !== 'playing'; b.classList.toggle('sel', mine === b.getAttribute('aria-label')); });
-        const revealKey = s.last ? s.last.picks.join(':') + ':' + s.last.w : 'empty';
+        const revealKey = s.last ? (s.round - 1) + ':' + s.last.picks.join(':') + ':' + s.last.w : 'empty';
         if (revealKey !== lastReveal) {
           reveal.replaceChildren();
           if (s.last) reveal.append(h('div', { class: 'rps-pair' }, ...s.last.picks.map((k, i) => h('div', { class: 'rps-slot' + (s.last.w === i ? ' w' : '') }, hand(k), h('small', null, api.name(i))))));
