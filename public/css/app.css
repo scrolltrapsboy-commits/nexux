@@ -282,3 +282,72 @@ select.inp option{background:#16161a;color:#fff}
 .home-l>*{flex:none}
 .hero select.inp{max-width:340px}
 .page.fit>.split,.page.fit>.home{flex:1;height:auto;min-height:0}
+
+
+/* NEXUS PLAY — shared motion layer for every game.
+   Motion is decorative only: it never delays or changes game input/state. */
+@keyframes nx-game-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes nx-piece-enter {
+  0% { opacity: .35; transform: scale(.72) rotate(-4deg); }
+  72% { opacity: 1; transform: scale(1.06) rotate(1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes nx-soft-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--solid, #8b7cff) 20%, transparent); }
+}
+@keyframes nx-win-glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.22); }
+}
+
+/* Board entrances cover board, arcade, card, physics and word games. */
+.gbox > *, .board, .ttt, .c4, .rps, .mem, .ms, .wb, .ar, .nc, .mg, .rc,
+.bs-place, .bs-battle, .ch-board, .ck-board, .rv-board, .gm-board {
+  animation: nx-game-enter .32s cubic-bezier(.2,.75,.25,1) both;
+}
+
+/* Shared tactile response for game controls; disabled controls remain still. */
+.gbox button:not(:disabled), .board button:not(:disabled) {
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), filter .16s ease,
+              box-shadow .16s ease, background-color .16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.gbox button:not(:disabled):hover, .board button:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.gbox button:not(:disabled):active, .board button:not(:disabled):active {
+  transform: scale(.96);
+}
+.gbox button:focus-visible, .board button:focus-visible {
+  outline: 2px solid var(--fg, currentColor);
+  outline-offset: 3px;
+}
+
+/* Piece/card/token selectors used across the game's renderers. */
+.sq svg, .ttt-c svg, .mem-f, .nc-c, .wb-chip, .rps-slot,
+.sl-token, .ludo-pawn, .mg-ball, .ar-piece, .ck-piece, .rv-piece {
+  transform-origin: center;
+}
+.sq svg, .ttt-c svg, .mem-c.fresh .mem-f, .nc-top.pop, .wb-chip,
+.sl-token, .ludo-pawn, .mg-ball, .ar-piece {
+  animation: nx-piece-enter .24s cubic-bezier(.2,.8,.2,1) both;
+}
+.c4-cell.drop { animation: drop .42s cubic-bezier(.4,.1,.5,1.1); }
+.c4-cell.win, .ttt-c.win, .sq.last, .nc-c.win {
+  animation: nx-win-glow 1.2s ease-in-out infinite;
+}
+button:disabled { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .gbox > *, .board, .ttt, .c4, .rps, .mem, .ms, .wb, .ar, .nc, .mg, .rc,
+  .bs-place, .bs-battle, .ch-board, .ck-board, .rv-board, .gm-board,
+  .sq svg, .ttt-c svg, .mem-f, .nc-c, .wb-chip, .rps-slot, .sl-token,
+  .ludo-pawn, .mg-ball, .ar-piece, .ck-piece, .rv-piece, .c4-cell.win,
+  .ttt-c.win, .sq.last, .nc-c.win {
+    animation: none !important;
+    transition: none !important;
+  }
+}
