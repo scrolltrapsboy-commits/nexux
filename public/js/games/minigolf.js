@@ -5,7 +5,7 @@ loadCss('/css/g-physics.css');
 const W = 160, H = 100, BALL = 2.1, CUP = 4.6, MAXPULL = 38, FRAME_MS = 1000 / 30;
 let HOLES = null;
 const loadHoles = () => HOLES ? Promise.resolve(HOLES) : fetch('/shared/golf-holes.json').then(r => r.json()).then(j => (HOLES = j));
-const SHADE = ['#f4f4f6', '#a9a9b2', '#1b1b20', '#6d6d76'];
+const SHADE = ['#22d3ee', '#fb7185', '#facc15', '#a78bfa'];
 
 export default {
   seat: (R, i) => ({ sub: R.state.done[i] ? 'In the cup' : R.state.strokes[i] + ' stroke' + (R.state.strokes[i] === 1 ? '' : 's') + ' this hole', badge: R.state.totals[i] }),
@@ -36,16 +36,16 @@ export default {
     function draw() {
       if (!kit.size().w) return; th = theme(); const { w, h: hh } = kit.size(); ctx.clearRect(0, 0, w, hh);
       if (!R || !holes) return; const s = R.state, hole = holes.holes[s.hole];
-      const dark = th.dark, grass = dark ? '#18181c' : '#dcdce2', wall = dark ? '#e8e8ec' : '#26262c', sand = dark ? '#3a3a42' : '#bdbdc6';
+      const dark = th.dark, grass = '#65c98b', wall = '#2563eb', sand = '#f5c76b';
       // course floor
       rectPath(0, 0, W, H, 3); ctx.fillStyle = grass; ctx.fill(); ctx.lineWidth = Math.max(2, 1.6 * sc); ctx.strokeStyle = wall; ctx.stroke();
       ctx.save(); rectPath(0, 0, W, H, 3); ctx.clip();
-      ctx.strokeStyle = dark ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.05)'; ctx.lineWidth = 6 * sc; for (let x = 10; x < W; x += 20) { const a = toS(x, 0), b = toS(x, H); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); }
-      for (const [a, b, c, d] of hole.sand) { rectPath(a, b, c, d, 3); ctx.fillStyle = sand; ctx.fill(); ctx.save(); rectPath(a, b, c, d, 3); ctx.clip(); ctx.strokeStyle = dark ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; for (let k = -H; k < W; k += 3) { const p = toS(a + k, b), q = toS(a + k + (d - b), d); ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q); ctx.stroke(); } ctx.restore(); }
+      ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 6 * sc; for (let x = 10; x < W; x += 20) { const a = toS(x, 0), b = toS(x, H); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); }
+      for (const [a, b, c, d] of hole.sand) { rectPath(a, b, c, d, 3); ctx.fillStyle = sand; ctx.fill(); ctx.save(); rectPath(a, b, c, d, 3); ctx.clip(); ctx.strokeStyle = 'rgba(255,255,255,.42)'; ctx.lineWidth = 1; for (let k = -H; k < W; k += 3) { const p = toS(a + k, b), q = toS(a + k + (d - b), d); ctx.beginPath(); ctx.moveTo(...p); ctx.lineTo(...q); ctx.stroke(); } ctx.restore(); }
       ctx.restore();
       // tee + cup
       { const [tx, ty] = toS(...hole.tee); ctx.beginPath(); ctx.arc(tx, ty, 3.4 * sc, 0, 7); ctx.strokeStyle = th.fg3; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]); }
-      { const [cx, cy] = toS(...hole.cup); ctx.beginPath(); ctx.arc(cx, cy, (CUP + 1.4) * sc, 0, 7); ctx.fillStyle = dark ? '#000' : '#16161a'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = wall; ctx.stroke();
+      { const [cx, cy] = toS(...hole.cup); ctx.beginPath(); ctx.arc(cx, cy, (CUP + 1.4) * sc, 0, 7); ctx.fillStyle = '#17324d'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = wall; ctx.stroke();
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - 15 * sc * 0.9); ctx.strokeStyle = wall; ctx.lineWidth = 1.6; ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx, cy - 15 * sc * .9); ctx.lineTo(cx + 8 * sc, cy - 12 * sc * .9); ctx.lineTo(cx, cy - 9 * sc * .9); ctx.closePath(); ctx.fillStyle = wall; ctx.fill(); }
       // blocks and bumpers
       for (const [a, b, c, d] of hole.blocks) { rectPath(a, b, c, d, 1.2); ctx.fillStyle = wall; ctx.fill(); }
