@@ -47,7 +47,7 @@ export default {
         if (R.status === 'finished') nt = nt || 'Match over';
       }
       const big_ = t.length > 4 && s.phase !== 'go'; big.className = 'rx-big' + (big_ || t === 'Locked out' ? ' t' : '');
-      if (big.textContent !== t) big.textContent = t; if (sub.textContent !== st) sub.textContent = st; if (note.textContent !== nt) note.textContent = nt;
+      if (big.textContent !== t) { big.textContent = t; big.classList.remove('rx-pop'); void big.offsetWidth; big.classList.add('rx-pop'); } if (sub.textContent !== st) sub.textContent = st; if (note.textContent !== nt) note.textContent = nt;
       btn.className = 'rx ' + cls + ((m < 0 || R.status !== 'playing' || (m >= 0 && s.fs[m] && (s.phase === 'wait' || s.phase === 'go'))) && (s.phase === 'wait' || s.phase === 'go') ? ' lock' : '');
       btn.setAttribute('aria-label', s.phase === 'go' ? 'Tap now' : s.phase === 'wait' ? 'Wait, do not tap yet' : 'Reaction area: ' + t);
       btn.setAttribute('aria-disabled', m < 0 || R.status !== 'playing' ? 'true' : 'false');
