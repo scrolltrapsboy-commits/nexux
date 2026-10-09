@@ -165,3 +165,76 @@ button[disabled].keep{opacity:1}
     transition:none!important;
   }
 }
+
+
+/* Premium game surfaces: liquid-glass depth with subtle light response. */
+.gbox { isolation:isolate; }
+.ttt-c, .c4, .gb .sq, .rg-board .rc, .mg-board .gc,
+.kg-board .kc, .bs-grid .bc, .rps-b, .memory-card, .ms-cell,
+.rx-big, .nc-pile, .gp-panel, .game-card {
+  -webkit-tap-highlight-color: transparent;
+}
+.ttt-c, .c4, .gb .sq, .rps-b, .memory-card, .ms-cell, .bs-grid .bc {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ttt-c::before, .rps-b::before, .memory-card::before, .ms-cell::before,
+.bs-grid .bc::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(132deg,rgba(255,255,255,.14),transparent 36%,transparent 72%,rgba(151,166,255,.055));
+  opacity:.72;
+  transition:opacity .22s ease;
+}
+.ttt-c:not(:disabled):hover::before, .rps-b:not(:disabled):hover::before,
+.memory-card:not(:disabled):hover::before, .ms-cell:not(:disabled):hover::before,
+.bs-grid .bc:not(:disabled):hover::before { opacity:1; }
+.ttt-c:not(:disabled):hover, .rps-b:not(:disabled):hover,
+.memory-card:not(:disabled):hover, .ms-cell:not(:disabled):hover {
+  border-color:color-mix(in srgb,var(--hi,#fff) 42%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),0 8px 22px rgba(0,0,0,.13),0 0 20px rgba(142,155,255,.075);
+}
+.ttt-c.f, .ttt-c.placed {
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),inset 0 0 22px rgba(255,255,255,.035);
+}
+.c4 {
+  background:
+    radial-gradient(ellipse at 22% 0%,rgba(255,255,255,.14),transparent 45%),
+    linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.015)),
+    var(--glass3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -1px 0 rgba(255,255,255,.035),0 18px 42px rgba(0,0,0,.2);
+}
+.gb .sq.sel, .gb .sq.selected, .gb .sq:focus-visible {
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),inset 0 0 22px rgba(255,255,255,.14),0 0 18px rgba(145,160,255,.12);
+}
+.gb .sq.legal::after, .gb .sq.target::after {
+  animation:nx-legal-glow 1.8s ease-in-out infinite;
+}
+.rps-b.sel, .memory-card.flipped, .ms-cell.flag {
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px rgba(158,171,255,.22),0 0 24px rgba(129,143,255,.13);
+}
+.c4-cell.drop, .ttt-c.placed, .bs-grid .bc.impact.hit, .bs-grid .bc.impact.miss {
+  will-change:transform,opacity;
+}
+@keyframes nx-legal-glow {
+  0%,100% { opacity:.55; transform:scale(.84); }
+  50% { opacity:1; transform:scale(1.08); }
+}
+@keyframes nx-glass-shimmer {
+  0% { transform:translateX(-130%) skewX(-18deg); opacity:0; }
+  18% { opacity:.35; }
+  55%,100% { transform:translateX(150%) skewX(-18deg); opacity:0; }
+}
+@media (hover:hover) and (pointer:fine) {
+  .gb .sq:not(:disabled):hover { transform:translateY(-1px); }
+  .c4-col:not(:disabled):hover { filter:brightness(1.08); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .gb .sq.legal::after, .gb .sq.target::after { animation:none!important; }
+  .ttt-c::before, .rps-b::before, .memory-card::before, .ms-cell::before,
+  .bs-grid .bc::before { transition:none!important; }
+}
