@@ -81,17 +81,18 @@ export default {
       coins.forEach((p, k) => {
         if (!p) return; const [px, py] = toS(p[0], p[1]), kind = coinStyle(k);
         ctx.beginPath(); ctx.arc(px + 1, py + 1.6, r, 0, 7); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fill();
-        ctx.beginPath(); ctx.arc(px, py, r, 0, 7);
-        if (kind === 'w') { ctx.fillStyle = '#f4f4f6'; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .5, 0, 7); ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.stroke(); }
-        else if (kind === 'b') { ctx.fillStyle = '#0a0a0c'; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = '#f4f4f6'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .45, 0, 7); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.stroke(); }
-        else { ctx.fillStyle = '#8a8a93'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#f4f4f6'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .35, 0, 7); ctx.fillStyle = '#f4f4f6'; ctx.fill(); }
+        ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.shadowColor = anim ? (kind === 'w' ? 'rgba(34,211,238,.75)' : kind === 'b' ? 'rgba(167,139,250,.75)' : 'rgba(251,113,133,.85)') : 'rgba(0,0,0,.12)'; ctx.shadowBlur = anim ? 10 * S0 : 1.5 * S0;
+        if (kind === 'w') { const cg = ctx.createRadialGradient(px-r*.3,py-r*.35,1,px,py,r); cg.addColorStop(0,'#ffffff'); cg.addColorStop(.62,'#dbeafe'); cg.addColorStop(1,'#67e8f9'); ctx.fillStyle = cg; ctx.fill(); ctx.shadowBlur = 0; ctx.lineWidth = 1.2; ctx.strokeStyle = '#0891b2'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .5, 0, 7); ctx.strokeStyle = 'rgba(8,145,178,.62)'; ctx.stroke(); }
+        else if (kind === 'b') { const cg = ctx.createRadialGradient(px-r*.3,py-r*.35,1,px,py,r); cg.addColorStop(0,'#c4b5fd'); cg.addColorStop(.58,'#4c1d95'); cg.addColorStop(1,'#1e1b4b'); ctx.fillStyle = cg; ctx.fill(); ctx.shadowBlur = 0; ctx.lineWidth = 1.6; ctx.strokeStyle = '#a78bfa'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .45, 0, 7); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(224,231,255,.72)'; ctx.stroke(); }
+        else { const cg = ctx.createRadialGradient(px-r*.3,py-r*.35,1,px,py,r); cg.addColorStop(0,'#fecdd3'); cg.addColorStop(.5,'#f43f5e'); cg.addColorStop(1,'#9f1239'); ctx.fillStyle = cg; ctx.fill(); ctx.shadowBlur = 0; ctx.lineWidth = 2; ctx.strokeStyle = '#facc15'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, r * .35, 0, 7); ctx.fillStyle = '#fef3c7'; ctx.fill(); }
+        ctx.shadowBlur = 0;
       });
       // striker: live preview for the player to move, the replayed one while animating
       let st = striker; const myTurn = canAim();
       if (!st && myTurn) st = strikerPos();
       if (!st && !anim && R.status === 'playing' && s.turn >= 0 && R.youIdx !== s.turn && !s.lock) st = [shownOpp(), BASE_Y[s.turn]];
-      if (st) { const [px, py] = toS(st[0], st[1]), rs = R_STR * S0; ctx.beginPath(); ctx.arc(px + 1, py + 2, rs, 0, 7); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill(); ctx.beginPath(); ctx.arc(px, py, rs, 0, 7); ctx.fillStyle = dark ? '#d7d7dd' : '#2a2a31'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = ink; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, rs * .5, 0, 7); ctx.strokeStyle = dark ? '#111' : '#eee'; ctx.stroke();
-        if (aim && myTurn) { const len = (6 + aim.power * 70) * S0, ex = px + Math.cos(aim.sa) * len, ey = py + Math.sin(aim.sa) * len; ctx.setLineDash([2, 6]); ctx.lineCap = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = th.fg; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      if (st) { const [px, py] = toS(st[0], st[1]), rs = R_STR * S0; ctx.beginPath(); ctx.arc(px + 1, py + 2, rs, 0, 7); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill(); ctx.beginPath(); ctx.arc(px, py, rs, 0, 7); const sg = ctx.createRadialGradient(px-rs*.35,py-rs*.4,1,px,py,rs); sg.addColorStop(0,'#ffffff'); sg.addColorStop(.55,'#67e8f9'); sg.addColorStop(1,'#2563eb'); ctx.fillStyle = sg; ctx.fill(); ctx.lineWidth = 2.2; ctx.strokeStyle = '#dbeafe'; ctx.stroke(); ctx.beginPath(); ctx.arc(px, py, rs * .5, 0, 7); ctx.strokeStyle = '#fff'; ctx.stroke();
+        if (aim && myTurn) { const len = (6 + aim.power * 70) * S0, ex = px + Math.cos(aim.sa) * len, ey = py + Math.sin(aim.sa) * len; ctx.setLineDash([2, 6]); ctx.lineCap = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = '#06b6d4'; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
           const bx = px - Math.cos(aim.sa) * Math.min(len * .5, 60), by = py - Math.sin(aim.sa) * Math.min(len * .5, 60); ctx.globalAlpha = .55; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx, by); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle = th.fg; ctx.font = '800 12px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.fillText(Math.round(aim.power * 100) + '%', px, py + 28); }
       }
     }
