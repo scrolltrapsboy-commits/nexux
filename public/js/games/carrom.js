@@ -22,7 +22,7 @@ export default {
     const slider = h('input', { type: 'range', class: 'cr-slide', min: X_MIN, max: X_MAX, step: 0.5, value: 50, 'aria-label': 'Striker position', style: { position: 'relative', width: 'min(420px,86%)' } });
     const note = h('span', { class: 'tiny muted', style: { whiteSpace: 'nowrap' } }); slideRow.append(slider);
     let R = null, th = theme(), raf = 0, destroyed = false, S0 = 1, ox = 0, oy = 0, flip = false, seen = null, anim = null, aim = null, frozen = null, key = '';
-    const kit = fullCanvas(board, 'Carrom board. Slide the striker, then pull back from it and release.', (w, hh) => { const b = Math.min(w, hh) - 8; S0 = b / SIZE; ox = (w - b) / 2; oy = (hh - b) / 2; draw(); });
+    const kit = fullCanvas(board, 'Carrom board. Slide the striker, then pull back from it and release.', (w, hh) => { const b = Math.max(1, (Math.min(w, hh) - 14) / 1.18); S0 = b / SIZE; ox = (w - b) / 2; oy = (hh - b) / 2; draw(); });
     const { ctx, cv } = kit;
     const toS = (x, y) => flip ? [ox + (SIZE - x) * S0, oy + (SIZE - y) * S0] : [ox + x * S0, oy + y * S0];
     const sx = () => +slider.value;
