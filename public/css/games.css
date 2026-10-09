@@ -141,3 +141,27 @@ button[disabled].keep{opacity:1}
 @media (prefers-reduced-motion:reduce) {
   .gp-cv { scroll-behavior:auto; }
 }
+
+/* NEXUX 60fps motion pass: short, composited transitions; no layout-affecting animation. */
+.ttt-c, .c4-col, .c4-cell, .rps-b, .rps-slot, .rps-h,
+.ms-cell, .memory-card, .rx-big, .rx-pip, .nc-pile, .nc-pick>div {
+  backface-visibility:hidden;
+}
+.ttt-c:not(:disabled), .c4-col:not(:disabled), .rps-b:not(:disabled) {
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1), background-color 160ms ease,
+              box-shadow 160ms ease, filter 160ms ease;
+}
+.ttt-c:not(:disabled):active, .c4-col:not(:disabled):active, .rps-b:not(:disabled):active {
+  transform:scale(.965);
+}
+.ttt-c.f svg, .c4-cell.drop, .rps-slot, .rps-h svg {
+  will-change:transform,opacity;
+}
+@media (prefers-reduced-motion:reduce) {
+  .ttt-c, .c4-col, .c4-cell, .rps-b, .rps-slot, .rps-h,
+  .ms-cell, .memory-card, .rx-big, .rx-pip, .nc-pile, .nc-pick>div {
+    will-change:auto!important;
+    animation:none!important;
+    transition:none!important;
+  }
+}
