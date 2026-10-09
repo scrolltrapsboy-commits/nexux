@@ -7,11 +7,19 @@ export const theme = () => {
 // a canvas that always fills its wrapper, with devicePixelRatio scaling. onSize(w, h) gets CSS pixels.
 export function fullCanvas(wrap, label, onSize) {
   const cv = h('canvas', { class: 'gp-cv', role: 'img', 'aria-label': label, tabindex: 0 }); wrap.append(cv);
-  const ctx = cv.getContext('2d'); let w = 0, hh = 0, dpr = 1;
+  const ctx = cv.getContext('2d', { alpha: false, desynchronized: true }); let w = 0, hh = 0, dpr = 1;
   const size = () => {
     const r = wrap.getBoundingClientRect(); if (!r.width || !r.height) return;
-    dpr = Math.min(window.devicePixelRatio || 1, 2); w = Math.round(r.width); hh = Math.round(r.height);
-    cv.width = Math.round(w * dpr); cv.height = Math.round(hh * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); onSize && onSize(w, hh);
+    const nextW = Math.round(r.width), nextH = Math.round(r.height);
+    const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (nextW === w && nextH === hh && nextDpr === dpr) return;
+    w = nextW; hh = nextH; dpr = nextDpr;
+    // Resizing a canvas clears its backing store. Only resize when the real pixel size changes.
+    const pixelW = Math.round(w * dpr), pixelH = Math.round(hh * dpr);
+    if (cv.width !== pixelW) cv.width = pixelW;
+    if (cv.height !== pixelH) cv.height = pixelH;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    onSize && onSize(w, hh);
   };
   const ro = new ResizeObserver(size); ro.observe(wrap); requestAnimationFrame(size);
   return { cv, ctx, size: () => ({ w, h: hh }), destroy: () => ro.disconnect() };
