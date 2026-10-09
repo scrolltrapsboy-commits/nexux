@@ -66,6 +66,14 @@ export default function room(root, { code }) {
   function drawActions() {
     clear(actions); const g = gameInfo(R.game), btns = [];
     if (R.watching) { actions.append(h('span', { class: 'pill' }, icon('eye', 'sm'), 'You are spectating')); return; }
+    if (R.status === 'lobby') {
+      const mine = R.players.find(p => p.id === S.me.id), host = R.host === S.me.id;
+      const enough = R.players.length >= R.min, allReady = R.players.every(p => p.ready || p.id === R.host);
+      if (host) btns.push(h('button', { class: 'btn primary', disabled: !enough || !allReady, onclick: async () => { const r = await ask('start'); if (r.error) toast(r.error); } }, icon('play', 'sm'), !enough ? 'Need ' + R.min + ' players' : !allReady ? 'Waiting for players to ready up' : 'Start game'));
+      else btns.push(h('button', { class: 'btn primary', onclick: () => sock.emit('ready') }, icon(mine && mine.ready ? 'check' : 'play', 'sm'), mine && mine.ready ? 'Ready · tap to cancel' : 'Ready'));
+      btns.push(h('button', { class: 'btn', onclick: () => { location.hash = '#/friends'; } }, icon('userplus', 'sm'), 'Add friends'));
+      actions.append(...btns); return;
+    }
     if (R.status === 'playing') {
       if (g.draws) {
         if (R.drawOffer && R.drawOffer !== S.me.id) btns.push(h('span', { class: 'pill solid' }, 'Draw offered'), h('button', { class: 'btn sm primary', onclick: () => sock.emit('draw', { op: 'accept' }) }, 'Accept'), h('button', { class: 'btn sm', onclick: () => sock.emit('draw', { op: 'decline' }) }, 'Decline'));
@@ -113,7 +121,8 @@ export default function room(root, { code }) {
     dock.setRoom(R);
     if (R.status === 'lobby') {
       if (game) { game.destroy && game.destroy(); game = null; gameFor = null; listeners.forEach(([e, f]) => sock.off(e, f)); listeners = []; }
-      stage.replaceChildren(lobby(R));
+      try { stage.replaceChildren(lobby(R)); }
+      catch (e) { console.error('Room lobby render failed', e); stage.replaceChildren(h('div', { class: 'lobby glass' }, h('h2', { class: 'h2' }, g.title + ' lobby'), h('p', { class: 'muted' }, 'Lobby details could not load. You can still ready up, start the game, or add friends using the controls below.'))); }
     } else {
       if (prevStatus === 'lobby' || prevStatus === null || (prevStatus === 'finished' && R.status === 'playing')) { matchKey++; resultHidden = false; soundDone = null; }
       ensureGame().then(() => { if (game) game.update(R); drawSeats(); });
