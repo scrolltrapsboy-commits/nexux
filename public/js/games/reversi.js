@@ -16,6 +16,7 @@ export default {
         const my = r.status === 'playing' && api.myTurn(), lg = new Set(my ? s.legal : []);
         cells.forEach((e, i) => {
           const v = s.board[i];
+          e.classList.toggle('fresh', prev != null && prev[i] == null && v != null);
           e.classList.toggle('fl', prev != null && prev[i] != null && v != null && prev[i] !== v);
           e.classList.toggle('d0', v === 0); e.classList.toggle('d1', v === 1);
           e.classList.toggle('lg', lg.has(i)); e.classList.toggle('last', s.last === i); e.disabled = !lg.has(i);
