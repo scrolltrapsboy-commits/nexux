@@ -103,7 +103,8 @@ export default {
       const m = new Map(shots.map(x => [x.c, x.h]));
       cells.forEach((e, i) => {
         const has = m.has(i), hit = has && m.get(i), isShip = shipSet && shipSet.has(i);
-        e.className = 'bc' + (enemy ? ' enemy' : '') + (isShip ? ' ship' : ' w') + (hit ? ' hit' : has ? ' miss' : '') + (i === lastC ? ' lastshot' : '') + (canFire && !has ? ' fire' : '');
+        const freshShot = has && !e._hadShot; e._hadShot = has;
+        e.className = 'bc' + (enemy ? ' enemy' : '') + (isShip ? ' ship' : ' w') + (hit ? ' hit' : has ? ' miss' : '') + (freshShot ? ' impact' : '') + (i === lastC ? ' lastshot' : '') + (canFire && !has ? ' fire' : '');
         if (e.tagName === 'BUTTON') { e.disabled = !canFire || has; }
         e.setAttribute('aria-label', L(i) + (has ? (hit ? ', hit' : ', miss') : isShip ? ', your ship' : canFire ? ', fire' : ', unknown'));
       });
