@@ -21,5 +21,9 @@ jobs:
         run: npm ci
       - name: Run automated tests
         run: npm test
+      - name: Install Playwright for UI tests
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
       - name: Run UI tests
         run: npm run test:ui
