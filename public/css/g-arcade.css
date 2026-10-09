@@ -155,8 +155,8 @@
   transition: transform .18s cubic-bezier(.2,.8,.2,1), filter .18s ease;
 }
 .mem-c:not(:disabled):active { transform: scale(.96); }
-.mem-c.m .mem-f { animation: nx-memory-match .38s cubic-bezier(.2,.8,.2,1) both; }
-.mem-c.m .mem-mk { animation: nx-match-badge .3s cubic-bezier(.2,.8,.2,1) both; }
+.mem-c.m.fresh .mem-f { animation: nx-memory-match .38s cubic-bezier(.2,.8,.2,1) both; }
+.mem-c.m.fresh .mem-mk { animation: nx-match-badge .3s cubic-bezier(.2,.8,.2,1) both; }
 .mem-c.up:not(.m) .mem-f svg { animation: nx-memory-symbol .28s ease-out both; }
 .ms-c {
   transition: transform .14s cubic-bezier(.2,.8,.2,1), background-color .14s ease,
@@ -200,7 +200,7 @@
   to { filter: brightness(1.3); transform: scale(1.04); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mem-c, .mem-c.m .mem-f, .mem-c.m .mem-mk, .mem-c.up:not(.m) .mem-f svg,
+  .mem-c, .mem-c.m.fresh .mem-f, .mem-c.m.fresh .mem-mk, .mem-c.up:not(.m) .mem-f svg,
   .ms-c, .ms-c.open.fresh, .ms-c.o0:not(.open) svg, .ms-c.o1:not(.open) svg,
   .ms-c.boom, .ms-time.low {
     animation: none !important;
