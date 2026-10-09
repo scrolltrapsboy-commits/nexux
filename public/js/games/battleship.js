@@ -19,7 +19,7 @@ export default {
     return null;
   },
   mount(el, api) {
-    let R = null, ships = FLEET.map(len => ({ len, x: -1, y: -1, h: true })), sel = 0, horiz = true, hover = -1, focus = 'enemy', sending = false, lastShots = '';
+    let R = null, ships = FLEET.map(len => ({ len, x: -1, y: -1, h: true })), sel = 0, horiz = true, hover = -1, focus = 'enemy', sending = false, lastShots = '', seenGen = null;
     const placed = sh => sh.x >= 0;
     const occ = (skip) => { const m = new Map(); ships.forEach((sh, k) => { if (k !== skip && placed(sh)) cellsOf(sh.len, sh.x, sh.y, sh.h).forEach(c => m.set(c, k)); }); return m; };
     const fits = (k, x, y, hz) => { const sh = ships[k]; if (!inB(sh.len, x, y, hz)) return false; const o = occ(k); return cellsOf(sh.len, x, y, hz).every(c => !o.has(c)); };
@@ -132,6 +132,7 @@ export default {
     return {
       update(r) {
         R = r; const s = r.state; if (!s) return;
+        if (s.gen !== seenGen) { seenGen = s.gen; lastShots = ''; [...eCells, ...mCells].forEach(cell => { cell._hadShot = false; }); }
         const place = s.phase === 'place'; placeBox.hidden = !place; battleBox.hidden = place;
         if (place && r.youIdx >= 0) drawPlace();
         else {
