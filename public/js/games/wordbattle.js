@@ -10,7 +10,7 @@ export default {
   seat: (R, i) => ({ sub: 'Round ' + R.state.round + '/' + R.state.rounds, badge: R.state.scores[i], active: true }),
   status(R) { const s = R.state; return s.phase === 'between' ? 'Round ' + s.round + ' over' : { t: 'Round ' + s.round + '/' + s.rounds + ' · build words', turn: !R.watching }; },
   mount(el, api) {
-    let R = null, letters = '', perm = [], sel = [], key = '', maxRem = 1, busy = false;
+    let R = null, letters = '', perm = [], sel = [], key = '', maxRem = 1, busy = false, wordsKey = '';
     const time = h('span', { class: 'wb-time', role: 'timer', 'aria-label': 'Time left' }, '0:00'), bar = h('i'), rnd = h('span');
     const cur = h('div', { class: 'wb-cur', 'aria-live': 'polite' }), tiles = h('div', { class: 'wb-tiles', role: 'group', 'aria-label': 'Letters' });
     const lists = h('div', { class: 'wb-lists' }), over = h('div', { class: 'wb-over', hidden: true });
@@ -68,9 +68,13 @@ export default {
         if (k !== key) { key = k; letters = s.letters; perm = [...letters].map((_, i) => i); sel = []; maxRem = 1; prevN = 0; buildTiles(); }
         rnd.textContent = 'Round ' + s.round + '/' + s.rounds;
         const me = r.youIdx, order = me >= 0 ? [me, 1 - me] : [0, 1];
-        const old = lists.querySelectorAll('.wb-words'); old.forEach((w, i) => { prevScroll[i] = w.scrollTop; });
-        lists.replaceChildren(...order.map(i => col(i, s, i === me && me >= 0)));
-        lists.querySelectorAll('.wb-words').forEach((w, i) => { w.scrollTop = w.scrollHeight; });
+        const nextWordsKey = JSON.stringify(s.words);
+        if (nextWordsKey !== wordsKey) {
+          const old = lists.querySelectorAll('.wb-words'); old.forEach((w, i) => { prevScroll[i] = w.scrollTop; });
+          lists.replaceChildren(...order.map(i => col(i, s, i === me && me >= 0)));
+          lists.querySelectorAll('.wb-words').forEach((w, i) => { w.scrollTop = w.scrollHeight; });
+          wordsKey = nextWordsKey;
+        }
         const n = s.words[0].length + s.words[1].length; if (n > prevN && prevN) api.sfx('tick'); prevN = n;
         if (s.phase === 'between' && s.last) {
           const l = s.last, last = s.round >= s.rounds, w = l[0] === l[1] ? -1 : l[0] > l[1] ? 0 : 1;
