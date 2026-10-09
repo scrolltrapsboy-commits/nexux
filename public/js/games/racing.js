@@ -69,7 +69,7 @@ export default {
         for (const c of d.cars) { if (c.i === R.youIdx && !R.watching) continue; const o = others.get(c.i); if (!o) others.set(c.i, { x: c.x, y: c.y, a: c.a, v: c.v, tx: c.x, ty: c.y, ta: c.a, tv: c.v, at: now }); else { o.tx = c.x; o.ty = c.y; o.ta = c.a; o.tv = c.v; o.at = now; } }
         hudDraw();
       } else if (d.t === 'fix') { me.x = d.x; me.y = d.y; me.a = d.a; me.v = 0; epoch = d.e; }
-      else if (d.t === 'fin') { live.fin[d.i] = d; if (d.i === R.youIdx) { api.sfx('win'); finShown = true; banner.textContent = ord(d.place); setTimeout(() => { if (finShown) banner.textContent = ''; }, 2600); } }
+      else if (d.t === 'fin') { live.fin[d.i] = d; if (d.i === R.youIdx) { api.sfx('win'); finShown = true; banner.classList.remove('finish-pop'); void banner.offsetWidth; banner.textContent = ord(d.place); banner.classList.add('finish-pop'); setTimeout(() => { if (finShown) { banner.textContent = ''; banner.classList.remove('finish-pop'); } }, 2600); } }
     });
 
     /* ---------- simulation of my own car ---------- */
@@ -149,7 +149,7 @@ export default {
       hud.replaceChildren(h('div', { style: { fontSize: '18px' } }, ord(rankOf(live.cars, i)) + ' / ' + s.n), h('div', { style: { opacity: .85 } }, c.f ? 'Finished' : 'Lap ' + Math.min(s.laps, Math.floor(c.c / s.K) + 1) + ' / ' + s.laps));
     }
     function reset(s) {
-      gen = s.gen; epoch = 0; live.gen = s.gen; live.cars = []; live.fin = {}; others.clear(); finShown = false; lastLight = -1; banner.textContent = ''; me.hint = null;
+      gen = s.gen; epoch = 0; live.gen = s.gen; live.cars = []; live.fin = {}; others.clear(); finShown = false; lastLight = -1; banner.textContent = ''; banner.classList.remove('finish-pop'); me.hint = null;
       const g = s.grid && s.grid[R.youIdx]; if (g) { me.x = g.x; me.y = g.y; me.a = g.a; me.v = 0; }
       s.grid && s.grid.forEach((g, i) => others.set(i, { x: g.x, y: g.y, a: g.a, v: 0, tx: g.x, ty: g.y, ta: g.a, tv: 0, at: performance.now() })); cam.init = 0; hudDraw();
     }
