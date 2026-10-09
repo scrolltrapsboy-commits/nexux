@@ -83,7 +83,7 @@ export default {
       const sa = Math.atan2(vy, vx); return { sa, angle: flip ? sa + Math.PI : sa, power: clamp(dist / MAXPULL, 0, 1) };
     }
     cv.addEventListener('pointerdown', e => { if (!canAim()) return; cv.setPointerCapture(e.pointerId); aim = compute(e); loop(); e.preventDefault(); });
-    cv.addEventListener('pointermove', e => { if (aim) { aim = compute(e); draw(); } });
+    cv.addEventListener('pointermove', e => { if (aim) aim = compute(e); });
     cv.addEventListener('pointerup', e => { if (!aim) return; const a = compute(e); aim = null; try { cv.releasePointerCapture(e.pointerId); } catch {} if (a.power >= 0.08) { api.sfx('move'); api.move({ x: sx(), angle: a.angle, power: a.power }); } draw(); });
     cv.addEventListener('pointercancel', () => { aim = null; draw(); });
     slider.addEventListener('input', () => { if (flip) { /* slider shows the board as the player sees it, so left/right already match the screen */ } draw(); });
