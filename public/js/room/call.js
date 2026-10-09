@@ -55,7 +55,7 @@ export function createCall() {
     if (videoTrack()) { p.vSend.replaceTrack(videoTrack()).then(() => capBitrate(p)).catch(() => {}); }
     pc.ontrack = e => {
       if (!p.stream.getTracks().includes(e.track)) p.stream.addTrack(e.track);
-      e.track.onunmute = emitChange; if (e.track.kind === 'audio') { watch(id, p.stream); p.audio.play().catch(() => {}); }
+      e.track.onunmute = () => { emitChange(); if (e.track.kind === 'audio') p.audio.play().catch(() => {}); }; if (e.track.kind === 'audio') { watch(id, p.stream); p.audio.play().catch(() => {}); }
       emitChange();
     };
     pc.onicecandidate = e => { if (e.candidate) send(id, { candidate: e.candidate }); };
