@@ -1,4 +1,4 @@
-import { h, icon, avatar, S, sock, on, ask, toast, confirmBox, clear, gameInfo, sfx, mmss, cap } from '../core.js';
+import { h, icon, avatar, S, sock, on, ask, toast, confirmBox, clear, gameInfo, sfx, mmss, cap, copyText } from '../core.js';
 import { createCall } from './call.js';
 import { createDock } from './dock.js';
 import { lobby } from './lobby.js';
@@ -14,10 +14,11 @@ export default function room(root, { code }) {
   const title = h('b'), sub = h('small'), status = h('div', { class: 'status' }), specs = h('span', { class: 'pill', hidden: true }), seatsEl = h('div', { class: 'seats' }), stage = h('div', { class: 'stage' }), actions = h('div', { class: 'actions' });
   const dockBtn = h('button', { class: 'btn round sm', 'aria-label': 'Toggle call and chat panel', title: 'Toggle call and chat panel', onclick: () => { S.prefs.dock = !S.prefs.dock; try { localStorage.setItem('np.prefs', JSON.stringify(S.prefs)); } catch {} layout(); } }, icon('panel', 'sm'));
   const leaveBtn = h('button', { class: 'btn round sm', 'aria-label': 'Leave room', title: 'Leave room', onclick: leave }, icon('left', 'sm'));
+  const shareBtn = h('button', { class: 'btn sm', 'aria-label': 'Copy room invite link', title: 'Copy room invite link', onclick: async () => { const link = location.origin + '/#/room/' + code; toast((await copyText(link)) ? 'Room invite link copied' : 'Could not copy link. Room code: ' + code); } }, icon('link', 'sm'), 'Share room');
   const dock = createDock(call, { onNew: () => { if (!chatOpen) { unread++; dock.refresh(); } }, setChat, unread: () => unread });
   const scrim = h('div', { class: 'sheet-scrim', onclick: () => setChat(false) });
   const el = h('div', { class: 'room' },
-    h('section', { class: 'play' }, h('header', { class: 'bar' }, leaveBtn, h('div', { class: 'ttl' }, title, sub), h('div', { class: 'sp' }), specs, status, dockBtn), seatsEl, stage, actions),
+    h('section', { class: 'play' }, h('header', { class: 'bar' }, leaveBtn, h('div', { class: 'ttl' }, title, sub), h('div', { class: 'sp' }), shareBtn, specs, status, dockBtn), seatsEl, stage, actions),
     h('aside', { class: 'dock' }, dock.vids, dock.bar, dock.chat.el), scrim);
   root.append(el);
   const layout = () => { el.classList.toggle('nodock', !S.prefs.dock); dockBtn.classList.toggle('on', !!S.prefs.dock); stage.dispatchEvent(new Event('resize')); };
