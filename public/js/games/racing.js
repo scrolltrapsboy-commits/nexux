@@ -6,7 +6,7 @@ loadCss('/css/g-physics.css');
 
 let T = null;
 const loadTrack = () => T ? Promise.resolve(T) : import('/shared/racing-track.js').then(() => (T = globalThis.NexusTrack));
-const SHADES = ['#f4f4f6', '#9a9aa4', '#d2d2d8', '#6c6c76'];
+const SHADES = ['#22d3ee', '#fb7185', '#facc15', '#a78bfa'];
 const live = { gen: 0, cars: [], fin: {} };       // module-level so seat() can read the latest relay
 
 const ord = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
@@ -116,15 +116,15 @@ export default {
       const zoomTarget = clamp(Math.min(w, hh) / 440, 0.4, 1.7) * (1 - 0.18 * Math.abs(fv) / T.PHYS.VMAX);
       cam.z += (zoomTarget - cam.z) * Math.min(1, dt * 3) || 0; if (force || !cam.init) { cam.x = fx; cam.y = fy; cam.z = zoomTarget; cam.init = 1; }
       cam.x += (fx - cam.x) * Math.min(1, dt * 8); cam.y += (fy - cam.y) * Math.min(1, dt * 8);
-      ctx.clearRect(0, 0, w, hh); ctx.fillStyle = th.dark ? '#0c0c0f' : '#e6e6ea'; ctx.fillRect(0, 0, w, hh);
+      ctx.clearRect(0, 0, w, hh); ctx.fillStyle = '#76d99b'; ctx.fillRect(0, 0, w, hh);
       ctx.save(); ctx.translate(w / 2, hh / 2); ctx.scale(cam.z, cam.z); ctx.translate(-cam.x, -cam.y);
       ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-      ctx.strokeStyle = th.dark ? '#e8e8ec' : '#2a2a30'; ctx.lineWidth = T.WIDTH + 10; ctx.stroke(path);                 // kerbs
-      ctx.strokeStyle = th.dark ? '#26262c' : '#c9c9d0'; ctx.lineWidth = T.WIDTH; ctx.stroke(path);                       // tarmac
-      ctx.setLineDash([26, 30]); ctx.strokeStyle = th.dark ? '#4a4a52' : '#9a9aa4'; ctx.lineWidth = 3; ctx.stroke(path); ctx.setLineDash([]);
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = T.WIDTH + 10; ctx.stroke(path);                 // kerbs
+      ctx.strokeStyle = '#4b5563'; ctx.lineWidth = T.WIDTH; ctx.stroke(path);                       // tarmac
+      ctx.setLineDash([26, 30]); ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 3; ctx.stroke(path); ctx.setLineDash([]);
       // start / finish line (checker)
       const sl = T.at(0), nx = -Math.sin(sl.a), ny = Math.cos(sl.a); ctx.save(); ctx.translate(sl.x, sl.y); ctx.rotate(sl.a);
-      for (let r = 0; r < 2; r++) for (let c = -6; c < 6; c++) { ctx.fillStyle = (r + c) % 2 ? '#f4f4f6' : '#101014'; ctx.fillRect(-6 + r * 6, c * 10, 6, 10); } ctx.restore(); void nx; void ny;
+      for (let r = 0; r < 2; r++) for (let c = -6; c < 6; c++) { ctx.fillStyle = (r + c) % 2 ? '#ffffff' : '#ec4899'; ctx.fillRect(-6 + r * 6, c * 10, 6, 10); } ctx.restore(); void nx; void ny;
       // cars
       const order = []; for (let i = 0; i < s.n; i++) order.push(i); order.sort((a, b) => (a === R.youIdx) - (b === R.youIdx));
       for (const i of order) { const isMe = i === R.youIdx && !R.watching; const o = isMe ? me : others.get(i) || (s.grid && s.grid[i]); if (!o) continue; const c = live.cars.find(x => x.i === i); if (c && c.l) continue; car(c, o.x, o.y, o.a, isMe ? SHADES[0] : SHADES[1 + (i % 3)], isMe, String(R.players[i] ? R.players[i].name.slice(0, 10) : i + 1)); }
