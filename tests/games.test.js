@@ -207,7 +207,7 @@ test('ludo: rejects wrong-phase moves, captures on unsafe squares, and requires 
   const m = await T.match('ludo', ['Al', 'Bo']);
   assert.equal(await m.move(0, { token: 0 }), 'Roll the die first.');
   const state = {
-    pawns: [[4, -1, -1, -1], [8, -1, -1, -1]],
+    pawns: [[4, -1, -1, -1], [45, -1, -1, -1]],
     turn: 0, phase: 'move', die: 2, rolledBy: 0,
     done: [false, false], last: null,
   };
