@@ -123,3 +123,67 @@
 
 .seat .who{min-width:0;overflow:hidden}.seat .nmrow .ell{min-width:0}
 .seat .nmrow .ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Mobile polish: reserve a stable board area, keep controls reachable, and avoid an oversized lobby. */
+@media (max-width: 860px) {
+  .room {
+    grid-template-rows: auto auto auto minmax(220px, 1fr) auto auto;
+    row-gap: 6px;
+    overflow: hidden;
+  }
+  .bar {
+    min-width: 0;
+    gap: 7px;
+    padding: 6px 10px 0;
+  }
+  .bar .ttl { flex: 1; }
+  .bar .ttl b { font-size: 14px; }
+  .bar .sp { display: none; }
+  .bar .btn { flex: none; }
+  .bar .btn:not(.round) { min-height: 38px; padding-inline: 11px; font-size: 12px; }
+  .status { flex: none; max-width: 38vw; min-height: 34px; padding: 0 9px; font-size: 11px; }
+  .status .ell { max-width: 30vw; }
+  .seats { min-height: 0; }
+  .stage { min-height: 0; width: 100%; margin: 0; padding: 2px 6px; }
+  .gbox { min-height: 0; overflow: hidden; }
+  .actions { min-width: 0; min-height: 44px; gap: 7px; padding: 0 10px; }
+  .actions .btn { min-height: 42px; max-width: 100%; padding-inline: 14px; }
+  .lobby {
+    width: min(100%, 520px);
+    max-height: 100%;
+    padding: clamp(12px, 3.5vw, 18px);
+    gap: 10px;
+    border-radius: 18px;
+    overscroll-behavior: contain;
+  }
+  .lobby .h2 { font-size: 17px; }
+  .lobby .code { font-size: clamp(28px, 8vw, 40px); padding: 6px 0; }
+  .lobby .plist { gap: 6px; }
+  .lobby .slot { min-height: 46px; padding: 6px 8px; gap: 8px; }
+  .lobby .slot .av { --s: 32px !important; }
+  .lobby .ready { font-size: 9px; padding: 3px 6px; }
+  .lobby .lobby-friends { min-height: 0; }
+  .lobby .lobby-friend-list { max-height: 112px; overflow-y: auto; overscroll-behavior: contain; }
+  .lobby .btn { min-height: 42px; }
+  .callbar { min-height: 52px; margin: 0 10px calc(4px + var(--safe-b)); }
+}
+@media (max-width: 420px) {
+  .bar { gap: 5px; }
+  .bar .btn:not(.round) { padding-inline: 9px; }
+  .bar .ttl b { max-width: 24vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status { max-width: 34vw; }
+  .seats[data-n="3"] .seat, .seats[data-n="4"] .seat { padding: 4px 5px; }
+  .actions .btn { flex: 1 1 auto; padding-inline: 9px; font-size: 12px; }
+  .lobby { gap: 8px; }
+  .lobby .opt-row { gap: 5px; }
+  .lobby .pill { padding: 3px 7px; font-size: 10px; }
+}
+@media (max-height: 720px) and (max-width: 860px) and (orientation: portrait) {
+  .room { grid-template-rows: auto auto auto minmax(180px, 1fr) auto auto; }
+  .vids .tile, .vids.one .tile { height: 64px; }
+  .callbar { min-height: 46px; padding: 3px 6px; }
+  .callbar .btn.round { width: 40px; min-height: 40px; }
+  .lobby { gap: 7px; padding: 10px 12px; }
+  .lobby .lobby-friend-list { max-height: 72px; }
+}
+
