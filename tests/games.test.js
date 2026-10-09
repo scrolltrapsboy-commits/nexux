@@ -90,6 +90,27 @@ test('memory keeps faces hidden until flipped, locks mismatches, scores pairs', 
   await w(1300); assert.equal(m.room().state.turn, 1);
 });
 
+test('memory supports 3–4 players, rotates turns, skips a player who leaves', async () => {
+  for (const n of [3, 4]) {
+    const m = await T.match('memory', mk(n), { max: n });
+    assert.equal(m.room().max, n);
+    const cards = [...'ABCDEFGHABCDEFGH'];
+    m.A.emit('test:state', { gen: n, cards, matched: Array(16).fill(-1), up: [], turn: 0, scores: Array(n).fill(0), gone: Array(n).fill(false), lock: false });
+    await w(80);
+    assert.equal(m.room().state.scores.length, n);
+    assert.equal(await m.move(0, { c: 0 }), null);
+    assert.equal(await m.move(0, { c: 1 }), null);
+    assert.equal(m.room().state.scores[0], 1, 'a pair scores for the active player');
+    assert.equal(m.room().state.turn, 0, 'a successful pair keeps the turn');
+    await m.move(0, { c: 2 }); await m.move(0, { c: 4 });
+    await w(1200);
+    assert.equal(m.room().state.turn, 1, 'a mismatch advances to the next seat');
+    m.by(1).emit('leave'); await w(120);
+    assert.equal(m.room().state.turn, 2, 'a departing current player is skipped');
+    await leaveAll(m.cs);
+  }
+});
+
 test('reaction race: server judges the GO, early taps are penalised', async () => {
   const m = await T.match('reaction', ['Al', 'Bo']);
   await w(3800); assert.equal(m.A.room.state.phase, 'wait'); assert.equal(await m.move(0, {}), null); assert.equal(await m.move(0, {}), 'You already jumped the gun.');
