@@ -15,7 +15,7 @@ export function lobby(R, invalidate) {
   const optPills = R.opts ? Object.entries(R.opts).filter(([k, v]) => v && k !== 'ms').map(([k, v]) => h('span', { class: 'pill' }, k === 'time' ? v + ' min' : cap(k) + ': ' + v)) : [];
   const fill = R.fillAt ? Math.max(0, Math.ceil((R.fillAt - Date.now()) / 1000)) : null;
   // Include every currently connected friend; away friends can still accept, while in-game friends are shown as busy.
-  const friends = S.friends.friends.filter(f => ['online', 'away', 'ingame'].includes(f.p));
+  const friends = (S.friends?.friends || []).filter(f => ['online', 'away', 'ingame'].includes(f.p));
   // Any game with an open seat can accept a friend invite, including 3+ player games.
   const canInvite = R.players.length < R.max;
   let action;
