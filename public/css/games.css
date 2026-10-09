@@ -122,3 +122,22 @@ button[disabled].keep{opacity:1}
   100%{box-shadow:inset 0 1px 0 var(--hi)}
 }
 @media (prefers-reduced-motion:reduce){.ttt-c.placed,.ttt-c.placed svg{animation:none!important}}
+
+
+/* Frame-pacing and pointer-response pass.
+   Keep interactive updates on the browser's paint cadence and avoid touch/click delay. */
+.gp-cv { display:block; touch-action:none; user-select:none; -webkit-user-select:none; }
+.gb button, .ttt-c, .c4-col, .rps-b, .memory-card, .ms-cell, .reaction-target {
+  touch-action:manipulation;
+}
+.gb button, .ttt-c, .c4-col, .rps-b {
+  -webkit-tap-highlight-color:transparent;
+}
+@media (hover:hover) and (pointer:fine) {
+  .sq:not(:disabled), .ttt-c:not(:disabled), .c4-col:not(:disabled), .rps-b:not(:disabled) {
+    cursor:pointer;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .gp-cv { scroll-behavior:auto; }
+}
