@@ -94,7 +94,7 @@ test('memory supports 3–4 players, rotates turns, skips a player who leaves', 
   for (const n of [3, 4]) {
     const m = await T.match('memory', mk(n), { max: n });
     assert.equal(m.room().max, n);
-    const cards = [...'ABCDEFGHABCDEFGH'];
+    const cards = [...'ABCDEFGH'].flatMap(x => [x, x]);
     m.A.emit('test:state', { gen: n, cards, matched: Array(16).fill(-1), up: [], turn: 0, scores: Array(n).fill(0), gone: Array(n).fill(false), lock: false });
     await w(80);
     assert.equal(m.room().state.scores.length, n);
