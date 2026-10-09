@@ -1027,3 +1027,11 @@
 @media (prefers-reduced-motion:reduce) {
   .room .tile {animation:none!important}
 }
+
+
+@media (max-width:860px) {
+  .room.chat-open {
+    height:calc(100dvh - var(--kb,0px))!important;
+    max-height:calc(100dvh - var(--kb,0px))!important;
+  }
+}
