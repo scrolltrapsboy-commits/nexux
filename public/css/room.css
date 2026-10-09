@@ -848,8 +848,8 @@
     height: 100dvh !important;
     max-height: 100dvh !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
-    grid-template-areas: "head" "players" "board" "gameactions" "callcontrols" !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto auto !important;
+    grid-template-areas: "head" "players" "board" "gameactions" "callpreviews" "callcontrols" !important;
     gap: 5px !important;
     padding: max(4px, env(safe-area-inset-top, 0px)) 6px max(4px, env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden !important;
@@ -903,7 +903,7 @@
   .room .callbar .btn.round { height: 34px !important; min-height: 34px !important; max-height: 34px !important; }
 }
 @media (max-width: 860px) and (orientation: landscape) {
-  .room, .room.nodock { grid-template-columns: minmax(0,1fr) !important; grid-template-rows: auto auto minmax(0,1fr) auto !important; grid-template-areas: "head" "players" "board" "callcontrols" !important; }
+  .room, .room.nodock { grid-template-columns: minmax(0,1fr) !important; grid-template-rows: auto auto minmax(0,1fr) auto auto !important; grid-template-areas: "head" "players" "board" "callpreviews" "callcontrols" !important; }
   .room .actions { display: none !important; }
   .room .callbar { height: 38px !important; min-height: 38px !important; max-height: 38px !important; }
   .room .vids:not(.hide):not(:empty) { height: 48px !important; max-height: 48px !important; }
