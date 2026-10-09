@@ -209,3 +209,14 @@ button:not(:disabled):active,.btn:not(:disabled):active{transform:translateY(1px
 @media(prefers-reduced-motion:reduce) {
  .gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles,.bs-grid .bc.ship-pop,.bs-grid .bc.impact.hit .mk,.bs-grid .bc.impact.miss .mk,.c4-cell.drop,.ttt-c.f svg,.ttt-c.win,.rps-slot.w,.rx.go .rx-big,.ms-c.boom,.nc-hand .nc-c.ok {animation:none!important}
 }
+
+
+/* Match the Stitch reference typography and polished HUD rhythm. */
+.room,.room button,.room input,.room textarea {font-family:"Hanken Grotesk",system-ui,sans-serif}
+.room .bar .ttl b,.room .seat .who b,.room .status,.room .badge2,.room .actions .btn,.room .chat-h b {font-family:"Space Grotesk","Hanken Grotesk",sans-serif;letter-spacing:-.015em}
+.room .bar .ttl b {font-weight:700;letter-spacing:.015em}
+.room .seat .who b {font-weight:700}
+.room .status,.room .badge2 {font-variant-numeric:tabular-nums}
+.room .tile .nm {font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:.01em}
+.room .chat .chat-f .inp {border-radius:14px!important;background:#f8faff!important;border:1px solid #dbe5f5!important;color:#14213d!important}
+.room .chat .chat-f .btn {border-radius:14px!important;background:linear-gradient(135deg,#087fce,#635bdf)!important;color:#fff!important}
