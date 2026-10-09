@@ -1,0 +1,41 @@
+/* ===== Game boards. Every board is sized from the stage container, so it fills the available area without page scrolling. ===== */
+.gbox{width:100%;height:100%;display:grid;place-items:center;min-height:0;min-width:0;position:relative}
+.board{--b:min(calc(100cqw - 4px),calc(100cqh - 4px));width:var(--b);height:var(--b);max-width:100%;max-height:100%;position:relative}
+.pop{animation:popin .25s ease}
+@keyframes popin{from{transform:scale(.4);opacity:0}}
+button[disabled].keep{opacity:1}
+
+/* Tic Tac Toe */
+.ttt{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:calc(var(--b)*.03);--b:min(calc(100cqw - 4px),calc(100cqh - 4px),640px)}
+.ttt-c{border-radius:calc(var(--b)*.06);background:linear-gradient(150deg,var(--glass2),var(--glass));border:1px solid var(--line);display:grid;place-items:center;color:var(--fg);transition:.15s;box-shadow:inset 0 1px 0 var(--hi)}
+.ttt-c svg{width:56%;height:56%;animation:popin .22s ease}
+.ttt-c:not(.f):not(:disabled):hover{background:var(--glass3);transform:scale(.97)}
+.ttt-c.win{background:var(--solid);color:var(--on-solid)}
+.ttt-c:disabled{cursor:default}
+/* Connect Four */
+.c4{--b:min(calc(100cqw - 4px),calc((100cqh - 4px)*7/6),760px);width:var(--b);height:calc(var(--b)*6/7);display:grid;grid-template-columns:repeat(7,1fr);gap:calc(var(--b)*.012);padding:calc(var(--b)*.02);border-radius:calc(var(--b)*.05);background:linear-gradient(150deg,var(--glass3),var(--glass2));border:1px solid var(--line2);box-shadow:inset 0 1px 0 var(--hi),var(--shadow)}
+.c4-col{display:grid;grid-template-rows:repeat(6,1fr);gap:calc(var(--b)*.012);border-radius:999px;padding:0;transition:background .15s}
+.c4-col:not(:disabled):hover{background:var(--glass2)}
+.c4-col:disabled{cursor:default}
+.c4-cell{display:block;border-radius:50%;background:rgba(0,0,0,.4);box-shadow:inset 0 3px 8px rgba(0,0,0,.6);aspect-ratio:1;align-self:center;justify-self:center;width:100%;border:0}
+[data-theme=light] .c4-cell{background:rgba(0,0,0,.15)}
+.c4-cell.d0{background:#f4f4f6;box-shadow:inset 0 -3px 6px rgba(0,0,0,.25)}
+.c4-cell.d1{background:#101013;box-shadow:inset 0 0 0 3px #f4f4f6,inset 0 0 0 6px #101013,inset 0 0 0 7px #8a8a92}
+.c4-cell.drop{animation:drop .42s cubic-bezier(.4,.1,.5,1.1)}
+@keyframes drop{from{transform:translateY(-420%)}}
+.c4-cell.win{outline:3px solid var(--fg);outline-offset:2px;animation:pulse 1s infinite}
+/* Rock paper scissors */
+.rps{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,3cqh,24px);width:min(100%,560px);padding:4px}
+.rps-info{font-weight:600;color:var(--fg3);font-size:13px;text-align:center}
+.rps-rev{min-height:clamp(110px,28cqh,200px);display:grid;place-items:center;width:100%}
+.rps-pair{display:flex;gap:clamp(12px,6cqw,40px);justify-content:center;width:100%}
+.rps-slot{flex:1;max-width:190px;aspect-ratio:1;border-radius:24px;border:1px solid var(--line);background:var(--glass);display:grid;place-items:center;align-content:center;gap:4px;padding:10px;animation:popin .3s ease}
+.rps-slot.w{background:var(--solid);color:var(--on-solid)}
+.rps-slot small{font-weight:700;font-size:12px;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rps-h{display:block;width:clamp(44px,9cqh,84px);height:clamp(44px,9cqh,84px)}.rps-h svg{width:100%;height:100%}
+.rps-btns{display:flex;gap:clamp(8px,2.5cqw,18px);width:100%}
+.rps-b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:clamp(10px,2.4cqh,22px) 6px;border-radius:22px;background:linear-gradient(150deg,var(--glass2),var(--glass));border:1px solid var(--line);font-weight:700;text-transform:capitalize;font-size:14px;transition:.15s}
+.rps-b:not(:disabled):hover{background:var(--glass3);transform:translateY(-3px)}
+.rps-b.sel{background:var(--solid);color:var(--on-solid)}
+.rps-b:disabled:not(.sel){opacity:.5}
+.rps-b .rps-h{width:clamp(36px,8cqh,64px);height:clamp(36px,8cqh,64px)}

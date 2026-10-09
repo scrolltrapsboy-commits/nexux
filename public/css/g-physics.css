@@ -1,0 +1,30 @@
+/* Shared styles for the canvas games: Mini Golf, Carrom, Nexus Grand Prix. Colours come from the theme tokens only. */
+.gp-wrap{position:absolute;inset:0;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.gp-cv{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.gp-cv:focus-visible{outline:2px solid var(--fg);outline-offset:-3px;border-radius:12px}
+
+/* carrom striker slider (native range input, positioned by the module) */
+.cr-slide{position:absolute;margin:0;padding:0;height:40px;-webkit-appearance:none;appearance:none;background:transparent;touch-action:none;cursor:ew-resize;z-index:2}
+.cr-slide::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:var(--glass3);border:1px solid var(--line2);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.cr-slide::-moz-range-track{height:8px;border-radius:99px;background:var(--glass3);border:1px solid var(--line2)}
+.cr-slide::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:var(--solid);border:4px solid var(--bg);box-shadow:0 0 0 1.5px var(--fg3),0 4px 12px rgba(0,0,0,.4)}
+.cr-slide::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--solid);border:4px solid var(--bg);box-shadow:0 0 0 1.5px var(--fg3)}
+.cr-slide:disabled{opacity:.3;cursor:not-allowed}
+.cr-slide:focus-visible{outline:2px solid var(--fg);outline-offset:2px;border-radius:99px}
+
+/* racing touch controls: only mounted on coarse pointers */
+.rc-touch{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:0 max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));pointer-events:none;z-index:3;--k:clamp(56px,19vw,76px)}
+.rc-pad,.rc-pedals{display:flex;gap:8px;pointer-events:none;align-items:flex-end}
+.rc-b{pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;width:var(--k);height:var(--k);min-width:52px;min-height:52px;border-radius:calc(var(--k)*.34);display:grid;place-items:center;color:var(--fg);
+  background:linear-gradient(150deg,var(--glass3),var(--glass2));border:1px solid var(--line2);box-shadow:inset 0 1px 0 var(--hi),0 8px 22px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transition:background .08s,transform .08s}
+.rc-b svg{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.rc-b.on{background:var(--solid);color:var(--on-solid);transform:scale(.95)}
+.rc-b.gas{height:calc(var(--k)*1.35)}
+.rc-pad{pointer-events:auto;touch-action:none;position:relative;border-radius:calc(var(--k)*.4);padding:0;gap:0;
+  background:linear-gradient(150deg,var(--glass3),var(--glass2));border:1px solid var(--line2);box-shadow:inset 0 1px 0 var(--hi),0 8px 22px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);align-items:stretch}
+.rc-pad .rc-h{width:var(--k);min-width:52px;height:var(--k);min-height:52px;display:grid;place-items:center;color:var(--fg);transition:background .08s,color .08s;pointer-events:none}
+.rc-pad .rc-h:first-child{border-radius:calc(var(--k)*.4) 0 0 calc(var(--k)*.4)}
+.rc-pad .rc-h:last-child{border-radius:0 calc(var(--k)*.4) calc(var(--k)*.4) 0}
+.rc-pad .rc-h svg{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rc-pad .rc-h.on{background:var(--solid);color:var(--on-solid)}
+@media (max-height:420px){.rc-touch{--k:56px}}
