@@ -13,7 +13,7 @@ const P = {
 const NAME = { A: 'moon', B: 'star', C: 'bolt', D: 'leaf', E: 'drop', F: 'flame', G: 'diamond', H: 'wave' };
 const svg = k => '<svg viewBox="0 0 24 24" aria-hidden="true">' + P[k] + '</svg>';
 export default {
-  seat: (R, i) => ({ sub: i === 0 ? 'Filled marker' : 'Ring marker', badge: R.state.scores[i] }),
+  seat: (R, i) => ({ sub: 'Pairs found', badge: R.state.scores[i] }),
   status(R, api) {
     const s = R.state;
     if (R.watching) return (R.players[s.turn] ? R.players[s.turn].name + '’s turn' : 'Watching live');
