@@ -14,8 +14,10 @@ export function lobby(R, invalidate) {
   const allReady = R.players.every(p => p.ready || p.id === R.host), enough = R.players.length >= R.min;
   const optPills = R.opts ? Object.entries(R.opts).filter(([k, v]) => v && k !== 'ms').map(([k, v]) => h('span', { class: 'pill' }, k === 'time' ? v + ' min' : cap(k) + ': ' + v)) : [];
   const fill = R.fillAt ? Math.max(0, Math.ceil((R.fillAt - Date.now()) / 1000)) : null;
-  const friends = S.friends.friends.filter(f => f.p === 'online' || f.p === 'away');
-  const canInvite = R.players.length < R.max && g.min <= 2;
+  // Include every currently connected friend; away friends can still accept, while in-game friends are shown as busy.
+  const friends = S.friends.friends.filter(f => ['online', 'away', 'ingame'].includes(f.p));
+  // Any game with an open seat can accept a friend invite, including 3+ player games.
+  const canInvite = R.players.length < R.max;
   let action;
   if (isHost) action = h('button', { class: 'btn primary block', disabled: !enough || !allReady, onclick: async () => { const r = await ask('start'); if (r.error) toast(r.error); } }, icon('play', 'sm'), !enough ? 'Need ' + R.min + ' players' : !allReady ? 'Waiting for ready…' : 'Start game');
   else action = h('button', { class: 'btn primary block' + (mine && mine.ready ? '' : ''), onclick: () => sock.emit('ready') }, icon(mine && mine.ready ? 'check' : 'play', 'sm'), mine && mine.ready ? 'Ready · tap to cancel' : 'Ready');
@@ -28,5 +30,5 @@ export function lobby(R, invalidate) {
     h('div', { class: 'plist' }, slots),
     fill != null ? h('div', { class: 'small tc muted' }, 'Match starts in ' + fill + 's, or sooner if the room fills up.') : (R.fillAt === null && R.players.length < R.min ? h('div', { class: 'small tc muted' }, 'Share the code, invite a friend, or wait for someone to join.') : null),
     action,
-    canInvite && friends.length ? h('div', null, h('div', { class: 'label', style: { margin: '4px 0 8px' } }, 'Invite online friends'), friends.slice(0, 6).map(f => h('div', { class: 'list-item' }, avatar(f.av, 32, f.p), h('b', { class: 'grow ell' }, f.name), f.p === 'ingame' ? h('span', { class: 'small muted' }, 'In a game') : h('button', { class: 'btn xs', onclick: async e => { e.target.disabled = true; const r = await ask('invite', { id: f.id, game: R.game }); if (r.error) { toast(r.error); e.target.disabled = false; } else e.target.textContent = 'Invited'; } }, 'Invite')))) : null);
+    canInvite && friends.length ? h('div', null, h('div', { class: 'label', style: { margin: '4px 0 8px' } }, 'Invite online friends'), friends.map(f => h('div', { class: 'list-item' }, avatar(f.av, 32, f.p), h('b', { class: 'grow ell' }, f.name), f.p === 'ingame' ? h('span', { class: 'small muted' }, 'In a game') : h('button', { class: 'btn xs', onclick: async e => { e.target.disabled = true; const r = await ask('invite', { id: f.id, game: R.game }); if (r.error) { toast(r.error); e.target.disabled = false; } else e.target.textContent = 'Invited'; } }, 'Invite')))) : null);
 }
