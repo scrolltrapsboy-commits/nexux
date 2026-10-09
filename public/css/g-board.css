@@ -326,3 +326,17 @@
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
 @media (prefers-reduced-motion:reduce){.kg-board .kc .pc.pop{animation:none!important}}
+
+
+/* Gomoku: briefly draw attention to the latest move without changing the stone. */
+.mg-board .gc.last i.st::after {
+  animation: gb-gomoku-last-ring .48s cubic-bezier(.16,.75,.3,1) both;
+}
+@keyframes gb-gomoku-last-ring {
+  0% { transform: scale(.45); opacity: .25; }
+  55% { transform: scale(1.22); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-board .gc.last i.st::after { animation: none; }
+}
