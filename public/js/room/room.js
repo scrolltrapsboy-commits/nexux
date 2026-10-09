@@ -21,7 +21,7 @@ export default function room(root, { code }) {
     h('section', { class: 'play' }, h('header', { class: 'bar' }, leaveBtn, h('div', { class: 'ttl' }, title, sub), h('div', { class: 'sp' }), shareBtn, specs, status, dockBtn), seatsEl, stage, actions),
     h('aside', { class: 'dock' }, dock.vids, dock.bar, dock.chat.el), scrim);
   root.append(el);
-  const layout = () => { el.classList.toggle('nodock', !S.prefs.dock); dockBtn.classList.toggle('on', !!S.prefs.dock); stage.dispatchEvent(new Event('resize')); };
+  const layout = () => { const mobile = matchMedia('(max-width: 860px)').matches; el.classList.toggle('nodock', !S.prefs.dock && !mobile); el.classList.toggle('mobile-room', mobile); dockBtn.classList.toggle('on', !!S.prefs.dock); stage.dispatchEvent(new Event('resize')); requestAnimationFrame(() => { stage.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('resize')); }); };
   function setChat(v) { chatOpen = v; dock.chat.el.classList.toggle('open', v); scrim.classList.toggle('on', v); if (v) { unread = 0; setTimeout(() => dock.chat.focus(), 250); const m = dock.chat.el.querySelector('.msgs'); m.scrollTop = m.scrollHeight; } dock.refresh(); }
   if (window.visualViewport) { const vv = window.visualViewport, f = () => el.style.setProperty('--kb', Math.max(0, innerHeight - vv.height - vv.offsetTop) + 'px'); vv.addEventListener('resize', f); vv.addEventListener('scroll', f); offs.push(() => { vv.removeEventListener('resize', f); vv.removeEventListener('scroll', f); }); }
 
@@ -110,7 +110,7 @@ export default function room(root, { code }) {
     gameFor = want; clear(stage);
     try { gameMod = (await import('../games/' + R.game + '.js')).default; } catch (e) { console.error(e); stage.append(h('div', { class: 'empty glass' }, 'This game could not be loaded. Reload the page.')); return; }
     if (dead) return;
-    const box = h('div', { class: 'gbox' }); stage.append(box); game = gameMod.mount(box, api); game.update(R); drawSeats(); drawActions();
+    const box = h('div', { class: 'gbox' }); stage.append(box); game = gameMod.mount(box, api); game.update(R); drawSeats(); drawActions(); requestAnimationFrame(() => { stage.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('resize')); });
   }
   function render() {
     if (!R || dead) return;
@@ -135,7 +135,7 @@ export default function room(root, { code }) {
   /* ---------- wiring ---------- */
   const apply = r => { if (!r || r.code !== code) return; offset = r.now - Date.now(); R = r; render(); };
   offs.push(on('room', ({ room: r }) => { if (r && r.code === code) apply(r); }));
-  offs.push(call.subscribe(() => { if (R) drawSeats(); }));
+  offs.push(call.subscribe(() => { if (R) { drawSeats(); el.classList.toggle('call-active', !!call.st.joined); el.classList.toggle('call-video', !!call.st.joined && !!call.st.cam); requestAnimationFrame(() => stage.dispatchEvent(new Event('resize'))); } }));
   offs.push(on('friends', () => { if (R && R.status === 'lobby') render(); }));
   ticker = setInterval(() => { if (!R) return; updateBadges(); if (R.status === 'lobby' && R.fillAt) stage.replaceChildren(lobby(R)); }, 250);
   window.addEventListener('resize', layout); offs.push(() => window.removeEventListener('resize', layout));
