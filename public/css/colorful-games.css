@@ -1,0 +1,90 @@
+/* NEXUS PLAY — vivid, game-specific color system inspired by the Stitch Arena reference.
+   Shared layout stays intact; each game gets distinct, high-contrast colors. */
+:root{
+  --bg:#f5f7ff;--bg2:#edf2ff;--fg:#14213d;--fg2:#475569;--fg3:#718096;--fg4:#a5b4c7;
+  --glass:rgba(255,255,255,.76);--glass2:rgba(255,255,255,.94);--glass3:rgba(59,130,246,.12);
+  --line:rgba(71,85,105,.14);--line2:rgba(71,85,105,.25);--hi:rgba(255,255,255,.95);
+  --solid:#087fce;--on-solid:#fff;--shadow:0 14px 34px rgba(54,79,145,.14);
+  --sq-l:#fff0c9;--sq-d:#7b61d1;--bd:#d9e5ff;
+  --r:18px;--r2:12px;color-scheme:light;
+}
+[data-theme=light]{
+  --bg:#f5f7ff;--bg2:#edf2ff;--fg:#14213d;--fg2:#475569;--fg3:#718096;--fg4:#a5b4c7;
+  --glass:rgba(255,255,255,.78);--glass2:rgba(255,255,255,.96);--glass3:rgba(59,130,246,.12);
+  --line:rgba(71,85,105,.15);--line2:rgba(71,85,105,.25);--hi:#fff;
+  --solid:#087fce;--on-solid:#fff;--shadow:0 14px 34px rgba(54,79,145,.14);
+  --sq-l:#fff0c9;--sq-d:#7b61d1;--bd:#d9e5ff;color-scheme:light;
+}
+body{background:radial-gradient(ellipse at 5% 0%,#dbeafe 0,transparent 34%),radial-gradient(ellipse at 95% 10%,#fce7f3 0,transparent 30%),#f5f7ff!important;color:#14213d}
+.room{--bg:#f5f7ff!important;--fg:#14213d!important;--fg2:#475569!important;--fg3:#718096!important;--glass:rgba(255,255,255,.82)!important;--glass2:#fff!important;--glass3:rgba(59,130,246,.12)!important;--line:rgba(71,85,105,.15)!important;--line2:rgba(71,85,105,.25)!important;--hi:#fff!important;--solid:#087fce!important;--on-solid:#fff!important;--shadow:0 12px 32px rgba(54,79,145,.14)!important}
+.room::before{background:radial-gradient(700px 450px at 10% 0%,rgba(96,165,250,.18),transparent 65%),radial-gradient(650px 420px at 100% 5%,rgba(232,121,249,.14),transparent 60%),#f5f7ff!important}
+.play,.dock,.bar,.seats,.stage,.actions,.vids,.callbar{color:#14213d}
+.bar,.seat,.dock,.callbar,.actions,.tile,.chat,.plist,.result{background:rgba(255,255,255,.9)!important;border-color:#dce5f5!important;box-shadow:0 8px 24px rgba(71,85,145,.08)}
+.ttl,.seat,.tile,.chat,.result,.plist{color:#14213d!important}
+.seat.you,.seat.turn,.seat.on,.who.you{border-color:#06b6d4!important;box-shadow:0 0 0 2px rgba(6,182,212,.15),0 8px 22px rgba(6,182,212,.12)!important}
+.badge2,.status,.turn,.pill{background:linear-gradient(135deg,#cffafe,#e0e7ff)!important;color:#3730a3!important;border-color:#a5f3fc!important}
+button,.btn{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+button:not(:disabled):active,.btn:not(:disabled):active{transform:translateY(1px) scale(.98)}
+.btn:not(.lobby),.actions .btn:not(.lobby){background:linear-gradient(135deg,#0284c7,#4f46e5)!important;color:white!important;border-color:transparent!important;box-shadow:0 4px 12px rgba(79,70,229,.2)}
+.btn.lobby,.actions .lobby{background:linear-gradient(135deg,#fff,#eef2ff)!important;color:#334155!important;border:1px solid #dbeafe!important}
+.callbar .hang,.callbar [data-action=hang],.callbar .end{background:linear-gradient(135deg,#fb7185,#be123c)!important;color:#fff!important}
+.callbar button:not(.hang):not(.end){background:linear-gradient(135deg,#fff,#e0f2fe)!important;color:#075985!important;border:1px solid #bae6fd!important}
+.stage{background:radial-gradient(ellipse at 20% 0%,rgba(125,211,252,.18),transparent 55%),radial-gradient(ellipse at 90% 100%,rgba(196,181,253,.18),transparent 55%),#f8faff!important;border:1px solid #e1e8f5!important;border-radius:20px;box-shadow:inset 0 1px #fff,0 12px 32px rgba(71,85,145,.08)}
+/* Tic-tac-toe: candy cyan and pink */
+.ttt-c{background:linear-gradient(145deg,#e0f2fe,#dbeafe)!important;border:1px solid #93c5fd!important;color:#1d4ed8!important;box-shadow:inset 0 1px #fff,0 4px 12px rgba(59,130,246,.12)!important}
+.ttt-c:nth-child(3n+2){background:linear-gradient(145deg,#fce7f3,#f5d0fe)!important;border-color:#f0abfc!important;color:#a21caf!important}
+.ttt-c.win{background:linear-gradient(135deg,#a7f3d0,#67e8f9)!important;color:#064e3b!important;border-color:#34d399!important}
+/* Connect Four: bright arcade board and contrasting counters */
+.c4{background:linear-gradient(145deg,#2563eb,#4f46e5)!important;border:2px solid #93c5fd!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 12px 24px rgba(37,99,235,.24)!important}
+.c4-cell{background:radial-gradient(circle at 35% 28%,#fff,#dbeafe 55%,#93c5fd)!important;border:2px solid rgba(30,64,175,.45)!important}
+.c4-cell.d0,.c4-cell.p0{background:radial-gradient(circle at 30% 25%,#fff7ad,#facc15 48%,#f97316)!important;border-color:#f59e0b!important}
+.c4-cell.d1,.c4-cell.p1{background:radial-gradient(circle at 30% 25%,#fce7f3,#f472b6 48%,#9333ea)!important;border-color:#c026d3!important}
+/* Rock-paper-scissors: each choice has its own bold color */
+.rps-b{background:linear-gradient(145deg,#fff,#e0f2fe)!important;border:1px solid #bae6fd!important;color:#075985!important;box-shadow:0 5px 14px rgba(14,165,233,.13)!important}
+.rps-b:nth-child(3n+2){background:linear-gradient(145deg,#fef3c7,#fed7aa)!important;border-color:#fdba74!important;color:#9a3412!important}
+.rps-b:nth-child(3n){background:linear-gradient(145deg,#fce7f3,#e9d5ff)!important;border-color:#d8b4fe!important;color:#7e22ce!important}
+.rps-b.sel,.rps-b.placed{outline:3px solid #22d3ee!important;outline-offset:2px}
+/* Chess/checkers/reversi/gomoku/battleship: saturated board palette */
+.gb{--sqL:#fff0c9!important;--sqD:#7b61d1!important;--ink:#172554!important;--paper:#fff!important;--gline:rgba(76,29,149,.48)!important;--gfield:#c4b5fd!important;--water:#bae6fd!important;color:#172554!important}
+.gb-frame{border:2px solid #a5b4fc!important;box-shadow:inset 0 1px #fff,0 10px 24px rgba(79,70,229,.18)!important}
+.cg-board .sq{background:#fff0c9!important}
+.cg-board .sq.d{background:#8b78dd!important}
+.cg-board .sq.last{box-shadow:inset 0 0 0 4px rgba(250,204,21,.75)!important}
+.cg-board .sq.sel,.cg-board .sq.can{background:#a5f3fc!important}
+.kg-board .kc,.kg-board .pc{background:linear-gradient(145deg,#dbeafe,#93c5fd)!important;border-color:#60a5fa!important}
+.kg-board .kc.d,.kg-board .pc.d{background:linear-gradient(145deg,#fce7f3,#f9a8d4)!important;border-color:#ec4899!important}
+.rv .rc,.rg-board .rc{background:radial-gradient(circle at 30% 25%,#86efac,#16a34a 65%,#166534)!important;border:1px solid #bbf7d0!important}
+.bs-grid .bc,.bs-grid .w{background:linear-gradient(145deg,#e0f2fe,#7dd3fc)!important;border-color:#38bdf8!important}
+.bs-grid .hit,.bs-grid .fire{background:linear-gradient(145deg,#fecaca,#f43f5e)!important;color:#881337!important}
+.bs-grid .miss{background:linear-gradient(145deg,#dbeafe,#60a5fa)!important;color:#1e3a8a!important}
+/* Memory: jewel-tone card backs, rainbow fronts */
+.mem-k{background:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 7px,transparent 7px 13px),linear-gradient(135deg,#6366f1,#a855f7 52%,#ec4899)!important;border:1px solid #c4b5fd!important;box-shadow:inset 0 1px rgba(255,255,255,.45),0 5px 14px rgba(124,58,237,.2)!important}
+.mem-f{background:linear-gradient(145deg,#fff,#e0f2fe)!important;border:1px solid #7dd3fc!important;color:#0369a1!important;box-shadow:0 5px 14px rgba(14,165,233,.12)!important}
+.mem-c:nth-child(4n+2) .mem-f{background:linear-gradient(145deg,#fff1f2,#fce7f3)!important;color:#be185d!important}
+.mem-c:nth-child(4n+3) .mem-f{background:linear-gradient(145deg,#fef3c7,#fde68a)!important;color:#92400e!important}
+.mem-c:nth-child(4n) .mem-f{background:linear-gradient(145deg,#dcfce7,#a7f3d0)!important;color:#166534!important}
+/* Reaction race / minesweeper / word battle */
+.rx{background:linear-gradient(135deg,#e0f2fe,#dbeafe)!important;border-color:#7dd3fc!important}
+.rx.go,.rx-big.go{background:linear-gradient(135deg,#86efac,#22c55e)!important;color:#052e16!important}
+.rx.wait{background:linear-gradient(135deg,#fef3c7,#fb923c)!important;color:#7c2d12!important}
+.ms-grid{background:linear-gradient(135deg,#c7d2fe,#bae6fd)!important;border:2px solid #818cf8!important}
+.ms-c{background:linear-gradient(145deg,#fff,#e0e7ff)!important;border:1px solid #a5b4fc!important;color:#3730a3!important}
+.ms-c.open{background:linear-gradient(145deg,#dbeafe,#cffafe)!important}
+.ms-c.boom,.ms-c.hit{background:linear-gradient(145deg,#fecaca,#fb7185)!important;color:#881337!important}
+.ms-c.n1{color:#2563eb!important}.ms-c.n2{color:#16a34a!important}.ms-c.n3{color:#db2777!important}
+.wb-tiles{background:linear-gradient(135deg,#fce7f3,#e9d5ff)!important;border-color:#d8b4fe!important}
+.wb-t{background:linear-gradient(145deg,#fff,#fef3c7)!important;border:1px solid #fbbf24!important;color:#92400e!important;box-shadow:0 3px 8px rgba(217,119,6,.12)!important}
+.wb-word,.wb-chip{background:linear-gradient(135deg,#dbeafe,#cffafe)!important;border-color:#7dd3fc!important;color:#075985!important}
+/* Cards: proper red/black suits, colorful card backs and active-hand accents */
+.nc-c{background:linear-gradient(145deg,#fff,#f8fafc)!important;border-color:#cbd5e1!important;color:#172554!important;box-shadow:0 7px 16px rgba(30,64,175,.15)!important}
+.nc-c .v,.nc-c .mk,.nc-c .tl,.nc-c .br{color:#dc2626!important}
+.nc-c:nth-child(2n) .v,.nc-c:nth-child(2n) .mk{color:#1e293b!important}
+.nc-back{background:repeating-linear-gradient(45deg,rgba(255,255,255,.15) 0 3px,transparent 3px 6px),linear-gradient(135deg,#2563eb,#7c3aed,#db2777)!important;border-color:#a5b4fc!important}
+.nc-o.turn,.nc-pick,.nc-cur{border-color:#06b6d4!important;box-shadow:0 0 0 2px rgba(6,182,212,.2)!important}
+.nc-acts button,.nc-acts .btn{background:linear-gradient(135deg,#0284c7,#4f46e5)!important;color:#fff!important}
+/* Canvas games read these tokens; carrom itself keeps its wooden frame. */
+.gp-wrap{background:radial-gradient(ellipse at 15% 5%,rgba(34,211,238,.16),transparent 45%),radial-gradient(ellipse at 90% 90%,rgba(192,132,252,.16),transparent 45%),#f8faff!important}
+.cr-slide::-webkit-slider-runnable-track{background:linear-gradient(90deg,#67e8f9,#a5b4fc,#f9a8d4)!important;border-color:#c4b5fd!important}
+.cr-slide::-webkit-slider-thumb{background:linear-gradient(135deg,#fff,#67e8f9)!important;box-shadow:0 0 0 2px #6366f1,0 4px 12px rgba(79,70,229,.25)!important}
+.gp-panel{background:linear-gradient(135deg,#fff,#eff6ff)!important;border-color:#bfdbfe!important;color:#1e3a8a!important}
+@media(prefers-reduced-motion:reduce){.ttt-c,.mem-i,button,.btn{transition:none!important;animation:none!important}}
