@@ -274,10 +274,10 @@
               transform .16s cubic-bezier(.2,.8,.2,1);
 }
 .bs-grid .bc.fire:not(:disabled):hover { transform: scale(.96); filter: brightness(1.18); }
-.bs-grid .bc.ship { animation: gb-ship-place .22s cubic-bezier(.2,.8,.2,1) both; }
+.bs-grid .bc.ship.ship-pop { animation: gb-ship-place .22s cubic-bezier(.2,.8,.2,1) both; }
 .bs-grid .bc.hit .mk { animation: gb-shot-hit .38s ease-out both; }
 .bs-grid .bc.miss .mk { animation: gb-shot-miss .3s ease-out both; }
-.bs-grid .bc.lastshot { animation: gb-last-shot .45s ease-out both; }
+.bs-grid .bc.lastshot.shot-pop { animation: gb-last-shot .45s ease-out both; }
 .bs-ship.on { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.16); }
 .bs-ship.done::after { animation: gb-ready-mark .22s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes gb-ship-place {
@@ -309,7 +309,7 @@
 .mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) {
   .bs-grid .bc, .bs-grid .bc.ship, .bs-grid .bc.hit .mk, .bs-grid .bc.miss .mk,
-  .bs-grid .bc.lastshot, .bs-ship.on, .bs-ship.done::after,
+  .bs-grid .bc.lastshot, .bs-grid .bc.ship-pop, .bs-grid .bc.shot-pop, .bs-ship.on, .bs-ship.done::after,
   .rg-board .rc.fl .dk, .rg-board .rc.last .dk, .mg-board .gc.new .st,
   .mg-board .gc.win .st {
     animation: none !important;
