@@ -43,6 +43,7 @@ export function createCall() {
 
   /* ---------- peers ---------- */
   function applyAudioOut(p) { p.audio.muted = st.deaf; p.audio.volume = st.vol[p.id] == null ? 1 : st.vol[p.id]; if (st.devs.out && p.audio.setSinkId) p.audio.setSinkId(st.devs.out).catch(() => {}); }
+  async function unlockAudio() { try { if (ac && ac.state === 'suspended') await ac.resume(); } catch {} for (const p of peers.values()) { try { await p.audio.play(); } catch {} } }
   function makePeer(id) {
     if (peers.has(id)) return peers.get(id);
     const pc = new RTCPeerConnection({ iceServers: ice, bundlePolicy: 'max-bundle' });
@@ -112,15 +113,18 @@ export function createCall() {
     async join({ video = false } = {}) {
       if (st.joined || st.joining) return; if (!api.supported()) { toast('Voice and video need a modern browser over HTTPS.'); return; }
       st.joining = true; st.error = ''; emitChange();
-      const gotMic = await getAudio(); if (video) await getVideo();
-      if (!gotMic && !st.cam) { /* still allow listening */ }
-      const r = await ask('rtc:join', { cam: st.cam });
-      st.joining = false;
-      if (r.error) { toast(r.error); api.stopLocal(); emitChange(); return; }
-      ice = r.ice || []; st.joined = true;
-      offs.push(on('rtc:signal', onSignal));
-      for (const id of r.peers) makePeer(id);
-      report(); countCams(); emitChange();
+      try {
+        const gotMic = await getAudio(); if (video) await getVideo();
+        if (!gotMic && !st.cam) { /* allow joining to listen even when local capture is unavailable */ }
+        const r = await ask('rtc:join', { cam: st.cam });
+        if (!r || r.error) { toast(r && r.error || 'Could not join the call. Please try again.'); api.stopLocal(); st.joining = false; emitChange(); return; }
+        ice = r.ice || []; st.joined = true;
+        offs.push(on('rtc:signal', onSignal));
+        for (const id of r.peers || []) makePeer(id);
+        await unlockAudio(); report(); await countCams(); emitChange();
+      } catch (e) {
+        st.error = explain(e); toast(st.error, { ms: 6000 }); api.stopLocal(); st.joined = false;
+      } finally { st.joining = false; emitChange(); }
     },
     stopLocal() { if (st.local) st.local.getTracks().forEach(t => t.stop()); st.local = null; st.mic = st.cam = false; unwatch(S.me.id); },
     leave(silent) {
@@ -134,7 +138,7 @@ export function createCall() {
       ice = r.ice || ice; for (const id of [...peers.keys()]) dropPeer(id); for (const id of r.peers) makePeer(id); report();
     },
     async toggleMic() {
-      if (!st.joined) return; const t = audioTrack();
+      if (!st.joined) return; await unlockAudio(); const t = audioTrack();
       if (!t) { if (await getAudio()) { report(); emitChange(); } return; }
       t.enabled = !t.enabled; st.mic = t.enabled; report(); emitChange();
     },
