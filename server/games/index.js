@@ -1,6 +1,6 @@
 // Game registry. To add a game: create server/games/<id>.js with { id, title, category, difficulty, min, max, desc, init, move, ... }
 // and a client module public/js/games/<id>.js, then list the id below.
-const ORDER = ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards'];
+const ORDER = ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards', 'snakesladders'];
 const games = {};
 for (const id of ORDER) {
   let g = null;

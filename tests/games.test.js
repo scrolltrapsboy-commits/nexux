@@ -7,7 +7,7 @@ const leaveAll = async cs => { cs.forEach(c => c.emit('leave')); await w(80); };
 
 test('catalog lists every shipped game with working server modules', async () => {
   const c = await T.client('Cat'); const ids = c.hello.catalog.map(g => g.id);
-  for (const id of ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards']) assert.ok(ids.includes(id), id + ' missing');
+  for (const id of ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards', 'snakesladders']) assert.ok(ids.includes(id), id + ' missing');
 });
 
 test('tic tac toe: win, rematch, room chat, leave = forfeit', async () => {
@@ -187,4 +187,20 @@ test('racing: grid lock, cheaters are corrected, a clean lap finishes the race',
   }
   assert.ok(fin.length, 'finished after ' + n + ' reports'); assert.equal(fin[0].place, 1);
   await w(1200); assert.equal(m.room().status, 'finished'); assert.equal(m.room().result.winnerId, me.me.id);
+});
+
+test('snakes and ladders: supports 2–4 players, rolls, turns, and board bounds', async () => {
+  for (const n of [2, 3, 4]) {
+    const m = await T.match('snakesladders', mk(n), { max: n });
+    assert.equal(m.room().max, n);
+    assert.equal(m.room().state.positions.length, n);
+    assert.ok(m.room().state.positions.every(p => p === 0));
+    assert.equal(await m.move(0, { action: 'move' }), 'Roll the die to move.');
+    assert.equal(await m.move(0, { action: 'roll' }), null);
+    const state = m.room().state;
+    assert.ok(Number.isInteger(state.die) && state.die >= 1 && state.die <= 6);
+    assert.ok(state.positions.every(p => p >= 0 && p <= 100));
+    assert.ok(state.last && state.last.seat === 0);
+    await leaveAll(m.cs);
+  }
 });
