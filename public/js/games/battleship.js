@@ -83,7 +83,7 @@ export default {
         const k = o.get(i); let cls = 'bc w';
         if (k != null) { const sh = ships[k], idx = i === cellsOf(sh.len, sh.x, sh.y, sh.h)[0] ? 0 : i === cellsOf(sh.len, sh.x, sh.y, sh.h)[sh.len - 1] ? 1 : -1; cls = 'bc ship' + (sh.h ? '' : ' v') + (idx >= 0 ? ' e' + idx : '') + (k === sel && !locked ? ' sel' : ''); }
         else if (pv.has(i)) cls += ' pv' + (pv.get(i) ? '' : ' bad');
-        e.className = cls; e.disabled = locked; e.setAttribute('aria-label', L(i) + (k != null ? ', ship' : ', water'));
+        const hasShip = k != null, freshShip = hasShip && !e._hadShip; e._hadShip = hasShip;\n        e.className = cls + (freshShip ? ' ship-pop' : ''); e.disabled = locked; e.setAttribute('aria-label', L(i) + (k != null ? ', ship' : ', water'));
       });
       tray.forEach((b, k) => { b.className = 'bs-ship' + (k === sel && !locked ? ' on' : '') + (placed(ships[k]) ? ' done' : ''); b.disabled = locked; });
       const all = ships.every(placed); bGo.disabled = locked || !all || sending; bRot.disabled = bRnd.disabled = bClr.disabled = locked;
@@ -104,7 +104,7 @@ export default {
       cells.forEach((e, i) => {
         const has = m.has(i), hit = has && m.get(i), isShip = shipSet && shipSet.has(i);
         const freshShot = has && !e._hadShot; e._hadShot = has;
-        e.className = 'bc' + (enemy ? ' enemy' : '') + (isShip ? ' ship' : ' w') + (hit ? ' hit' : has ? ' miss' : '') + (freshShot ? ' impact' : '') + (i === lastC ? ' lastshot' : '') + (canFire && !has ? ' fire' : '');
+        e.className = 'bc' + (enemy ? ' enemy' : '') + (isShip ? ' ship' : ' w') + (hit ? ' hit' : has ? ' miss' : '') + (freshShot ? ' impact' : '') + (i === lastC ? ' lastshot' : '') + (freshShot ? ' shot-pop' : '') + (canFire && !has ? ' fire' : '');
         if (e.tagName === 'BUTTON') { e.disabled = !canFire || has; }
         e.setAttribute('aria-label', L(i) + (has ? (hit ? ', hit' : ', miss') : isShip ? ', your ship' : canFire ? ', fire' : ', unknown'));
       });
