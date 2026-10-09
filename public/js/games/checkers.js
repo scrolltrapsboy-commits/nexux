@@ -37,8 +37,8 @@ export default {
       cells.forEach((e, i) => {
         const v = s.board[i], dark = e.tagName === 'BUTTON';
         if (e._v !== v) {
-          e._v = v; if (e._pc.parentNode) e._pc.remove();
-          if (v) { e._pc.className = 'pc ' + (v.toLowerCase() === 'a' ? 'p0' : 'p1') + (v === v.toUpperCase() ? ' k' : '') + (e._v === v ? '' : ' pop'); e.append(e._pc); }
+          const changed = e._v !== undefined && v !== null; e._v = v; if (e._pc.parentNode) e._pc.remove();
+          if (v) { e._pc.className = 'pc ' + (v.toLowerCase() === 'a' ? 'p0' : 'p1') + (v === v.toUpperCase() ? ' k' : '') + (changed ? ' pop' : ''); e.append(e._pc); }
           e.setAttribute('aria-label', 'Square ' + 'abcdefgh'[i & 7] + (8 - (i >> 3)) + (v ? ', ' + (v.toLowerCase() === 'a' ? 'light' : 'dark') + (v === v.toUpperCase() ? ' king' : ' piece') : ', empty'));
         }
         if (v) e._pc.classList.toggle('can', my && m.has(i) && i !== sel);
