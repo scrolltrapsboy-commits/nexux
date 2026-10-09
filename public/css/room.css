@@ -187,3 +187,115 @@
   .lobby .lobby-friend-list { max-height: 72px; }
 }
 
+/* NEXUS mobile HUD refresh: glass panels, larger call previews, and a protected game-board viewport. */
+.room {
+  --nx-glass: color-mix(in srgb, var(--glass, #141821) 82%, transparent);
+  --nx-edge: color-mix(in srgb, var(--line, #64748b) 70%, transparent);
+}
+@supports (backdrop-filter: blur(12px)) {
+  .room .bar, .room .seat, .room .actions .btn, .room .callbar, .room .vids, .room .lobby {
+    backdrop-filter: blur(18px) saturate(1.25);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  }
+}
+.room .stage { isolation: isolate; }
+.room .stage:has(> .gbox) {
+  border: 1px solid var(--nx-edge);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(92, 119, 255, .09), transparent 62%), var(--nx-glass);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 40px rgba(0,0,0,.12);
+}
+.room .status { box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+.room .seat { box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
+.room .seat.turn { border-color: color-mix(in srgb, var(--fg, #fff) 65%, #7c83ff); }
+.room .tile { border-color: rgba(160,175,255,.35); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.room .tile.speaking { box-shadow: 0 0 0 2px #8ef4d0, 0 0 24px rgba(92,245,205,.24); }
+.room .callbar { border: 1px solid var(--nx-edge); box-shadow: 0 12px 32px rgba(0,0,0,.16); }
+.room .callbar .btn.round { transition: transform .16s ease, background .16s ease, border-color .16s ease; }
+.room .callbar .btn.round:active, .room .actions .btn:active { transform: scale(.96); }
+
+@media (max-width: 860px) {
+  .room {
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+    gap: 6px;
+    padding: max(4px, var(--safe-t)) 0 max(4px, var(--safe-b));
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(86,110,255,.10), transparent 38%),
+      radial-gradient(ellipse at 95% 30%, rgba(53,211,190,.06), transparent 34%),
+      var(--bg);
+  }
+  .room .play { gap: 6px; }
+  .room .bar { min-height: 42px; padding: 4px 9px 0; gap: 6px; }
+  .room .bar .ttl b { font-size: 14px; }
+  .room .bar .btn:not(.round) { min-height: 36px; padding: 0 9px; font-size: 11px; }
+  .room .status { max-width: 34vw; min-height: 32px; font-size: 10px; padding: 0 8px; gap: 5px; }
+  .room .seats { padding: 0 8px; gap: 6px; }
+  .room .seat { border-radius: 13px; padding: 6px 8px 6px 6px; }
+  .room .stage { margin: 0 7px; padding: 5px; border-radius: 20px; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+  .room .stage > * { max-width: 100%; }
+  .room .actions { padding: 0 9px; gap: 7px; min-height: 42px; }
+  .room .actions .btn { min-height: 40px; border-radius: 13px; }
+  .room .vids {
+    margin: 0 8px;
+    padding: 7px;
+    gap: 8px;
+    min-height: 0;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    border: 1px solid var(--nx-edge);
+    border-radius: 17px;
+    background: var(--nx-glass);
+  }
+  .room .vids .tile, .room .vids.one .tile {
+    height: clamp(100px, 16dvh, 140px);
+    aspect-ratio: 4 / 3;
+    border-radius: 13px;
+    scroll-snap-align: start;
+  }
+  .room .vids.one .tile { height: clamp(108px, 18dvh, 150px); aspect-ratio: 16 / 10; }
+  .room .tile .nm { font-size: 10px; }
+  .room .callbar {
+    margin: 0 8px 4px;
+    min-height: 52px;
+    padding: 5px 8px;
+    gap: 8px;
+    border-radius: 20px;
+    justify-content: space-evenly;
+    background: color-mix(in srgb, var(--bd, #171a24) 84%, transparent);
+  }
+  .room .callbar .btn.round { width: 44px; min-width: 44px; min-height: 44px; border-radius: 15px; }
+  .room .callbar .btn.hang { border-radius: 50%; }
+  .room .lobby { width: min(100%, 500px); padding: clamp(12px, 3.5vw, 18px); gap: 9px; border-radius: 20px; }
+  .room .lobby .slot { min-height: 43px; }
+}
+@media (max-width: 420px) {
+  .room .bar .ttl b { max-width: 25vw; }
+  .room .bar .btn:not(.round) { padding-inline: 7px; }
+  .room .vids .tile, .room .vids.one .tile { height: clamp(92px, 15dvh, 120px); }
+  .room .callbar { gap: 5px; padding-inline: 5px; }
+  .room .callbar .btn.round { width: 41px; min-width: 41px; min-height: 41px; }
+  .room .stage:has(> .gbox) { margin-inline: 5px; padding: 3px; }
+}
+@media (max-height: 740px) and (max-width: 860px) and (orientation: portrait) {
+  .room .vids .tile, .room .vids.one .tile { height: 82px; }
+  .room .callbar { min-height: 46px; padding-block: 3px; }
+  .room .callbar .btn.round { width: 38px; min-width: 38px; min-height: 38px; }
+  .room .stage { min-height: 0; }
+}
+@media (max-width: 860px) and (orientation: landscape) {
+  .room { grid-template-columns: minmax(0,1fr) 220px; grid-template-rows: minmax(0,1fr); padding: 0; }
+  .room .play { display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; padding: 6px; }
+  .room .dock { display: flex; padding: 6px 6px 6px 0; }
+  .room .bar, .room .seats, .room .stage, .room .actions { grid-row: auto; }
+  .room .vids { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); overflow: auto; max-height: 36%; margin: 0; }
+  .room .vids .tile, .room .vids.one .tile { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  .room .callbar { flex-wrap: wrap; margin: 0; }
+  .room .callbar .lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room .callbar .btn.round, .room .actions .btn { transition: none; }
+}
+
