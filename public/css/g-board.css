@@ -348,3 +348,23 @@
 @media (prefers-reduced-motion: reduce) {
   .bs-grid .bc.impact.hit .mk, .bs-grid .bc.impact.miss .mk { animation: none; }
 }
+
+/* Board-game motion: crisp selection, hover and move feedback without shifting the grid. */
+.gb .sq {
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+.gb .sq:not(:disabled) { touch-action:manipulation; }
+.gb .sq:focus-visible { z-index:3; outline-offset:-3px; }
+.gb .sq.pop svg { will-change:transform,opacity; }
+.gb .sq.sel, .gb .sq.selected {
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.72), inset 0 0 18px rgba(255,255,255,.16);
+}
+.gb .sq.legal::after, .gb .sq.target::after {
+  transition:opacity 120ms ease, transform 120ms ease;
+}
+@media (hover:hover) and (pointer:fine) {
+  .gb .sq:not(:disabled):hover { filter:brightness(1.06); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .gb .sq, .gb .sq::before, .gb .sq::after { transition:none!important; }
+}
