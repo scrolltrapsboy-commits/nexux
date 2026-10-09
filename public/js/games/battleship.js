@@ -83,7 +83,8 @@ export default {
         const k = o.get(i); let cls = 'bc w';
         if (k != null) { const sh = ships[k], idx = i === cellsOf(sh.len, sh.x, sh.y, sh.h)[0] ? 0 : i === cellsOf(sh.len, sh.x, sh.y, sh.h)[sh.len - 1] ? 1 : -1; cls = 'bc ship' + (sh.h ? '' : ' v') + (idx >= 0 ? ' e' + idx : '') + (k === sel && !locked ? ' sel' : ''); }
         else if (pv.has(i)) cls += ' pv' + (pv.get(i) ? '' : ' bad');
-        const hasShip = k != null, freshShip = hasShip && !e._hadShip; e._hadShip = hasShip;\n        e.className = cls + (freshShip ? ' ship-pop' : ''); e.disabled = locked; e.setAttribute('aria-label', L(i) + (k != null ? ', ship' : ', water'));
+        const hasShip = k != null, freshShip = hasShip && !e._hadShip; e._hadShip = hasShip;
+        e.className = cls + (freshShip ? ' ship-pop' : ''); e.disabled = locked; e.setAttribute('aria-label', L(i) + (k != null ? ', ship' : ', water'));
       });
       tray.forEach((b, k) => { b.className = 'bs-ship' + (k === sel && !locked ? ' on' : '') + (placed(ships[k]) ? ' done' : ''); b.disabled = locked; });
       const all = ships.every(placed); bGo.disabled = locked || !all || sending; bRot.disabled = bRnd.disabled = bClr.disabled = locked;
