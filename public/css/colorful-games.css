@@ -120,3 +120,92 @@ button:not(:disabled):active,.btn:not(:disabled):active{transform:translateY(1px
 .rc-touch .rc-b{background:linear-gradient(135deg,#cffafe,#ddd6fe)!important;color:#3730a3!important;border:1px solid #a5b4fc!important}
 .rc-touch .gas{background:linear-gradient(135deg,#bbf7d0,#22c55e)!important;color:#14532d!important}
 .rc-touch .on{filter:brightness(.9);box-shadow:0 0 0 3px #facc15!important}
+
+
+/* Premium motion + color pass for the complete game catalogue. */
+@keyframes nx-cell-land {0%{opacity:.35;transform:scale(.78) rotate(-3deg);filter:brightness(1.35)}65%{opacity:1;transform:scale(1.07);filter:brightness(1.12)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes nx-board-breathe {0%,100%{box-shadow:0 12px 26px rgba(79,70,229,.10),inset 0 1px #fff}50%{box-shadow:0 16px 34px rgba(14,165,233,.18),inset 0 1px #fff}}
+@keyframes nx-rainbow-glow {0%,100%{box-shadow:0 0 0 1px rgba(34,211,238,.25),0 8px 20px rgba(79,70,229,.12)}50%{box-shadow:0 0 0 2px rgba(236,72,153,.30),0 10px 26px rgba(168,85,247,.2)}}
+@keyframes nx-turn-ring {0%{box-shadow:0 0 0 0 rgba(34,211,238,.4)}100%{box-shadow:0 0 0 8px rgba(34,211,238,0)}}
+@keyframes nx-flip-in {0%{transform:rotateY(0) scale(.92);filter:brightness(1.35)}100%{transform:rotateY(180deg) scale(1);filter:brightness(1)}}
+@keyframes nx-shot-hit {0%{transform:scale(.75);filter:brightness(1.7) saturate(1.4)}55%{transform:scale(1.12)}100%{transform:scale(1);filter:none}}
+@keyframes nx-score-pop {0%{transform:scale(.82);opacity:.5}65%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+.gbox {isolation:isolate}
+.gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles {
+  animation:nx-board-breathe 5s ease-in-out infinite;
+}
+.cg-board {background:#8b78dd!important;border:3px solid #c4b5fd!important;border-radius:12px;overflow:hidden}
+.cg-board .sq {background:linear-gradient(145deg,#fff6d8,#ffe7b5)!important}
+.cg-board .sq.d {background:linear-gradient(145deg,#a78bfa,#6d5bd0)!important}
+.cg-board .sq.sel,.cg-board .sq.can {background:linear-gradient(145deg,#a5f3fc,#67e8f9)!important}
+.cg-board .sq.last {background-image:linear-gradient(135deg,rgba(250,204,21,.52),rgba(251,191,36,.18))!important}
+.cg-board .sq.chk {background:radial-gradient(circle,#fb7185,rgba(244,63,94,.25) 58%,transparent 74%)!important}
+.cg-board .sq.pop svg {animation:nx-cell-land .32s cubic-bezier(.2,.8,.2,1) both!important}
+.kg-board {background:#8b78dd!important;border:3px solid #c4b5fd!important;border-radius:12px;overflow:hidden}
+.kg-board .kc {background:linear-gradient(145deg,#fff6d8,#ffe7b5)!important}
+.kg-board .kc.d {background:linear-gradient(145deg,#a78bfa,#6d5bd0)!important}
+.kg-board .kc.sel,.kg-board .kc.can {background:linear-gradient(145deg,#a5f3fc,#67e8f9)!important}
+.kg-board .pc.p0 {background:radial-gradient(circle at 32% 25%,#fff,#67e8f9 58%,#0891b2)!important;box-shadow:0 4px 9px rgba(8,145,178,.35),inset 0 0 0 3px #cffafe!important;color:#164e63!important}
+.kg-board .pc.p1 {background:radial-gradient(circle at 32% 25%,#fdf4ff,#e879f9 52%,#9333ea)!important;box-shadow:0 4px 9px rgba(147,51,234,.35),inset 0 0 0 3px #fae8ff!important;color:#581c87!important}
+.kg-board .pc.mv {animation:nx-cell-land .28s cubic-bezier(.2,.8,.2,1) both!important}
+.rg-board {background:linear-gradient(135deg,#047857,#059669,#10b981)!important;border:3px solid #a7f3d0!important;border-radius:12px;overflow:hidden}
+.rg-board .rc {background:rgba(255,255,255,.12)!important}
+.rg-board .rc.d0 .dk {background:radial-gradient(circle at 32% 25%,#fff,#cffafe 58%,#67e8f9)!important;box-shadow:0 4px 9px rgba(8,145,178,.4),inset 0 -3px 4px rgba(8,47,73,.18)!important}
+.rg-board .rc.d1 .dk {background:radial-gradient(circle at 32% 25%,#fdf4ff,#e879f9 52%,#7e22ce)!important;box-shadow:0 4px 9px rgba(126,34,206,.4),inset 0 -3px 4px rgba(46,16,101,.25)!important}
+.rg-board .rc.fl .dk {animation:nx-cell-land .42s cubic-bezier(.2,.8,.2,1) both!important}
+.rg-board .rc.lg::after {background:#fde047!important;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 14px rgba(250,204,21,.8)!important}
+.mg-board {background:linear-gradient(135deg,#fff1c2,#fcd34d)!important;border:3px solid #f59e0b!important;border-radius:12px;overflow:hidden}
+.mg-board .gc::before,.mg-board .gc::after {background:rgba(146,64,14,.65)!important}
+.mg-board .gc .st {background:radial-gradient(circle at 30% 25%,#fff,#67e8f9 55%,#0284c7)!important;border:2px solid #ecfeff!important;box-shadow:0 4px 10px rgba(2,132,199,.35)!important}
+.mg-board .gc.new .st {animation:nx-cell-land .3s cubic-bezier(.2,.8,.2,1) both!important}
+.bs-grid {border-radius:10px!important;overflow:hidden}
+.bs-grid .bc.ship {background:linear-gradient(145deg,#bbf7d0,#34d399)!important;color:#064e3b!important;border-color:#059669!important}
+.bs-grid .bc.pv {background:linear-gradient(145deg,#cffafe,#67e8f9)!important}
+.bs-grid .bc.pv.bad {background:linear-gradient(145deg,#fecaca,#fb7185)!important}
+.bs-grid .bc.ship-pop {animation:nx-cell-land .3s cubic-bezier(.2,.8,.2,1) both!important}
+.bs-grid .bc.impact.hit .mk {animation:nx-shot-hit .4s cubic-bezier(.2,.8,.2,1) both!important}
+.bs-grid .bc.impact.miss .mk {animation:nx-score-pop .28s ease-out both!important}
+.c4 {background:linear-gradient(145deg,#2563eb,#4f46e5)!important;border:2px solid #93c5fd!important;border-radius:20px!important}
+.c4-cell {background:radial-gradient(circle at 30% 25%,#fff,#dbeafe 58%,#93c5fd)!important;box-shadow:inset 0 3px 8px rgba(30,64,175,.28)!important}
+.c4-cell.d0 {background:radial-gradient(circle at 30% 25%,#fff7ad,#facc15 48%,#f97316)!important;box-shadow:0 4px 12px rgba(249,115,22,.35)!important}
+.c4-cell.d1 {background:radial-gradient(circle at 30% 25%,#fce7f3,#f472b6 48%,#9333ea)!important;box-shadow:0 4px 12px rgba(147,51,234,.35)!important;border:2px solid #f5d0fe!important}
+.c4-cell.drop {animation:nx-cell-land .42s cubic-bezier(.4,.1,.5,1.1) both!important}
+.ttt-c.f svg {animation:nx-cell-land .28s cubic-bezier(.2,.8,.2,1) both!important}
+.ttt-c.win {animation:nx-rainbow-glow .8s ease-in-out infinite alternate!important}
+.rps-b {border-radius:20px!important;box-shadow:0 7px 18px rgba(79,70,229,.12)!important}
+.rps-b:nth-child(1){background:linear-gradient(145deg,#dbeafe,#67e8f9)!important;color:#075985!important;border-color:#7dd3fc!important}
+.rps-b:nth-child(2){background:linear-gradient(145deg,#fef3c7,#fb923c)!important;color:#9a3412!important;border-color:#fdba74!important}
+.rps-b:nth-child(3){background:linear-gradient(145deg,#fce7f3,#d8b4fe)!important;color:#86198f!important;border-color:#d8b4fe!important}
+.rps-slot {background:linear-gradient(145deg,#e0f2fe,#dbeafe)!important;color:#1d4ed8!important;border-color:#93c5fd!important}
+.rps-slot:nth-child(2){background:linear-gradient(145deg,#fce7f3,#f5d0fe)!important;color:#a21caf!important;border-color:#f0abfc!important}
+.rps-slot.w {animation:nx-rainbow-glow .8s ease-in-out infinite alternate!important}
+.mem-c {border-radius:18px!important;transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .2s ease!important}
+.mem-c:not(:disabled):hover {transform:translateY(-3px) rotate(-.5deg);filter:saturate(1.15)}
+.mem-c.up .mem-i {transform:rotateY(180deg) scale(1.02)!important}
+.mem-c.m .mem-f {background:linear-gradient(145deg,#fff,#e0f2fe)!important;color:#0369a1!important;border-color:#7dd3fc!important}
+.mem-c.m.fresh .mem-f {animation:nx-score-pop .35s ease-out both!important}
+.rx {border-radius:24px!important;border:1px solid #bfdbfe!important;box-shadow:inset 0 1px rgba(255,255,255,.8),0 14px 30px rgba(79,70,229,.12)!important}
+.rx.wait {background:radial-gradient(ellipse at 50% 0%,#fde68a,#fb923c 50%,#ec4899)!important;color:#7c2d12!important;border-color:#f59e0b!important}
+.rx.go {background:radial-gradient(ellipse at 50% 0%,#bbf7d0,#34d399 55%,#06b6d4)!important;color:#064e3b!important;box-shadow:0 0 0 3px rgba(16,185,129,.18),0 0 38px rgba(16,185,129,.32)!important}
+.rx.go .rx-big {animation:nx-score-pop .3s cubic-bezier(.2,.8,.2,1) both}
+.ms-grid {background:linear-gradient(135deg,#c7d2fe,#bae6fd)!important;border:2px solid #818cf8!important;border-radius:16px!important}
+.ms-c {border-radius:7px!important;background:linear-gradient(145deg,#fff,#e0e7ff)!important;border:1px solid #a5b4fc!important;color:#3730a3!important}
+.ms-c.open {background:linear-gradient(145deg,#dbeafe,#cffafe)!important}
+.ms-c.boom {animation:nx-shot-hit .36s ease-out both!important}
+.wb-tiles {border-radius:18px!important}
+.wb-t {border-radius:10px!important;transition:transform .16s ease,box-shadow .16s ease!important}
+.wb-t:hover {transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 16px rgba(217,119,6,.18)!important}
+.nc-c {border-radius:14px!important;box-shadow:0 7px 15px rgba(30,64,175,.14)!important;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease!important}
+.nc-c .v,.nc-c .tl,.nc-c .br,.nc-c .mk {color:#e11d48!important}
+.nc-c:nth-child(even) .v,.nc-c:nth-child(even) .tl,.nc-c:nth-child(even) .br {color:#1e293b!important}
+.nc-c.wild {background:conic-gradient(from 45deg,#ec4899,#8b5cf6,#2563eb,#06b6d4,#10b981,#facc15,#ec4899)!important;color:#fff!important}
+.nc-back {background:repeating-linear-gradient(45deg,rgba(255,255,255,.20) 0 3px,transparent 3px 6px),linear-gradient(135deg,#2563eb,#7c3aed,#db2777)!important;border-color:#a5b4fc!important}
+.nc-hand .nc-c.ok {animation:nx-score-pop .24s ease-out both;box-shadow:0 10px 20px rgba(79,70,229,.22),0 0 0 2px #22d3ee!important}
+.gp-wrap {border-radius:16px;overflow:hidden}
+.gp-cv {transition:filter .2s ease}
+.cr-slide::-webkit-slider-thumb {background:linear-gradient(135deg,#fff,#67e8f9)!important;box-shadow:0 0 0 2px #6366f1,0 4px 12px rgba(79,70,229,.28)!important}
+.rc-b.gas {background:linear-gradient(145deg,#bbf7d0,#22c55e)!important;color:#14532d!important}
+.rc-b:not(.gas) {background:linear-gradient(145deg,#dbeafe,#c4b5fd)!important;color:#3730a3!important}
+@media(prefers-reduced-motion:reduce) {
+ .gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles,.bs-grid .bc.ship-pop,.bs-grid .bc.impact.hit .mk,.bs-grid .bc.impact.miss .mk,.c4-cell.drop,.ttt-c.f svg,.ttt-c.win,.rps-slot.w,.rx.go .rx-big,.ms-c.boom,.nc-hand .nc-c.ok {animation:none!important}
+}
