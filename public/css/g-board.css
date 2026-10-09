@@ -266,3 +266,53 @@
     animation: none !important;
   }
 }
+
+
+/* Battleship: fire feedback, impact markers, and ship placement polish. */
+.bs-grid .bc {
+  transition: background-color .16s ease, box-shadow .16s ease, filter .16s ease,
+              transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.bs-grid .bc.fire:not(:disabled):hover { transform: scale(.96); filter: brightness(1.18); }
+.bs-grid .bc.ship { animation: gb-ship-place .22s cubic-bezier(.2,.8,.2,1) both; }
+.bs-grid .bc.hit .mk { animation: gb-shot-hit .38s ease-out both; }
+.bs-grid .bc.miss .mk { animation: gb-shot-miss .3s ease-out both; }
+.bs-grid .bc.lastshot { animation: gb-last-shot .45s ease-out both; }
+.bs-ship.on { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.16); }
+.bs-ship.done::after { animation: gb-ready-mark .22s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes gb-ship-place {
+  0% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+@keyframes gb-shot-hit {
+  0% { opacity: .25; transform: scale(.4) rotate(-15deg); }
+  65% { opacity: 1; transform: scale(1.2) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes gb-shot-miss {
+  0% { opacity: .2; transform: scale(.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes gb-last-shot {
+  0% { box-shadow: inset 0 0 0 0 transparent; }
+  55% { box-shadow: inset 0 0 0 3px rgba(255,255,255,.85); }
+  100% { box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 3.5px #fff; }
+}
+@keyframes gb-ready-mark {
+  from { opacity: 0; transform: scale(.3); }
+  to { opacity: .8; transform: scale(1); }
+}
+/* Match actual Reversi/Gomoku state classes emitted by their game clients. */
+.rg-board .rc.fl .dk { animation: gb-disc-flip .34s ease-in-out both; }
+.rg-board .rc.last .dk { animation: gb-disc-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.mg-board .gc.new .st { animation: gb-stone-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .bs-grid .bc, .bs-grid .bc.ship, .bs-grid .bc.hit .mk, .bs-grid .bc.miss .mk,
+  .bs-grid .bc.lastshot, .bs-ship.on, .bs-ship.done::after,
+  .rg-board .rc.fl .dk, .rg-board .rc.last .dk, .mg-board .gc.new .st,
+  .mg-board .gc.win .st {
+    animation: none !important;
+    transition: none !important;
+  }
+}
