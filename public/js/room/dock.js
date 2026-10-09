@@ -71,7 +71,7 @@ export function createDock(call, opts) {
     }
     bar.append(chatBtn, sw(0, 'mic', 'micoff', st.mic ? 'Mute microphone' : 'Unmute microphone', () => call.toggleMic(), !st.mic), sw(0, 'video', 'videooff', st.cam ? 'Turn camera off' : 'Turn camera on', () => call.toggleCam(), !st.cam),
       sw(0, 'headphones', 'volumeoff', st.deaf ? 'Undeafen' : 'Deafen (mute everyone)', () => call.toggleDeaf(), st.deaf),
-      ...(st.cam && st.cams > 1 ? [h('button', { class: 'btn round', 'aria-label': 'Switch camera', title: 'Switch camera', onclick: () => call.switchCamera() }, icon('refresh'))] : []),
+      ...(st.cam ? [h('button', { class: 'btn round', 'aria-label': 'Switch camera', title: 'Switch camera', onclick: () => call.switchCamera() }, icon('refresh'))] : []),
       h('button', { class: 'btn round', 'aria-label': 'Call settings', title: 'Call settings', onclick: devices }, icon('gear')),
       h('button', { class: 'btn round hang', 'aria-label': 'Leave call', title: 'Leave call', onclick: () => call.leave() }, icon('phone')));
     for (const n of [...bar.childNodes]) if (n.nodeType === 3 && n.textContent === 'null') n.remove();
