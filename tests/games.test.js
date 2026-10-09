@@ -202,3 +202,26 @@ test('ludo: supports 2–4 players, releases pawns on six, captures, and wins on
     await leaveAll(m.cs);
   }
 });
+
+test('ludo: rejects wrong-phase moves, captures on unsafe squares, and requires exact finish', async () => {
+  const m = await T.match('ludo', ['Al', 'Bo']);
+  assert.equal(await m.move(0, { token: 0 }), 'Roll the die first.');
+  const state = {
+    pawns: [[4, -1, -1, -1], [8, -1, -1, -1]],
+    turn: 0, phase: 'move', die: 2, rolledBy: 0,
+    done: [false, false], last: null,
+  };
+  m.A.emit('test:state', state); await w(80);
+  assert.equal(await m.move(0, { token: 0 }), null);
+  assert.equal(m.room().state.pawns[0][0], 6);
+  assert.equal(m.room().state.pawns[1][0], -1, 'landing on opponent on unsafe square captures it');
+  await leaveAll(m.cs);
+  const f = await T.match('ludo', ['Cy', 'De']);
+  f.A.emit('test:state', {
+    pawns: [[57, -1, -1, -1], [-1, -1, -1, -1]],
+    turn: 0, phase: 'move', die: 2, rolledBy: 0, done: [false, false], last: null,
+  }); await w(80);
+  assert.equal(await f.move(0, { token: 0 }), 'That pawn cannot move with this roll.');
+  assert.equal(f.room().state.pawns[0][0], 57, 'overshooting finish is rejected');
+  await leaveAll(f.cs);
+});
