@@ -47,15 +47,35 @@ export default {
     function draw() {
       const { w, h: hh } = kit.size(); if (!w) return; th = theme(); ctx.clearRect(0, 0, w, hh); if (!R) return;
       const s = R.state, dark = th.dark; flip = R.youIdx === 1;
-      const bd = dark ? '#16161a' : '#e7e7ec', frame = dark ? '#2a2a31' : '#c7c7d0', ink = dark ? '#f4f4f6' : '#16161a';
-      // frame + playing surface
-      const [fx, fy] = [ox - 5, oy - 5], fsz = SIZE * S0 + 10; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(fx, fy, fsz, fsz, 16) : ctx.rect(fx, fy, fsz, fsz); ctx.fillStyle = frame; ctx.fill();
-      ctx.beginPath(); ctx.rect(ox, oy, SIZE * S0, SIZE * S0); ctx.fillStyle = bd; ctx.fill();
-      ctx.strokeStyle = dark ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.28)'; ctx.lineWidth = 1.5;
-      const [cx, cy] = toS(50, 50); ctx.beginPath(); ctx.arc(cx, cy, 11 * S0, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3 * S0, 0, 7); ctx.stroke();
-      for (const y of BASE_Y) { const a = toS(X_MIN - 6, y), b = toS(X_MAX + 6, y); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); for (const x of [X_MIN - 6, X_MAX + 6]) { const p = toS(x, y); ctx.beginPath(); ctx.arc(p[0], p[1], 2.2 * S0, 0, 7); ctx.stroke(); } }
-      // pockets
-      for (const [x, y] of POCKETS) { const [px, py] = toS(x, y); ctx.beginPath(); ctx.arc(px, py, POCKET_R * S0, 0, 7); ctx.fillStyle = dark ? '#000' : '#0c0c10'; ctx.fill(); }
+      const ink = dark ? '#f4f4f6' : '#512c19';
+      // Polished wooden frame with bevels and a warm, powder-coated playing field.
+      const [fx, fy] = [ox - 9 * S0, oy - 9 * S0], fsz = SIZE * S0 + 18 * S0, radius = Math.max(5, 3.2 * S0);
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.42)'; ctx.shadowBlur = 18 * S0; ctx.shadowOffsetY = 5 * S0;
+      const round = (x,y,w,h,r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); };
+      round(fx, fy, fsz, fsz, radius + 4 * S0);
+      const wood = ctx.createLinearGradient(fx, fy, fx + fsz, fy + fsz);
+      wood.addColorStop(0, dark ? '#6c3820' : '#9b572d'); wood.addColorStop(.22, dark ? '#b36b3a' : '#d89a5d'); wood.addColorStop(.52, dark ? '#77401f' : '#b66d38'); wood.addColorStop(.78, dark ? '#c17c45' : '#e2ad72'); wood.addColorStop(1, dark ? '#512a18' : '#8b4b27');
+      ctx.fillStyle = wood; ctx.fill(); ctx.restore();
+      // Thin inner bevel catches light like a real lacquered board.
+      round(fx + 3*S0, fy + 3*S0, fsz - 6*S0, fsz - 6*S0, radius);
+      ctx.strokeStyle = 'rgba(255,225,174,.62)'; ctx.lineWidth = Math.max(1, .8*S0); ctx.stroke();
+      const field = ctx.createLinearGradient(ox, oy, ox + SIZE*S0, oy + SIZE*S0);
+      field.addColorStop(0, dark ? '#e8d7ad' : '#f8edcf'); field.addColorStop(.55, dark ? '#d9c59a' : '#f1dfb5'); field.addColorStop(1, dark ? '#c6ae7f' : '#e8d2a2');
+      ctx.fillStyle = field; ctx.fillRect(ox, oy, SIZE*S0, SIZE*S0);
+      // Fine wood/powder texture and inset perimeter.
+      ctx.save(); ctx.beginPath(); ctx.rect(ox, oy, SIZE*S0, SIZE*S0); ctx.clip();
+      for (let i=0; i<34; i++) { const yy=oy + (i/34)*SIZE*S0; ctx.strokeStyle = i%2 ? 'rgba(100,65,32,.025)' : 'rgba(255,255,255,.10)'; ctx.lineWidth=Math.max(.4,.18*S0); ctx.beginPath(); ctx.moveTo(ox,yy); ctx.lineTo(ox+SIZE*S0,yy); ctx.stroke(); }
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(104,47,25,.78)'; ctx.lineWidth = Math.max(1.2, 1.05*S0); ctx.strokeRect(ox + 2*S0, oy + 2*S0, SIZE*S0 - 4*S0, SIZE*S0 - 4*S0);
+      ctx.strokeStyle = 'rgba(255,255,255,.48)'; ctx.lineWidth = Math.max(1, .45*S0); ctx.strokeRect(ox + 3.5*S0, oy + 3.5*S0, SIZE*S0 - 7*S0, SIZE*S0 - 7*S0);
+      // Traditional center target and shooting lines, with inset end circles.
+      ctx.strokeStyle = 'rgba(126,45,28,.88)'; ctx.lineWidth = Math.max(1, .65*S0);
+      const [cx, cy] = toS(50, 50); ctx.beginPath(); ctx.arc(cx, cy, 11 * S0, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3 * S0, 0, 7); ctx.fillStyle = 'rgba(126,45,28,.9)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 17*S0, 0, 7); ctx.strokeStyle = 'rgba(126,45,28,.35)'; ctx.stroke();
+      for (const y of BASE_Y) { const a = toS(X_MIN - 6, y), b = toS(X_MAX + 6, y); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); for (const x of [X_MIN - 6, X_MAX + 6]) { const p = toS(x, y); ctx.beginPath(); ctx.arc(p[0], p[1], 2.2 * S0, 0, 7); ctx.fillStyle = '#8b3023'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.stroke(); } }
+      // Recessed black pockets with a raised dark rim and a subtle highlight.
+      for (const [x, y] of POCKETS) { const [px, py] = toS(x, y), pr = POCKET_R*S0; ctx.beginPath(); ctx.arc(px, py, pr+1.6*S0, 0, 7); ctx.fillStyle = '#7c3e21'; ctx.fill(); ctx.beginPath(); ctx.arc(px, py, pr, 0, 7); const pg=ctx.createRadialGradient(px-pr*.25,py-pr*.3,1,px,py,pr); pg.addColorStop(0,'#080808'); pg.addColorStop(1,'#000'); ctx.fillStyle=pg; ctx.fill(); ctx.strokeStyle='rgba(255,224,178,.45)'; ctx.lineWidth=Math.max(.6,.4*S0); ctx.stroke(); }
       const t = anim ? performance.now() - anim.t0 : 0, { coins, striker } = coinsAt(t);
       const r = R_COIN * S0;
       coins.forEach((p, k) => {
