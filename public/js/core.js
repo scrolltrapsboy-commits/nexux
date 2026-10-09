@@ -143,4 +143,4 @@ export const copyText = async t => { try { await navigator.clipboard.writeText(t
 
 /* per-game stylesheet loader */
 const cssDone = new Set();
-export const loadCss = href => { if (cssDone.has(href)) return; cssDone.add(href); document.head.append(h('link', { rel: 'stylesheet', href })); };
+export const loadCss = href => { if (!cssDone.has(href)) { cssDone.add(href); document.head.append(h('link', { rel: 'stylesheet', href })); } const colorful = document.querySelector('link[data-colorful-games]'); if (colorful) document.head.append(colorful); };
