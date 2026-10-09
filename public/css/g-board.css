@@ -217,3 +217,52 @@
     animation: none !important;
   }
 }
+
+
+/* Reversi and Gomoku: animate newly placed stones and flips. */
+.rg-board .rc {
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.rg-board .rc .dk {
+  display: block;
+  transform-origin: center;
+  transition: transform .24s cubic-bezier(.2,.8,.2,1), background-color .24s ease,
+              box-shadow .24s ease;
+}
+.rg-board .rc.fresh .dk { animation: gb-disc-place .26s cubic-bezier(.2,.8,.2,1) both; }
+.rg-board .rc.flip .dk { animation: gb-disc-flip .34s ease-in-out both; }
+.rg-board .rc.lg { box-shadow: inset 0 0 0 2px rgba(255,255,255,.24); }
+.mg-board .gc {
+  transition: background-color .14s ease, box-shadow .14s ease;
+}
+.mg-board .gc .st {
+  transform-origin: center;
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), opacity .16s ease;
+}
+.mg-board .gc.fresh .st { animation: gb-stone-place .24s cubic-bezier(.2,.8,.2,1) both; }
+.mg-board .gc.win .st { animation: gb-stone-win .75s ease-in-out infinite alternate; }
+@keyframes gb-disc-place {
+  0% { opacity: .35; transform: scale(.4); }
+  75% { opacity: 1; transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes gb-disc-flip {
+  0% { transform: rotateY(0) scale(1); }
+  50% { transform: rotateY(90deg) scale(.78); }
+  100% { transform: rotateY(180deg) scale(1); }
+}
+@keyframes gb-stone-place {
+  0% { opacity: .2; transform: scale(.25); }
+  72% { opacity: 1; transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+@keyframes gb-stone-win {
+  from { filter: brightness(1); transform: scale(1); }
+  to { filter: brightness(1.45); transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rg-board .rc, .rg-board .rc .dk, .mg-board .gc, .mg-board .gc .st {
+    transition: none !important;
+    animation: none !important;
+  }
+}
