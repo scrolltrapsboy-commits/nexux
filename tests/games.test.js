@@ -7,7 +7,7 @@ const leaveAll = async cs => { cs.forEach(c => c.emit('leave')); await w(80); };
 
 test('catalog lists every shipped game with working server modules', async () => {
   const c = await T.client('Cat'); const ids = c.hello.catalog.map(g => g.id);
-  for (const id of ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards']) assert.ok(ids.includes(id), id + ' missing');
+  for (const id of ['chess', 'tictactoe', 'connect4', 'checkers', 'reversi', 'gomoku', 'battleship', 'memory', 'rps', 'reaction', 'minesweeper', 'wordbattle', 'minigolf', 'carrom', 'racing', 'cards', 'ludo']) assert.ok(ids.includes(id), id + ' missing');
 });
 
 test('tic tac toe: win, rematch, room chat, leave = forfeit', async () => {
@@ -187,4 +187,41 @@ test('racing: grid lock, cheaters are corrected, a clean lap finishes the race',
   }
   assert.ok(fin.length, 'finished after ' + n + ' reports'); assert.equal(fin[0].place, 1);
   await w(1200); assert.equal(m.room().status, 'finished'); assert.equal(m.room().result.winnerId, me.me.id);
+});
+
+test('ludo: supports 2–4 players, releases pawns on six, captures, and wins only when all pawns finish', async () => {
+  for (const n of [2, 3, 4]) {
+    const m = await T.match('ludo', mk(n), { max: n });
+    assert.equal(m.room().max, n);
+    assert.equal(m.room().state.pawns.length, n);
+    const state = { pawns: Array.from({ length: n }, () => [-1, -1, -1, -1]), turn: 0, phase: 'move', die: 6, rolledBy: 0, done: Array(n).fill(false), last: null };
+    m.A.emit('test:state', state); await w(80);
+    assert.equal(await m.move(0, { token: 0 }), null);
+    assert.equal(m.room().state.pawns[0][0], 0, 'six releases a pawn from home onto start');
+    assert.equal(m.room().state.turn, 0, 'a six grants another turn');
+    await leaveAll(m.cs);
+  }
+});
+
+test('ludo: rejects wrong-phase moves, captures on unsafe squares, and requires exact finish', async () => {
+  const m = await T.match('ludo', ['Al', 'Bo']);
+  assert.equal(await m.move(0, { token: 0 }), 'Roll the die first.');
+  const state = {
+    pawns: [[4, -1, -1, -1], [45, -1, -1, -1]],
+    turn: 0, phase: 'move', die: 2, rolledBy: 0,
+    done: [false, false], last: null,
+  };
+  m.A.emit('test:state', state); await w(80);
+  assert.equal(await m.move(0, { token: 0 }), null);
+  assert.equal(m.room().state.pawns[0][0], 6);
+  assert.equal(m.room().state.pawns[1][0], -1, 'landing on opponent on unsafe square captures it');
+  await leaveAll(m.cs);
+  const f = await T.match('ludo', ['Cy', 'De']);
+  f.A.emit('test:state', {
+    pawns: [[57, -1, -1, -1], [-1, -1, -1, -1]],
+    turn: 0, phase: 'move', die: 2, rolledBy: 0, done: [false, false], last: null,
+  }); await w(80);
+  assert.equal(await f.move(0, { token: 0 }), 'That pawn cannot move with this roll.');
+  assert.equal(f.room().state.pawns[0][0], 57, 'overshooting finish is rejected');
+  await leaveAll(f.cs);
 });
