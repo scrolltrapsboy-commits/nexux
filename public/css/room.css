@@ -646,3 +646,190 @@
 @media (prefers-reduced-motion: reduce) {
   .room .vids .tile, .room .callbar { scroll-behavior: auto !important; }
 }
+
+
+/* Mobile room layout v3: one bounded viewport, no overlays over the game.
+   The board gets the flexible space; video and call controls stay below it. */
+@media (max-width: 860px) {
+  .room, .room.nodock {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto !important;
+    gap: clamp(3px, 0.8dvh, 7px) !important;
+    padding: max(4px, env(safe-area-inset-top, 0px)) 5px max(4px, env(safe-area-inset-bottom, 0px)) !important;
+    overflow: hidden !important;
+  }
+  .room > .play, .room > .dock, .room.nodock > .dock {
+    display: contents !important;
+  }
+  .room .bar {
+    grid-row: 1 !important;
+    width: 100%;
+    min-height: 36px !important;
+    max-height: 48px;
+    gap: 5px !important;
+    overflow: hidden;
+  }
+  .room .bar .btn { flex: 0 0 auto; min-width: 34px; }
+  .room .bar .ttl { flex: 1 1 0; max-width: none !important; }
+  .room .bar .sp { display: none; }
+  .room .bar .status { max-width: 30vw; padding-inline: 7px; min-height: 30px; font-size: 11px; }
+  .room .seats {
+    grid-row: 2 !important;
+    width: 100%;
+    max-height: clamp(40px, 8dvh, 68px);
+    overflow: auto;
+    flex-wrap: nowrap !important;
+    gap: 5px;
+  }
+  .room .seat { flex: 1 1 0; min-width: 0; padding: 5px; gap: 5px; }
+  .room .seat .who b { font-size: 12px; }
+  .room .seat .who small { font-size: 10px; }
+  .room .vids {
+    grid-row: 3 !important;
+    display: flex !important;
+    flex: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: clamp(0px, 19dvh, 150px) !important;
+    min-height: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px !important;
+    padding: 0 1px !important;
+    align-items: stretch !important;
+  }
+  .room .vids.hide, .room .vids:empty, .room .vids.empty-call { display: none !important; }
+  .room .vids .tile, .room .vids.one .tile,
+  .room.call-active .vids .tile,
+  .room.call-active .vids.one .tile {
+    flex: 0 0 clamp(112px, 35vw, 180px) !important;
+    width: clamp(112px, 35vw, 180px) !important;
+    height: clamp(70px, 17dvh, 132px) !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    aspect-ratio: 4 / 3;
+  }
+  .room .stage {
+    grid-row: 4 !important;
+    position: relative;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    padding: 2px !important;
+    contain: size layout;
+  }
+  .room .stage > .gbox, .room .stage > .lobby {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+  .room .stage > .gbox { display: grid; place-items: center; }
+  .room .stage > .gbox > canvas,
+  .room .stage > .gbox canvas,
+  .room .stage > .gbox svg,
+  .room .stage > .gbox iframe {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+  .room .actions {
+    grid-row: 5 !important;
+    width: 100%;
+    max-height: min(18dvh, 100px);
+    min-height: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 5px !important;
+    padding: 2px 0 !important;
+  }
+  .room .actions .btn { flex: 0 0 auto; min-height: 36px !important; padding: 6px 10px; }
+  .room .callbar {
+    grid-row: 6 !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 10 !important;
+    display: flex !important;
+    visibility: visible !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    max-height: 50px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 3px 4px !important;
+    gap: clamp(3px, 1vw, 8px) !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-evenly !important;
+    overflow: hidden !important;
+  }
+  .room .callbar[hidden] { display: none !important; }
+  .room .callbar .btn.round {
+    flex: 0 1 42px !important;
+    width: clamp(32px, 10vw, 42px) !important;
+    min-width: 0 !important;
+    height: clamp(32px, 10vw, 42px) !important;
+    min-height: 32px !important;
+    max-height: 42px !important;
+    padding: 4px !important;
+  }
+  .room .chat { max-width: 100%; }
+  .room .sheet-scrim { position: fixed; inset: 0; }
+}
+@media (max-width: 860px) and (orientation: landscape) {
+  .room, .room.nodock {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto !important;
+  }
+  .room .vids:not(.hide):not(:empty) {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 13dvh !important;
+    flex-direction: row !important;
+  }
+  .room .vids .tile, .room .vids.one .tile,
+  .room.call-active .vids .tile, .room.call-active .vids.one .tile {
+    flex: 0 0 clamp(90px, 18vw, 145px) !important;
+    width: clamp(90px, 18vw, 145px) !important;
+    height: clamp(54px, 12dvh, 86px) !important;
+  }
+  .room .callbar { position: relative !important; inset: auto !important; width: 100% !important; }
+  .room .actions { max-height: 12dvh; }
+}
+@media (max-width: 380px) {
+  .room .bar { gap: 3px !important; }
+  .room .bar .ttl b { font-size: 11px !important; }
+  .room .bar .ttl small { font-size: 9px !important; }
+  .room .bar .status { max-width: 26vw; font-size: 10px; }
+  .room .actions .btn { font-size: 11px; padding-inline: 7px; }
+  .room .callbar .btn.round { flex-basis: 30px !important; width: 30px !important; }
+}
+@media (max-height: 600px) and (max-width: 860px) {
+  .room .bar { min-height: 30px !important; }
+  .room .vids { max-height: 13dvh !important; }
+  .room .vids .tile, .room .vids.one .tile,
+  .room.call-active .vids .tile, .room.call-active .vids.one .tile {
+    height: clamp(44px, 12dvh, 72px) !important;
+  }
+  .room .actions { max-height: 12dvh; }
+  .room .callbar { min-height: 38px !important; max-height: 42px !important; }
+  .room .callbar .btn.round { height: 32px !important; min-height: 30px !important; }
+}
