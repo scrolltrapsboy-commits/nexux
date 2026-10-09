@@ -63,7 +63,9 @@ module.exports = function rooms(app) {
       const g = games[game]; if (!g) return { error: 'That game is not available.' };
       api.leave(uid);
       const want = g.sanitizeOpts ? g.sanitizeOpts(opts, cfg.test) : {};
-      let r = [...all.values()].find(x => x.visibility === 'public' && x.game === game && x.status === 'lobby' && x.players.length < x.max && !friends.isBlocked(uid, x.host) && (!g.options || JSON.stringify(x.opts) === JSON.stringify(want)));
+      // Only pair users who explicitly entered Quick Match; never auto-start a manually created public room.
+      // This queue is global to the running server, not limited to friends or room invites.
+      let r = [...all.values()].find(x => x.quick && x.visibility === 'public' && x.game === game && x.status === 'lobby' && x.players.length < x.max && x.players.every(p => presence.isOnline(p.id)) && !friends.isBlocked(uid, x.host) && (!g.options || JSON.stringify(x.opts) === JSON.stringify(want)));
       if (!r) { r = api.create(uid, { game, visibility: 'public', opts }).room; r.quick = true; } else api.add(r, uid);
       api.afterJoin(r); return { room: r };
     },
