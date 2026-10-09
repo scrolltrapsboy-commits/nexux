@@ -316,3 +316,13 @@
     transition: none !important;
   }
 }
+
+
+/* Checkers: animate a piece only when the board state changes its square. */
+.kg-board .kc .pc.pop{animation:gb-checker-move .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes gb-checker-move{
+  0%{opacity:.55;transform:translateY(-7px) scale(.72)}
+  72%{opacity:1;transform:translateY(1px) scale(1.1)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@media (prefers-reduced-motion:reduce){.kg-board .kc .pc.pop{animation:none!important}}
