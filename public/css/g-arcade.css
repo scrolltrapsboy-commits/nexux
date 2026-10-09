@@ -274,3 +274,7 @@
 @media (prefers-reduced-motion:reduce){
   .rx-big.rx-pop,.rx-pip.on,.rx-note:not(:empty){animation:none!important}
 }
+
+/* Arcade feedback: animate transforms and opacity for predictable frame pacing. */
+.rx-big.rx-pop, .rx-pip.on, .rx-note:not(:empty) { will-change:transform,opacity; }
+.rx-big, .rx-pip { backface-visibility:hidden; }
