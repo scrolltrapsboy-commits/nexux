@@ -911,3 +911,119 @@
 @media (prefers-reduced-motion: reduce) {
   .room *, .room *::before, .room *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Premium Stitch Arena room polish: tactile glass, larger live video and a non-overlay mobile chat layout. */
+.room {
+  --nx-accent:#087fce; --nx-violet:#635bdf; --nx-pink:#ec4899; --nx-mint:#10b981;
+  --nx-edge:rgba(92,112,161,.22);
+}
+.room::before {
+  background:
+    radial-gradient(620px 380px at 0% 0%,rgba(56,189,248,.15),transparent 65%),
+    radial-gradient(620px 420px at 100% 8%,rgba(192,132,252,.14),transparent 62%),
+    linear-gradient(145deg,#f8faff,#f0f4ff 58%,#fff7fb) !important;
+}
+.room .bar,.room .seat,.room .actions,.room .callbar,.room .vids,.room .chat {
+  border-color:var(--nx-edge)!important;
+  box-shadow:0 8px 24px rgba(53,72,126,.09),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+.room .stage {
+  border:1px solid rgba(137,158,204,.35)!important;
+  border-radius:22px!important;
+  background:
+    radial-gradient(ellipse at 10% 0%,rgba(34,211,238,.10),transparent 55%),
+    radial-gradient(ellipse at 100% 100%,rgba(167,139,250,.13),transparent 55%),
+    rgba(255,255,255,.72)!important;
+  box-shadow:inset 0 1px 0 #fff,0 16px 36px rgba(48,67,120,.10)!important;
+}
+.room .seat {border-radius:16px!important;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,border-color .22s ease!important}
+.room .seat.you,.room .seat.turn {background:linear-gradient(135deg,#fff,#e8faff)!important;border-color:#22d3ee!important;box-shadow:0 0 0 2px rgba(34,211,238,.13),0 8px 20px rgba(14,165,233,.12)!important}
+.room .actions .btn {border-radius:12px!important;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important}
+.room .actions .btn:not(.ghost):not(.lobby) {background:linear-gradient(135deg,#087fce,#635bdf)!important;color:white!important;border-color:transparent!important;box-shadow:0 5px 13px rgba(79,70,229,.18)!important}
+.room .actions .btn:hover:not(:disabled) {transform:translateY(-2px);filter:saturate(1.15)}
+.room .vids {align-items:stretch!important;align-content:stretch!important}
+.room .tile {
+  border:1px solid rgba(255,255,255,.78)!important;
+  border-radius:18px!important;
+  overflow:hidden!important;
+  background:linear-gradient(145deg,#e0f2fe,#ede9fe)!important;
+  box-shadow:0 8px 24px rgba(37,54,106,.18),inset 0 1px 0 rgba(255,255,255,.75)!important;
+  isolation:isolate;
+  animation:nx-video-enter .32s cubic-bezier(.2,.8,.2,1) both;
+}
+.room .tile.speaking {border-color:#34d399!important;box-shadow:0 0 0 2px rgba(16,185,129,.28),0 0 24px rgba(16,185,129,.22)!important}
+.room .tile .nm {background:linear-gradient(0deg,rgba(15,23,42,.86),rgba(15,23,42,.16))!important;color:#fff!important;padding:20px 10px 8px!important}
+.room .tile .tb button {background:rgba(255,255,255,.9)!important;color:#1e293b!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(10px)}
+.room .callbar {background:rgba(255,255,255,.92)!important;backdrop-filter:blur(18px);border-radius:22px!important}
+.room .callbar .btn.round {border-radius:15px!important;background:linear-gradient(145deg,#fff,#eaf3ff)!important;color:#155e9a!important;border:1px solid #d7e7fb!important;box-shadow:0 3px 8px rgba(51,65,112,.09)!important;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important}
+.room .callbar .btn.round:hover {transform:translateY(-2px);box-shadow:0 6px 13px rgba(51,65,112,.15)!important}
+.room .callbar .btn.round.mutedx {background:linear-gradient(135deg,#fef3c7,#fed7aa)!important;color:#9a3412!important;border-color:#fdba74!important}
+.room .callbar .btn.hang {background:linear-gradient(135deg,#fb7185,#be123c)!important;color:#fff!important;border-color:transparent!important}
+.room .chat {border-radius:18px!important;background:rgba(255,255,255,.97)!important;overflow:hidden!important}
+.room .chat .chat-h {background:linear-gradient(110deg,#e0f2fe,#ede9fe)!important;border-bottom:1px solid #dbeafe!important}
+@keyframes nx-video-enter {from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes nx-chat-in {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:860px) {
+  /* Two participants get genuinely usable previews; additional participants scroll horizontally. */
+  .room .vids:not(.hide):not(:empty) {
+    height:clamp(104px,17dvh,152px)!important;
+    max-height:clamp(104px,17dvh,152px)!important;
+    min-height:0!important;
+    padding:5px!important;gap:7px!important;
+    border:1px solid rgba(137,158,204,.35)!important;border-radius:18px!important;
+    background:rgba(255,255,255,.78)!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+  }
+  .room .vids .tile,.room .vids.one .tile,
+  .room.call-active .vids .tile,.room.call-active .vids.one .tile {
+    flex:0 0 clamp(150px,43vw,220px)!important;
+    width:clamp(150px,43vw,220px)!important;
+    height:100%!important;min-height:0!important;max-height:100%!important;
+    aspect-ratio:16/10!important;
+  }
+  .room .vids.one:not(.hide):not(:empty) .tile,
+  .room.call-active .vids.one:not(.hide):not(:empty) .tile {
+    flex-basis:clamp(220px,72vw,420px)!important;
+    width:clamp(220px,72vw,420px)!important;
+    height:100%!important;aspect-ratio:16/10!important;
+  }
+  .room .callbar {min-height:48px!important;max-height:52px!important;height:50px!important;padding:4px 8px!important;gap:clamp(5px,1.7vw,10px)!important}
+  .room .callbar .btn.round {flex:0 0 clamp(38px,10.5vw,46px)!important;width:clamp(38px,10.5vw,46px)!important;min-width:38px!important;height:42px!important;min-height:42px!important;max-height:42px!important;border-radius:15px!important}
+  /* Chat becomes a real grid row. The game canvas shrinks above it instead of being covered by a sheet. */
+  .room.chat-open,.room.chat-open.nodock {
+    grid-template-rows:auto auto minmax(100px,1fr) minmax(168px,30dvh) auto!important;
+    grid-template-areas:"head" "players" "board" "mobilechat" "callcontrols"!important;
+    gap:5px!important;
+  }
+  .room.chat-open .stage {grid-area:board!important;min-height:100px!important}
+  .room.chat-open .actions,.room.chat-open .vids {display:none!important}
+  .room.chat-open .dock .chat,.room.chat-open .chat {
+    grid-area:mobilechat!important;
+    position:relative!important;inset:auto!important;z-index:2!important;
+    display:flex!important;flex-direction:column!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:30dvh!important;
+    margin:0!important;transform:none!important;visibility:visible!important;
+    border-radius:18px!important;animation:nx-chat-in .2s ease-out both;
+  }
+  .room.chat-open .chat .msgs {flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+  .room.chat-open .chat .chat-f {flex:0 0 auto!important;padding-bottom:max(6px,env(safe-area-inset-bottom,0px))!important}
+  .room.chat-open .sheet-scrim,.room.chat-open .sheet-scrim.on {display:none!important}
+}
+@media (max-width:420px) and (orientation:portrait) {
+  .room .vids:not(.hide):not(:empty) {height:clamp(100px,16dvh,130px)!important;max-height:clamp(100px,16dvh,130px)!important}
+  .room .vids .tile,.room .vids.one .tile,.room.call-active .vids .tile {flex-basis:clamp(145px,43vw,180px)!important;width:clamp(145px,43vw,180px)!important}
+  .room .callbar {gap:4px!important;padding-inline:4px!important}
+}
+@media (max-height:650px) and (max-width:860px) and (orientation:portrait) {
+  .room .vids:not(.hide):not(:empty) {height:clamp(78px,14dvh,102px)!important;max-height:clamp(78px,14dvh,102px)!important}
+  .room .callbar {height:42px!important;min-height:42px!important;max-height:44px!important}
+  .room.chat-open,.room.chat-open.nodock {grid-template-rows:auto auto minmax(80px,1fr) minmax(140px,28dvh) auto!important}
+}
+@media (max-width:860px) and (orientation:landscape) {
+  .room .vids:not(.hide):not(:empty) {height:clamp(64px,17dvh,100px)!important;max-height:clamp(64px,17dvh,100px)!important}
+  .room .vids .tile,.room .vids.one .tile {flex-basis:clamp(100px,23vw,170px)!important;width:clamp(100px,23vw,170px)!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  .room .tile {animation:none!important}
+}
