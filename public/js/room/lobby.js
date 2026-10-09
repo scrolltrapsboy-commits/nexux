@@ -14,8 +14,12 @@ export function lobby(R, invalidate) {
   const allReady = R.players.every(p => p.ready || p.id === R.host), enough = R.players.length >= R.min;
   const optPills = R.opts ? Object.entries(R.opts).filter(([k, v]) => v && k !== 'ms').map(([k, v]) => h('span', { class: 'pill' }, k === 'time' ? v + ' min' : cap(k) + ': ' + v)) : [];
   const fill = R.fillAt ? Math.max(0, Math.ceil((R.fillAt - Date.now()) / 1000)) : null;
-  // Include every currently connected friend; away friends can still accept, while in-game friends are shown as busy.
-  const friends = (S.friends?.friends || []).filter(f => ['online', 'away', 'ingame'].includes(f.p));
+  // Keep the full friends list visible in the lobby, including offline friends.
+  // Presence only controls whether an invite can be sent immediately.
+  const friends = [...(S.friends?.friends || [])].sort((a, b) => {
+    const rank = { online: 0, away: 1, ingame: 2, offline: 3 };
+    return (rank[a.p] ?? 4) - (rank[b.p] ?? 4) || a.name.localeCompare(b.name);
+  });
   // Any game with an open seat can accept a friend invite, including 3+ player games.
   const canInvite = R.players.length < R.max;
   let action;
@@ -30,5 +34,13 @@ export function lobby(R, invalidate) {
     h('div', { class: 'plist' }, slots),
     fill != null ? h('div', { class: 'small tc muted' }, 'Match starts in ' + fill + 's, or sooner if the room fills up.') : (R.fillAt === null && R.players.length < R.min ? h('div', { class: 'small tc muted' }, 'Share the code, invite a friend, or wait for someone to join.') : null),
     action,
-    canInvite && friends.length ? h('div', null, h('div', { class: 'label', style: { margin: '4px 0 8px' } }, 'Invite online friends'), friends.map(f => h('div', { class: 'list-item' }, avatar(f.av, 32, f.p), h('b', { class: 'grow ell' }, f.name), f.p === 'ingame' ? h('span', { class: 'small muted' }, 'In a game') : h('button', { class: 'btn xs', onclick: async e => { e.target.disabled = true; const r = await ask('invite', { id: f.id, game: R.game }); if (r.error) { toast(r.error); e.target.disabled = false; } else e.target.textContent = 'Invited'; } }, 'Invite')))) : null);
+    h('section', { class: 'lobby-friends' },
+      h('div', { class: 'row', style: { justifyContent: 'space-between', margin: '4px 0 8px' } }, h('div', { class: 'label' }, 'Friends'), h('button', { class: 'btn xs', onclick: () => { location.hash = '#/friends'; } }, icon('users', 'sm'), 'Manage friends')),
+      friends.length ? h('div', { class: 'lobby-friend-list' }, friends.map(f => {
+        const presence = f.p || 'offline';
+        const canSend = canInvite && ['online', 'away'].includes(presence);
+        const status = presence === 'ingame' ? 'In a game' : presence === 'online' ? 'Online' : presence === 'away' ? 'Away' : 'Offline';
+        return h('div', { class: 'list-item lobby-friend' }, avatar(f.av, 32, presence), h('div', { class: 'grow', style: { minWidth: '0' } }, h('b', { class: 'ell' }, f.name), h('div', { class: 'small muted' }, status)),
+          presence === 'ingame' ? h('span', { class: 'small muted' }, 'Busy') : h('button', { class: 'btn xs', disabled: !canSend, title: !canInvite ? 'Room is full' : !canSend ? 'Friend must be online to invite now' : 'Invite to this room', onclick: async e => { e.currentTarget.disabled = true; const r = await ask('invite', { id: f.id, game: R.game }); if (r.error) { toast(r.error); e.currentTarget.disabled = !canSend; } else e.currentTarget.textContent = 'Invited'; } }, canSend ? 'Invite' : 'Offline'));
+      })) : h('div', { class: 'empty small' }, 'Your friends will appear here. Use Manage friends to find and add players.')));
 }
