@@ -55,3 +55,15 @@
 .nc-pick button.mkb svg{width:50%;height:50%;fill:currentColor}
 @media (max-height:640px){.nc{--cw:clamp(44px,min(15cqw,13cqh),84px)}}
 @media (prefers-reduced-motion:reduce){.nc-top.pop{animation:none}}
+
+
+/* Gameplay feedback: hand cards respond to focus, press and legal-play state. */
+.nc-hand .nc-c{transform-origin:50% 100%;will-change:transform,box-shadow}
+.nc-hand .nc-c.ok:focus-visible{outline:2px solid var(--fg);outline-offset:4px}
+.nc-hand .nc-c.ok:active{transform:translateY(-3px) scale(.96);transition-duration:.06s}
+.nc-hand .nc-c.wild.ok{box-shadow:0 10px 20px rgba(0,0,0,.55),0 0 0 2px var(--fg),0 0 18px rgba(255,255,255,.16)}
+.nc-pile.can{animation:ncpile-ready 1.8s ease-in-out infinite}
+.nc-pick>div{animation:ncpick-in .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ncpile-ready{0%,100%{box-shadow:0 0 0 2px var(--fg),0 6px 16px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 3px var(--fg),0 6px 22px rgba(0,0,0,.5)}}
+@keyframes ncpick-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.nc-pile.can,.nc-pick>div{animation:none}}
