@@ -220,3 +220,20 @@ button:not(:disabled):active,.btn:not(:disabled):active{transform:translateY(1px
 .room .tile .nm {font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:.01em}
 .room .chat .chat-f .inp {border-radius:14px!important;background:#f8faff!important;border:1px solid #dbe5f5!important;color:#14213d!important}
 .room .chat .chat-f .btn {border-radius:14px!important;background:linear-gradient(135deg,#087fce,#635bdf)!important;color:#fff!important}
+
+
+/* Rich, multi-hue game-surface finish shared by every game without changing rules. */
+.room .gbox {color:#172554}
+.room .gbox button:not(:disabled) {transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.room .gbox button:not(:disabled):hover {filter:saturate(1.18) brightness(1.025)}
+.room .gbox button:not(:disabled):active {transform:scale(.97)}
+.room .gbox :is(.gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles,.ttt-board,.rv-board) {
+  box-shadow:0 8px 24px rgba(67,56,202,.13),inset 0 1px 0 rgba(255,255,255,.85);
+}
+.room .gbox :is(.gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles) {
+  background-image:linear-gradient(135deg,rgba(255,255,255,.32),rgba(255,255,255,0) 44%,rgba(236,72,153,.05))!important;
+}
+.room .gbox :is(.ttt-c,.c4-cell,.ms-c,.wb-t,.nc-c,.rc-b,.rx,.rps-slot) {transition:background .16s ease,box-shadow .16s ease,transform .16s ease}
+.room .gbox :is(.ttt-c,.c4-cell,.ms-c,.wb-t,.nc-c,.rc-b):focus-visible {outline:3px solid #06b6d4!important;outline-offset:2px}
+.room .gbox :is(.ttt-c.win,.nc-hand .nc-c.ok,.rx.go) {box-shadow:0 0 0 3px rgba(34,211,238,.22),0 10px 22px rgba(99,102,241,.18)!important}
+.room .gbox :is(.gb-frame,.cg-board,.kg-board,.rg-board,.mg-board,.bs-grid,.c4,.ms-grid,.wb-tiles,.gp-wrap) {border-radius:16px}
