@@ -1251,3 +1251,66 @@
 @media (prefers-reduced-motion:reduce) {
   .room .tile,.room .chat {animation:none!important}
 }
+
+
+/* Final compact-phone pass based on the Stitch arena reference.
+   Two video participants share one row; chat stays in the room grid, not over the board. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .room, .room.nodock, .room.call-active, .room.call-video {
+    grid-template-rows: 38px 46px minmax(145px,1fr) 38px auto 48px !important;
+    gap: 4px !important;
+    padding: max(3px,env(safe-area-inset-top,0px)) 5px max(4px,env(safe-area-inset-bottom,0px)) !important;
+  }
+  .room .bar {min-height:38px!important;max-height:38px!important}
+  .room .seats {min-height:42px!important;max-height:46px!important}
+  .room .stage {min-height:0!important}
+  .room .actions {min-height:34px!important;max-height:38px!important}
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    justify-content:stretch!important;
+    align-items:stretch!important;
+    height:clamp(76px,12dvh,100px)!important;
+    min-height:clamp(76px,12dvh,100px)!important;
+    max-height:clamp(76px,12dvh,100px)!important;
+    overflow:hidden!important;
+  }
+  .room .vids:not(.one) .tile {
+    flex:1 1 0!important;
+    width:0!important;
+    min-width:0!important;
+    max-width:50%!important;
+    height:100%!important;
+    aspect-ratio:4/3!important;
+  }
+  .room .vids.one .tile {
+    flex:0 1 min(64vw,250px)!important;
+    width:min(64vw,250px)!important;
+    min-width:0!important;
+    height:100%!important;
+  }
+  .room .callbar {height:46px!important;min-height:46px!important;max-height:46px!important}
+  .room .callbar .btn.round {height:38px!important;min-height:38px!important;max-height:38px!important}
+  .room.chat-open, .room.chat-open.nodock, .room.chat-open.call-active, .room.chat-open.call-video {
+    grid-template-rows:38px 42px minmax(100px,1fr) minmax(116px,23dvh) 44px!important;
+    grid-template-areas:"head" "players" "board" "mobilechat" "callcontrols"!important;
+    gap:4px!important;
+  }
+  .room.chat-open .stage {min-height:0!important;height:100%!important}
+  .room.chat-open .chat {max-height:23dvh!important;min-height:0!important}
+}
+@media (max-width: 380px) and (orientation: portrait) {
+  .room, .room.nodock, .room.call-active, .room.call-video {
+    grid-template-rows:36px 40px minmax(125px,1fr) 34px auto 44px!important;
+    gap:3px!important;padding-inline:4px!important;
+  }
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {
+    height:74px!important;min-height:74px!important;max-height:74px!important;
+    padding:3px!important;gap:4px!important;
+  }
+  .room .callbar {height:42px!important;min-height:42px!important;max-height:42px!important}
+  .room .callbar .btn.round {height:35px!important;min-height:35px!important;max-height:35px!important}
+  .room.chat-open, .room.chat-open.nodock, .room.chat-open.call-active, .room.chat-open.call-video {
+    grid-template-rows:36px 38px minmax(90px,1fr) minmax(108px,22dvh) 40px!important;
+  }
+}
