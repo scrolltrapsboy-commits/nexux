@@ -109,8 +109,10 @@ export default {
     function boardPoint(e) {
       const rect = cv.getBoundingClientRect();
       let x = (e.clientX - rect.left - ox) / S0;
-      const y = (e.clientY - rect.top - oy) / S0;
-      if (flip) x = SIZE - x;
+      let y = (e.clientY - rect.top - oy) / S0;
+      // Seat two sees a 180-degree board rotation, so pointer coordinates must
+      // be converted back on both axes before checking their shooting baseline.
+      if (flip) { x = SIZE - x; y = SIZE - y; }
       return { x, y };
     }
     function placeStriker(e) {
