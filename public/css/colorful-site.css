@@ -102,3 +102,92 @@ body::before{
 .online-pill .dot.online{animation:nx-colour-breathe 2.4s ease-in-out infinite}
 @media(hover:none){.gcard:hover,.mini:hover,.stat:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){.online-pill .dot.online{animation:none}.gcard,.mini,.stat,.nav,.btn{transition:none}}
+
+
+/* Theme/accessibility audit fixes: the game stylesheet used !important light surfaces,
+   which otherwise overrode the site's dark theme inside rooms. */
+[data-theme="dark"] body{
+  background:
+    radial-gradient(ellipse at 5% 0%,rgba(24,201,216,.12),transparent 34%),
+    radial-gradient(ellipse at 95% 10%,rgba(240,92,174,.10),transparent 30%),
+    var(--bg)!important;
+  color:var(--fg);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(800px 520px at 0% 0%,rgba(24,201,216,.12),transparent 65%),
+    radial-gradient(760px 520px at 100% 8%,rgba(138,92,246,.16),transparent 62%),
+    var(--bg)!important;
+}
+[data-theme="dark"] .room{
+  --bg:#0d1022!important;--bg2:#151a32!important;--fg:#f4f5ff!important;
+  --fg2:#c2c8e5!important;--fg3:#9099bd!important;--glass:rgba(24,31,62,.78)!important;
+  --glass2:rgba(34,42,80,.94)!important;--glass3:rgba(124,135,210,.16)!important;
+  --line:rgba(160,174,255,.16)!important;--line2:rgba(160,174,255,.3)!important;
+  --hi:rgba(255,255,255,.09)!important;--solid:#8875ff!important;--on-solid:#fff!important;
+  --shadow:0 18px 48px rgba(0,0,0,.32)!important;
+  color:var(--fg)!important;
+  background:#0d1022!important;
+}
+[data-theme="dark"] .room::before{
+  background:
+    radial-gradient(700px 450px at 10% 0%,rgba(24,201,216,.13),transparent 65%),
+    radial-gradient(650px 420px at 100% 5%,rgba(138,92,246,.15),transparent 60%),
+    #0d1022!important;
+}
+[data-theme="dark"] .room .play,
+[data-theme="dark"] .room .dock,
+[data-theme="dark"] .room .bar,
+[data-theme="dark"] .room .seats,
+[data-theme="dark"] .room .stage,
+[data-theme="dark"] .room .actions,
+[data-theme="dark"] .room .vids,
+[data-theme="dark"] .room .callbar,
+[data-theme="dark"] .room .ttl,
+[data-theme="dark"] .room .seat,
+[data-theme="dark"] .room .tile,
+[data-theme="dark"] .room .chat,
+[data-theme="dark"] .room .result,
+[data-theme="dark"] .room .plist{
+  color:var(--fg)!important;
+}
+[data-theme="dark"] .room .bar,
+[data-theme="dark"] .room .seat,
+[data-theme="dark"] .room .dock,
+[data-theme="dark"] .room .callbar,
+[data-theme="dark"] .room .actions,
+[data-theme="dark"] .room .tile,
+[data-theme="dark"] .room .chat,
+[data-theme="dark"] .room .plist,
+[data-theme="dark"] .room .result{
+  background:linear-gradient(145deg,rgba(34,42,80,.96),rgba(24,31,62,.9))!important;
+  border-color:rgba(160,174,255,.16)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.22)!important;
+}
+[data-theme="dark"] .room .stage{
+  background:
+    radial-gradient(ellipse at 20% 0%,rgba(24,201,216,.1),transparent 55%),
+    radial-gradient(ellipse at 90% 100%,rgba(138,92,246,.12),transparent 55%),
+    #11162b!important;
+  border-color:rgba(160,174,255,.16)!important;
+}
+[data-theme="dark"] .room .badge2,
+[data-theme="dark"] .room .status,
+[data-theme="dark"] .room .turn,
+[data-theme="dark"] .room .pill{
+  background:linear-gradient(135deg,rgba(24,201,216,.2),rgba(138,92,246,.24))!important;
+  color:#e9e8ff!important;border-color:rgba(138,92,246,.35)!important;
+}
+[data-theme="dark"] .room .btn.lobby,
+[data-theme="dark"] .room .actions .lobby{
+  background:linear-gradient(135deg,#202744,#292d50)!important;
+  color:#e9ecff!important;border-color:rgba(160,174,255,.22)!important;
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.001ms!important;
+  }
+}
