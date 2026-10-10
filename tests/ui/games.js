@@ -30,6 +30,31 @@ let bad = 0; const ok = (n, c, x = '') => { console.log(c ? 'PASS' : 'FAIL', n, 
     ok(tag + ' nothing clipped horizontally', !m.clipped.length, m.clipped.join(','));
     if (m.small.length) console.log('WARN small targets', tag, m.small.join(' | '));
     ok(tag + ' no console errors', !errs.length, errs.join(' | ').slice(0, 300));
+    // Regression check: on the first carrom turn, dragging the striker on its
+    // baseline must update the position slider instead of being treated as a shot.
+    if (g === 'carrom' && W <= 390) {
+      const slider = pg.locator('.cr-slide');
+      const canvas = pg.locator('.gp-cv');
+      const enabled = await slider.isEnabled().catch(() => false);
+      if (enabled) {
+        const b = await canvas.boundingBox();
+        const target = await canvas.evaluate(cv => {
+          const r = cv.getBoundingClientRect();
+          const side = (Math.min(r.width, r.height) - 14) / 1.18;
+          const ox = (r.width - side) / 2, oy = (r.height - side) / 2;
+          return { left:r.left, top:r.top, side, ox, oy };
+        });
+        const y = target.top + target.oy + 83 * target.side / 100;
+        const x0 = target.left + target.ox + 50 * target.side / 100;
+        const x1 = target.left + target.ox + 70 * target.side / 100;
+        await pg.mouse.move(x0, y); await pg.mouse.down(); await pg.mouse.move(x1, y, { steps: 5 }); await pg.mouse.up();
+        await pg.waitForTimeout(100);
+        const value = Number(await slider.inputValue());
+        ok(tag + ' carrom striker can be repositioned by dragging', value > 60 && value < 80, 'slider=' + value + ', canvas=' + JSON.stringify(b));
+      } else {
+        ok(tag + ' carrom striker positioning is available on the active turn', false, 'slider disabled');
+      }
+    }
     if (W === 390 || W === 1440) await pg.screenshot({ path: `/tmp/shots/g-${g}-${W}.png` });
     for (const p of ps) await p.ctx.close();
   }
