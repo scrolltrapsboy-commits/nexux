@@ -1183,3 +1183,71 @@
     max-height: 92px !important;
   }
 }
+
+
+/* Reference-matched mobile arena layout: keep all room UI inside the viewport. */
+@media (max-width: 860px) {
+  .room, .room.nodock, .room.call-active, .room.call-video {
+    box-sizing:border-box!important;
+    position:fixed!important; inset:0!important;
+    width:100%!important; height:100vh!important; height:100dvh!important;
+    max-height:100dvh!important; overflow:hidden!important;
+    display:grid!important; grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows: auto auto minmax(170px,1fr) auto auto auto!important;
+    grid-template-areas:"head" "players" "board" "gameactions" "callpreviews" "callcontrols"!important;
+    gap:5px!important;
+    padding:max(4px,env(safe-area-inset-top,0px)) 6px max(4px,env(safe-area-inset-bottom,0px))!important;
+    align-content:stretch!important;
+  }
+  .room > .play,.room > .dock {display:contents!important}
+  .room .bar {grid-area:head!important;min-height:38px!important;max-height:44px!important;overflow:hidden!important;padding:0 2px!important}
+  .room .seats {grid-area:players!important;min-height:0!important;max-height:48px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:0!important;flex-wrap:nowrap!important}
+  .room .stage {grid-area:board!important;display:grid!important;place-items:center!important;min-width:0!important;min-height:0!important;width:100%!important;height:100%!important;max-height:100%!important;margin:0!important;padding:3px!important;overflow:hidden!important}
+  .room .stage > .gbox {box-sizing:border-box!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;overflow:hidden!important}
+  .room .stage > .gbox > * {max-width:100%!important;max-height:100%!important}
+  .room .stage > .lobby {box-sizing:border-box!important;width:min(100%,500px)!important;max-height:calc(100% - 4px)!important;overflow-y:auto!important}
+  .room .actions {grid-area:gameactions!important;min-height:34px!important;max-height:42px!important;margin:0!important;padding:0!important;flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto!important;overflow-y:hidden!important}
+  .room .actions .btn {flex:0 0 auto!important;min-height:34px!important}
+  .room .vids {grid-area:callpreviews!important;position:relative!important;inset:auto!important;display:flex!important;flex-direction:row!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:0!important;min-height:0!important;max-height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important}
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {height:clamp(96px,15dvh,126px)!important;min-height:clamp(96px,15dvh,126px)!important;max-height:clamp(96px,15dvh,126px)!important;padding:4px!important;gap:6px!important;border:1px solid var(--nx-edge,rgba(92,112,161,.22))!important;border-radius:16px!important;overflow-x:auto!important;overflow-y:hidden!important;background:rgba(255,255,255,.84)!important}
+  .room .vids .tile,.room .vids.one .tile {box-sizing:border-box!important;flex:0 0 clamp(135px,42vw,190px)!important;width:clamp(135px,42vw,190px)!important;height:100%!important;min-height:0!important;max-height:100%!important;aspect-ratio:16/10!important}
+  .room .vids.one:not(.hide):not(:empty):not(.empty-call) .tile {flex-basis:min(72vw,290px)!important;width:min(72vw,290px)!important}
+  .room .vids.hide,.room .vids:empty,.room .vids.empty-call {display:none!important}
+  .room .callbar {grid-area:callcontrols!important;position:relative!important;inset:auto!important;z-index:12!important;box-sizing:border-box!important;display:flex!important;align-self:end!important;width:100%!important;height:48px!important;min-height:48px!important;max-height:48px!important;margin:0!important;padding:3px 4px!important;gap:clamp(3px,1vw,7px)!important;flex-wrap:nowrap!important;justify-content:space-evenly!important;overflow:visible!important}
+  .room .callbar[hidden] {display:none!important}
+  .room .callbar .btn.round {box-sizing:border-box!important;flex:0 1 40px!important;width:40px!important;min-width:31px!important;height:40px!important;min-height:40px!important;max-height:40px!important;padding:3px!important}
+  .room .callbar .m-only {display:inline-flex!important}
+  .room.chat-open,.room.chat-open.nodock,.room.chat-open.call-active,.room.chat-open.call-video {
+    grid-template-rows:auto auto minmax(100px,1fr) minmax(130px,24dvh) 46px!important;
+    grid-template-areas:"head" "players" "board" "mobilechat" "callcontrols"!important;
+    gap:5px!important;
+  }
+  .room.chat-open .actions,.room.chat-open .vids {display:none!important}
+  .room.chat-open .stage {grid-area:board!important;min-height:0!important}
+  .room.chat-open .dock .chat,.room.chat-open .chat {
+    grid-area:mobilechat!important;position:relative!important;inset:auto!important;z-index:3!important;
+    display:flex!important;flex-direction:column!important;box-sizing:border-box!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:24dvh!important;
+    margin:0!important;transform:none!important;visibility:visible!important;overflow:hidden!important;
+    border-radius:16px!important;animation:none!important;
+  }
+  .room.chat-open .chat .msgs {flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+  .room.chat-open .chat .chat-f {flex:0 0 auto!important;padding-bottom:4px!important}
+  .room.chat-open .sheet-scrim,.room.chat-open .sheet-scrim.on {display:none!important}
+}
+@media (max-width:420px) and (orientation:portrait) {
+  .room,.room.nodock,.room.call-active,.room.call-video {grid-template-rows:auto auto minmax(155px,1fr) auto auto auto!important;gap:4px!important;padding-inline:4px!important}
+  .room .bar .ttl b {max-width:27vw!important;font-size:12px!important}
+  .room .bar .btn:not(.round) {padding-inline:6px!important;font-size:10px!important}
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {height:clamp(88px,13dvh,108px)!important;min-height:clamp(88px,13dvh,108px)!important;max-height:clamp(88px,13dvh,108px)!important}
+  .room .vids .tile,.room .vids.one .tile {flex-basis:68vw!important;width:68vw!important}
+  .room .callbar .btn.round {flex-basis:36px!important;width:36px!important;min-width:30px!important}
+  .room.chat-open,.room.chat-open.nodock,.room.chat-open.call-active,.room.chat-open.call-video {grid-template-rows:auto auto minmax(95px,1fr) minmax(118px,23dvh) 42px!important}
+}
+@media (max-height:650px) and (max-width:860px) and (orientation:portrait) {
+  .room,.room.nodock,.room.call-active,.room.call-video {grid-template-rows:auto auto minmax(120px,1fr) auto auto auto!important}
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {height:76px!important;min-height:76px!important;max-height:76px!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  .room .tile,.room .chat {animation:none!important}
+}
