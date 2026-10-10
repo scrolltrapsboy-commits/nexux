@@ -103,10 +103,54 @@ export default {
       const rect = cv.getBoundingClientRect(), [bx, by] = toS(...strikerPos()), px = e.clientX - rect.left, py = e.clientY - rect.top, vx = bx - px, vy = by - py, dist = Math.hypot(vx, vy) / S0;
       const sa = Math.atan2(vy, vx); return { sa, angle: flip ? sa + Math.PI : sa, power: clamp(dist / MAXPULL, 0, 1) };
     }
-    cv.addEventListener('pointerdown', e => { if (!canAim()) return; cv.setPointerCapture(e.pointerId); aim = compute(e); loop(); e.preventDefault(); });
-    cv.addEventListener('pointermove', e => { if (aim) aim = compute(e); });
-    cv.addEventListener('pointerup', e => { if (!aim) return; const a = compute(e); aim = null; try { cv.releasePointerCapture(e.pointerId); } catch {} if (a.power >= 0.08) { api.sfx('move'); api.move({ x: sx(), angle: a.angle, power: a.power }); } draw(); });
-    cv.addEventListener('pointercancel', () => { aim = null; draw(); });
+    // A player may reposition the striker anywhere along their own baseline by dragging
+    // the striker or tapping/dragging near the baseline. Pulling back elsewhere still shoots.
+    let placingStriker = false;
+    function boardPoint(e) {
+      const rect = cv.getBoundingClientRect();
+      let x = (e.clientX - rect.left - ox) / S0;
+      const y = (e.clientY - rect.top - oy) / S0;
+      if (flip) x = SIZE - x;
+      return { x, y };
+    }
+    function placeStriker(e) {
+      const p = boardPoint(e);
+      slider.value = String(clamp(p.x, X_MIN, X_MAX));
+      draw();
+    }
+    cv.addEventListener('pointerdown', e => {
+      if (!canAim()) return;
+      const p = boardPoint(e), baseY = BASE_Y[R.youIdx];
+      const onBaseline = Math.abs(p.y - baseY) <= 11;
+      const onStriker = Math.hypot(p.x - sx(), p.y - baseY) <= 11;
+      if (onBaseline || onStriker) {
+        placingStriker = true;
+        try { cv.setPointerCapture(e.pointerId); } catch {}
+        placeStriker(e);
+        e.preventDefault();
+        return;
+      }
+      try { cv.setPointerCapture(e.pointerId); } catch {}
+      aim = compute(e); loop(); e.preventDefault();
+    });
+    cv.addEventListener('pointermove', e => {
+      if (placingStriker) { placeStriker(e); return; }
+      if (aim) aim = compute(e);
+    });
+    cv.addEventListener('pointerup', e => {
+      if (placingStriker) {
+        placingStriker = false;
+        try { cv.releasePointerCapture(e.pointerId); } catch {}
+        draw();
+        return;
+      }
+      if (!aim) return;
+      const a = compute(e); aim = null;
+      try { cv.releasePointerCapture(e.pointerId); } catch {}
+      if (a.power >= 0.08) { api.sfx('move'); api.move({ x: sx(), angle: a.angle, power: a.power }); }
+      draw();
+    });
+    cv.addEventListener('pointercancel', () => { placingStriker = false; aim = null; draw(); });
     slider.addEventListener('input', () => { if (flip) { /* slider shows the board as the player sees it, so left/right already match the screen */ } draw(); });
     // when the board is flipped (seat 1), the slider's left is the player's left: world x runs the other way
     const syncSlider = () => { slider.style.direction = 'ltr'; };
