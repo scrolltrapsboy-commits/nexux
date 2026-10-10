@@ -1314,3 +1314,22 @@
     grid-template-rows:36px 38px minmax(90px,1fr) minmax(108px,22dvh) 40px!important;
   }
 }
+
+
+/* Give active call previews enough real estate on phones, matching the compact arena reference. */
+@media (max-width:860px) and (orientation:portrait) {
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {
+    height:clamp(104px,15dvh,136px)!important;
+    min-height:clamp(104px,15dvh,136px)!important;
+    max-height:clamp(104px,15dvh,136px)!important;
+  }
+  .room .vids:not(.one) .tile {
+    min-height:0!important;
+    max-height:100%!important;
+  }
+}
+@media (max-height:650px) and (max-width:860px) and (orientation:portrait) {
+  .room .vids:not(.hide):not(:empty):not(.empty-call) {
+    height:88px!important;min-height:88px!important;max-height:88px!important;
+  }
+}
